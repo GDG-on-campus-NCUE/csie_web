@@ -27,6 +27,8 @@ class Post extends Model
         'content_en',
         'source_type',
         'source_url',
+        'views',
+        'tags',
         'created_by',
         'updated_by',
     ];
@@ -39,6 +41,8 @@ class Post extends Model
             'pinned' => 'boolean',
             'source_type' => 'string',
             'source_url' => 'string',
+            'views' => 'integer',
+            'tags' => 'array',
         ];
     }
 
@@ -64,7 +68,7 @@ class Post extends Model
     }
 
     /**
-     * Scope a query to only include published and active posts.
+     * 只取得已發布且仍在有效期間內的公告。
      */
     public function scopePublished(Builder $query): Builder
     {
