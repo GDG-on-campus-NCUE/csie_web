@@ -10,6 +10,24 @@ return [
             'posts_edit' => '編輯公告',
             'posts_show' => '公告詳情',
             'attachments' => '附件管理',
+            'settings' => '帳戶設定',
+            'settings_profile' => '個人資料',
+            'settings_password' => '安全設定',
+            'settings_appearance' => '外觀偏好',
+        ],
+        'brand' => [
+            'admin' => [
+                'primary' => 'CSIE 後台',
+                'secondary' => '系統管理中心',
+            ],
+            'teacher' => [
+                'primary' => 'CSIE 教師',
+                'secondary' => '教學管理後台',
+            ],
+            'user' => [
+                'primary' => 'CSIE 會員',
+                'secondary' => '會員專區',
+            ],
         ],
         'footer' => 'CSIE 後台',
     ],
@@ -45,6 +63,94 @@ return [
             'settings' => '系統設定',
             'docs' => '說明文件',
             'repo' => '原始碼庫',
+        ],
+    ],
+    'settings' => [
+        'badge' => '帳戶',
+        'title' => '帳戶設定',
+        'description' => '集中管理個人資料、安全偏好與介面外觀。',
+        'menu_label' => '帳戶設定',
+        'nav' => [
+            'profile' => '個人資料',
+            'password' => '安全設定',
+            'appearance' => '外觀偏好',
+        ],
+        'profile' => [
+            'head_title' => '個人資料設定',
+            'title' => '個人資訊',
+            'description' => '更新姓名與電子郵件資訊。',
+            'fields' => [
+                'name' => [
+                    'label' => '姓名',
+                    'placeholder' => '請輸入姓名',
+                ],
+                'email' => [
+                    'label' => '電子郵件',
+                    'placeholder' => '請輸入電子郵件',
+                ],
+            ],
+            'verification' => [
+                'notice' => '您的電子郵件地址尚未完成驗證。',
+                'action' => '點此重新寄送驗證信。',
+            ],
+            'actions' => [
+                'save' => '儲存變更',
+                'saved' => '已儲存',
+            ],
+            'delete' => [
+                'title' => '刪除帳號',
+                'description' => '刪除帳號及其所有相關資料。',
+                'warning' => [
+                    'title' => '警告',
+                    'description' => '此操作無法復原，請務必確認後再執行。',
+                ],
+                'dialog' => [
+                    'title' => '確定要刪除帳號嗎？',
+                    'description' => '刪除後所有資料將永久移除，請輸入密碼以確認。',
+                ],
+                'form' => [
+                    'password_label' => '密碼',
+                    'password_placeholder' => '請輸入密碼',
+                ],
+                'actions' => [
+                    'trigger' => '刪除帳號',
+                    'cancel' => '取消',
+                    'confirm' => '確認刪除',
+                ],
+            ],
+        ],
+        'password' => [
+            'head_title' => '安全設定',
+            'title' => '更新密碼',
+            'description' => '使用高強度且不易猜測的密碼保護帳號安全。',
+            'fields' => [
+                'current' => [
+                    'label' => '目前密碼',
+                    'placeholder' => '輸入目前密碼',
+                ],
+                'new' => [
+                    'label' => '新密碼',
+                    'placeholder' => '輸入新密碼',
+                ],
+                'confirm' => [
+                    'label' => '確認密碼',
+                    'placeholder' => '再次輸入新密碼',
+                ],
+            ],
+            'actions' => [
+                'save' => '儲存密碼',
+                'saved' => '已儲存',
+            ],
+        ],
+        'appearance' => [
+            'head_title' => '外觀設定',
+            'title' => '介面外觀偏好',
+            'description' => '調整後台在各裝置上的顯示樣式。',
+            'options' => [
+                'light' => '亮色',
+                'dark' => '暗色',
+                'system' => '依系統',
+            ],
         ],
     ],
     'dashboard' => [

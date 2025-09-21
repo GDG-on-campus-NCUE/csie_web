@@ -10,6 +10,24 @@ return [
             'posts_edit' => 'Edit bulletin',
             'posts_show' => 'Bulletin detail',
             'attachments' => 'Attachments',
+            'settings' => 'Account settings',
+            'settings_profile' => 'Profile',
+            'settings_password' => 'Security',
+            'settings_appearance' => 'Appearance',
+        ],
+        'brand' => [
+            'admin' => [
+                'primary' => 'CSIE Admin',
+                'secondary' => 'Management Console',
+            ],
+            'teacher' => [
+                'primary' => 'CSIE Teacher',
+                'secondary' => 'Teaching Console',
+            ],
+            'user' => [
+                'primary' => 'CSIE Member',
+                'secondary' => 'Member Area',
+            ],
         ],
         'footer' => 'CSIE Admin',
     ],
@@ -45,6 +63,94 @@ return [
             'settings' => 'System settings',
             'docs' => 'Documentation',
             'repo' => 'Repository',
+        ],
+    ],
+    'settings' => [
+        'badge' => 'Account',
+        'title' => 'Account settings',
+        'description' => 'Manage your personal information, security preferences, and interface options.',
+        'menu_label' => 'Account settings',
+        'nav' => [
+            'profile' => 'Profile',
+            'password' => 'Security',
+            'appearance' => 'Appearance',
+        ],
+        'profile' => [
+            'head_title' => 'Profile settings',
+            'title' => 'Profile information',
+            'description' => 'Update your name and email address.',
+            'fields' => [
+                'name' => [
+                    'label' => 'Name',
+                    'placeholder' => 'Full name',
+                ],
+                'email' => [
+                    'label' => 'Email address',
+                    'placeholder' => 'Email address',
+                ],
+            ],
+            'verification' => [
+                'notice' => 'Your email address has not been verified yet.',
+                'action' => 'Click here to resend the verification email.',
+            ],
+            'actions' => [
+                'save' => 'Save changes',
+                'saved' => 'Saved',
+            ],
+            'delete' => [
+                'title' => 'Delete account',
+                'description' => 'Delete your account and all associated data.',
+                'warning' => [
+                    'title' => 'Warning',
+                    'description' => 'This action is irreversible. Please confirm before continuing.',
+                ],
+                'dialog' => [
+                    'title' => 'Are you sure you want to delete your account?',
+                    'description' => 'Once your account is deleted, all of its resources and data will be permanently removed. Please enter your password to confirm.',
+                ],
+                'form' => [
+                    'password_label' => 'Password',
+                    'password_placeholder' => 'Password',
+                ],
+                'actions' => [
+                    'trigger' => 'Delete account',
+                    'cancel' => 'Cancel',
+                    'confirm' => 'Delete account',
+                ],
+            ],
+        ],
+        'password' => [
+            'head_title' => 'Security settings',
+            'title' => 'Update password',
+            'description' => 'Use a long, random password to keep your account secure.',
+            'fields' => [
+                'current' => [
+                    'label' => 'Current password',
+                    'placeholder' => 'Current password',
+                ],
+                'new' => [
+                    'label' => 'New password',
+                    'placeholder' => 'New password',
+                ],
+                'confirm' => [
+                    'label' => 'Confirm password',
+                    'placeholder' => 'Confirm password',
+                ],
+            ],
+            'actions' => [
+                'save' => 'Save password',
+                'saved' => 'Saved',
+            ],
+        ],
+        'appearance' => [
+            'head_title' => 'Appearance settings',
+            'title' => 'Appearance preferences',
+            'description' => 'Choose how the dashboard looks on your device.',
+            'options' => [
+                'light' => 'Light',
+                'dark' => 'Dark',
+                'system' => 'System',
+            ],
         ],
     ],
     'dashboard' => [

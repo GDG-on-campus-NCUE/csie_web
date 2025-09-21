@@ -1,6 +1,7 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { useTranslator } from '@/hooks/use-translator';
 
 export type ManageRole = 'admin' | 'teacher' | 'user';
 
@@ -8,26 +9,14 @@ interface ManageBrandProps {
     role?: ManageRole;
 }
 
-const primaryLabels: Record<ManageRole, string> = {
-    admin: 'CSIE Admin',
-    teacher: 'CSIE Teacher',
-    user: 'CSIE Member',
-};
-
-const secondaryLabels: Record<ManageRole, { zh: string; en: string }> = {
-    admin: { zh: '系統後台', en: 'Management Console' },
-    teacher: { zh: '教學後台', en: 'Teaching Console' },
-    user: { zh: '會員中心', en: 'Member Area' },
-};
-
 export default function ManageBrand({ role: roleOverride }: ManageBrandProps) {
     const page = usePage<SharedData>();
-    const { auth, locale } = page.props;
+    const { auth } = page.props;
+    const { t } = useTranslator('manage');
     const role = (roleOverride ?? auth?.user?.role ?? 'user') as ManageRole;
-    const isZh = locale?.toLowerCase() === 'zh-tw';
 
-    const primaryLabel = primaryLabels[role];
-    const secondaryLabel = secondaryLabels[role][isZh ? 'zh' : 'en'];
+    const primaryLabel = t(`layout.brand.${role}.primary`);
+    const secondaryLabel = t(`layout.brand.${role}.secondary`);
 
     return (
         <>

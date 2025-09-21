@@ -29,6 +29,14 @@ declare module '@/routes/*' {
     export default route;
 }
 
+declare module '@/routes' {
+    export const home: any;
+    export const login: any;
+    export const logout: any;
+    export const register: any;
+    export const dashboard: any;
+}
+
 declare module '../wayfinder' {
     export type RouteQueryOptions = Record<string, unknown>;
     export type RouteDefinition<Method extends string | readonly string[] = string> = Method extends readonly string[]
@@ -41,5 +49,9 @@ declare module '../wayfinder' {
 }
 
 declare module './../wayfinder' {
+    export * from '../wayfinder';
+}
+
+declare module '*wayfinder/index' {
     export * from '../wayfinder';
 }

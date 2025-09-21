@@ -32,88 +32,88 @@ export function AppSidebar() {
     const mainNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
         admin: [
             {
-                title: t('sidebar.admin.dashboard', 'Dashboard'),
+                title: t('sidebar.admin.dashboard'),
                 href: '/manage/admin/dashboard',
                 icon: LayoutGrid,
             },
             {
-                title: t('sidebar.admin.posts', 'Announcements'),
+                title: t('sidebar.admin.posts'),
                 href: '/manage/admin/posts',
                 icon: Megaphone,
             },
             {
-                title: t('sidebar.admin.staff', 'Faculty & Staff'),
+                title: t('sidebar.admin.staff'),
                 href: '/manage/admin/staff',
                 icon: UserCheck,
             },
             {
-                title: t('sidebar.admin.labs', 'Laboratories'),
+                title: t('sidebar.admin.labs'),
                 href: '/manage/admin/labs',
                 icon: Beaker,
             },
             {
-                title: t('sidebar.admin.academics', 'Courses & Programs'),
+                title: t('sidebar.admin.academics'),
                 href: '/manage/admin/academics',
                 icon: GraduationCap,
             },
             {
-                title: t('sidebar.admin.users', 'Users'),
+                title: t('sidebar.admin.users'),
                 href: '/manage/admin/users',
                 icon: Users,
             },
             {
-                title: t('sidebar.admin.messages', 'Messages'),
+                title: t('sidebar.admin.messages'),
                 href: '/manage/admin/contact-messages',
                 icon: Mail,
             },
             {
-                title: t('sidebar.admin.attachments', 'Attachments'),
+                title: t('sidebar.admin.attachments'),
                 href: '/manage/admin/attachments',
                 icon: FileText,
             },
         ],
         teacher: [
-            { title: t('sidebar.teacher.dashboard', 'Teaching Home'), href: '/manage/dashboard', icon: LayoutGrid },
-            { title: t('sidebar.teacher.posts', 'Announcements'), href: '/manage/teacher/posts', icon: Megaphone },
-            { title: t('sidebar.teacher.labs', 'Research'), href: '/manage/teacher/labs', icon: Beaker },
-            { title: t('sidebar.teacher.courses', 'Courses & Activities'), href: '/manage/teacher/courses', icon: NotebookPen },
-            { title: t('sidebar.teacher.profile', 'Profile Settings'), href: '/settings/profile', icon: Settings },
+            { title: t('sidebar.teacher.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
+            { title: t('sidebar.teacher.posts'), href: '/manage/teacher/posts', icon: Megaphone },
+            { title: t('sidebar.teacher.labs'), href: '/manage/teacher/labs', icon: Beaker },
+            { title: t('sidebar.teacher.courses'), href: '/manage/teacher/courses', icon: NotebookPen },
+            { title: t('sidebar.teacher.profile'), href: '/manage/settings/profile', icon: Settings },
         ],
         user: [
-            { title: t('sidebar.user.dashboard', 'Member Home'), href: '/manage/dashboard', icon: LayoutGrid },
-            { title: t('sidebar.user.profile', 'Profile'), href: '/settings/profile', icon: User },
-            { title: t('sidebar.user.security', 'Security'), href: '/settings/password', icon: ShieldCheck },
+            { title: t('sidebar.user.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
+            { title: t('sidebar.user.profile'), href: '/manage/settings/profile', icon: User },
+            { title: t('sidebar.user.security'), href: '/manage/settings/password', icon: ShieldCheck },
         ],
     };
 
     const footerNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
         admin: [
             {
-                title: t('sidebar.footer.settings', 'Settings'),
-                href: '/settings/profile',
+                title: t('sidebar.footer.settings'),
+                href: '/manage/settings/profile',
                 icon: Settings,
             },
             {
-                title: t('sidebar.footer.docs', 'Documentation'),
+                title: t('sidebar.footer.docs'),
                 href: 'https://laravel.com/docs',
                 icon: HelpCircle,
             },
             {
-                title: t('sidebar.footer.repo', 'Repository'),
+                title: t('sidebar.footer.repo'),
                 href: 'https://github.com/Grasonyang/csie_web',
                 icon: Folder,
             },
         ],
         teacher: [
             {
-                title: t('sidebar.teacher.guide', 'Teaching Guide'),
+                title: t('sidebar.teacher.guide'),
                 href: 'https://github.com/Grasonyang/csie_web',
                 icon: HelpCircle,
             },
         ],
         user: [
             {
-                title: t('sidebar.user.support', 'Support'),
+                title: t('sidebar.user.support'),
                 href: 'mailto:csie@cc.ncue.edu.tw',
                 icon: LifeBuoy,
             },
@@ -121,8 +121,8 @@ export function AppSidebar() {
     };
 
     const navLabelsByRole: Partial<Record<SharedData['auth']['user']['role'], string>> = {
-        teacher: t('sidebar.teacher.nav_label', 'Teaching'),
-        user: t('sidebar.user.nav_label', 'Member area'),
+        teacher: t('sidebar.teacher.nav_label'),
+        user: t('sidebar.user.nav_label'),
     };
 
     const mainNavItems = mainNavItemsByRole[role] ?? mainNavItemsByRole.user;
