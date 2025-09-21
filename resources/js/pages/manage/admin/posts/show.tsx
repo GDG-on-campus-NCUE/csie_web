@@ -2,9 +2,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import type { SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Clock, Download, ExternalLink, LinkIcon, Paperclip, User } from 'lucide-react';
+import { useTranslator } from '@/hooks/use-translator';
 
 interface Attachment {
     id: number;
@@ -50,15 +50,9 @@ interface ShowPostProps {
     post: AdminPostDetail;
 }
 
-const statusLabels: Record<AdminPostDetail['status'], { zh: string; en: string }> = {
-    draft: { zh: '草稿', en: 'Draft' },
-    published: { zh: '發布', en: 'Publish' },
-    archived: { zh: '已封存', en: 'Archived' },
-};
-
-const formatDateTime = (value: any, locale?: string) => {
+const formatDateTime = (value: any, localeKey: 'zh-TW' | 'en', fallback: string) => {
     if (!value) {
-        return locale?.toLowerCase() === 'zh-tw' ? '未設定' : 'Not set';
+        return fallback;
     }
 
     const date = new Date(value);
@@ -66,7 +60,7 @@ const formatDateTime = (value: any, locale?: string) => {
         return value;
     }
 
-    const lang = locale?.toLowerCase() === 'zh-tw' ? 'zh-TW' : 'en-US';
+    const lang = localeKey === 'zh-TW' ? 'zh-TW' : 'en-US';
     return date.toLocaleString(lang, {
         hour12: false,
         year: 'numeric',
@@ -92,8 +86,7 @@ const buildAttachmentViewUrl = (attachment: Attachment) => `/attachments/${attac
 const buildAttachmentDownloadUrl = (attachment: Attachment) => `/attachments/${attachment.id}/download`;
 
 export default function ShowPost({ post }: ShowPostProps) {
-    const { locale } = usePage<SharedData>().props;
-    const isZh = locale?.toLowerCase() === 'zh-tw';
+    const { t, isZh, localeKey } = useTranslator('manage');
 
     const postsIndexUrl = '/manage/admin/posts';
     const attachmentsIndexUrl = '/manage/admin/attachments';
@@ -102,14 +95,19 @@ export default function ShowPost({ post }: ShowPostProps) {
         attachable_id: String(post.id),
     }).toString()}`;
     const breadcrumbs = [
-        { title: isZh ? '管理首頁' : 'Management', href: '/manage/dashboard' },
-        { title: isZh ? '公告管理' : 'Announcements', href: postsIndexUrl },
-        { title: isZh ? '公告詳情' : 'Details', href: `/manage/admin/posts/${post.id}` },
+        { title: t('layout.breadcrumbs.dashboard', isZh ? '管理首頁' : 'Management'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.posts', isZh ? '公告管理' : 'Announcements'), href: postsIndexUrl },
+        { title: t('layout.breadcrumbs.posts_show', isZh ? '公告詳情' : 'Bulletin detail'), href: `/manage/admin/posts/${post.id}` },
     ];
 
+    const statusFallbacks = {
+        draft: isZh ? '草稿' : 'Draft',
+        published: isZh ? '發布' : 'Published',
+        archived: isZh ? '封存' : 'Archived',
+    } as const;
     const statusBadge = (
         <Badge variant={post.status === 'published' ? 'default' : post.status === 'draft' ? 'secondary' : 'outline'}>
-            {isZh ? statusLabels[post.status].zh : statusLabels[post.status].en}
+            {t(`posts.status.${post.status}`, statusFallbacks[post.status])}
         </Badge>
     );
 
@@ -119,7 +117,7 @@ export default function ShowPost({ post }: ShowPostProps) {
 
     return (
         <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
-            <Head title={isZh ? '公告詳情' : 'Bulletin detail'} />
+            <Head title={t('posts.show.title', isZh ? '公告詳情' : 'Bulletin detail')} />
 
             <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-0">
                 <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
@@ -131,16 +129,17 @@ export default function ShowPost({ post }: ShowPostProps) {
                             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                                 <span className="inline-flex items-center gap-1">
                                     <Calendar className="h-4 w-4" />
-                                    {isZh ? '發布' : 'Published'}: {formatDateTime(post.publish_at, locale)}
+                                    {t('posts.show.published_at', isZh ? '發布時間' : 'Published')}:{' '}
+                                    {formatDateTime(post.publish_at, localeKey, t('posts.show.not_set', isZh ? '未設定' : 'Not set'))}
                                 </span>
                                 <span className="inline-flex items-center gap-1">
                                     <User className="h-4 w-4" />
-                                    {post.creator?.name ?? (isZh ? '系統' : 'System')}
+                                    {post.creator?.name ?? t('posts.show.system_user', isZh ? '系統' : 'System')}
                                 </span>
                                 {statusBadge}
                                 {post.pinned && (
                                     <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
-                                        {isZh ? '置頂' : 'Pinned'}
+                                        {t('posts.show.pinned_badge', isZh ? '置頂' : 'Pinned')}
                                     </Badge>
                                 )}
                             </div>
@@ -148,7 +147,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                         <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
                             <Link href={postsIndexUrl}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
-                                {isZh ? '返回列表' : 'Back to list'}
+                                {t('posts.form.header.back_to_index', isZh ? '返回公告列表' : 'Back to announcements')}
                             </Link>
                         </Button>
                     </CardContent>
@@ -158,34 +157,38 @@ export default function ShowPost({ post }: ShowPostProps) {
                     <CardHeader className="border-b border-neutral-200 bg-neutral-50/60">
                         <CardTitle className="flex items-center gap-2 text-[#151f54]">
                             <Clock className="h-5 w-5" />
-                            {isZh ? '基本資訊' : 'Overview'}
+                            {t('posts.show.overview', isZh ? '基本資訊' : 'Overview')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-6 p-6 md:grid-cols-2">
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '分類' : 'Category'}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.category', isZh ? '公告分類' : 'Category')}
+                            </p>
                             <p className="mt-1 text-base text-neutral-900">
                                 {isZh ? post.category?.name : post.category?.name_en}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '英文標題' : 'English title'}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.english_title', isZh ? '英文標題' : 'English title')}
+                            </p>
                             <p className="mt-1 text-base text-neutral-900">{post.title_en || '—'}</p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '來源類型' : 'Source type'}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.source_type', isZh ? '來源類型' : 'Source type')}
+                            </p>
                             <p className="mt-1 text-base text-neutral-900">
                                 {post.source_type === 'link'
-                                    ? isZh
-                                        ? '外部連結'
-                                        : 'External link'
-                                    : isZh
-                                        ? '手動輸入'
-                                        : 'Manual input'}
+                                    ? t('posts.form.fields.source_type.link', isZh ? '外部連結' : 'External link')
+                                    : t('posts.form.fields.source_type.manual', isZh ? '手動輸入' : 'Manual input')}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '來源網址' : 'Source URL'}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.source_url', isZh ? '來源網址' : 'Source URL')}
+                            </p>
                             {post.source_url ? (
                                 <a
                                     href={post.source_url}
@@ -201,12 +204,20 @@ export default function ShowPost({ post }: ShowPostProps) {
                             )}
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '建立時間' : 'Created at'}</p>
-                            <p className="mt-1 text-base text-neutral-900">{formatDateTime(post.created_at, locale)}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.created_at', isZh ? '建立時間' : 'Created at')}
+                            </p>
+                            <p className="mt-1 text-base text-neutral-900">
+                                {formatDateTime(post.created_at, localeKey, t('posts.show.not_set', isZh ? '未設定' : 'Not set'))}
+                            </p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-neutral-500">{isZh ? '最後更新' : 'Last updated'}</p>
-                            <p className="mt-1 text-base text-neutral-900">{formatDateTime(post.updated_at, locale)}</p>
+                            <p className="text-sm font-medium text-neutral-500">
+                                {t('posts.show.updated_at', isZh ? '最後更新' : 'Last updated')}
+                            </p>
+                            <p className="mt-1 text-base text-neutral-900">
+                                {formatDateTime(post.updated_at, localeKey, t('posts.show.not_set', isZh ? '未設定' : 'Not set'))}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
@@ -215,7 +226,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                     <CardHeader className="border-b border-neutral-200 bg-neutral-50/60">
                         <CardTitle className="flex items-center gap-2 text-[#151f54]">
                             <ExternalLink className="h-5 w-5" />
-                            {isZh ? '公告內容' : 'Content'}
+                            {t('posts.show.content_section', isZh ? '公告內容' : 'Announcement content')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6 p-6">
@@ -229,38 +240,45 @@ export default function ShowPost({ post }: ShowPostProps) {
                                         className="inline-flex items-center gap-2 text-sm font-medium text-[#151f54] hover:underline"
                                     >
                                         <LinkIcon className="h-4 w-4" />
-                                        {isZh ? '前往來源' : 'Open source'}
+                                        {t('posts.show.open_source', isZh ? '前往來源' : 'Open source link')}
                                     </a>
                                 )}
                                 <p className="text-sm text-slate-500">
-                                    {isZh
-                                        ? '系統不再儲存外部 HTML，請點擊來源連結查看完整內容。'
-                                        : 'External HTML is no longer stored. Use the source link to view the original content.'}
+                                    {t(
+                                        'posts.show.remote_notice',
+                                        isZh
+                                            ? '系統不再儲存外部 HTML，請透過來源連結檢視完整內容。'
+                                            : 'The original HTML is not stored. Use the source link to view full content.'
+                                    )}
                                 </p>
                             </div>
                         ) : (
                             <div className="space-y-6">
                                 <div>
-                                    <p className="text-sm font-medium text-neutral-500">{isZh ? '中文內容' : 'Chinese content'}</p>
+                                    <p className="text-sm font-medium text-neutral-500">
+                                        {t('posts.show.content', isZh ? '中文內容' : 'Chinese content')}
+                                    </p>
                                     {hasZhContent ? (
                                         <div className="mt-2 whitespace-pre-line rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-neutral-800">
                                             {post.content}
                                         </div>
                                     ) : (
                                         <p className="mt-2 text-sm text-neutral-500">
-                                            {isZh ? '尚未填寫中文內容。' : 'No Chinese content provided.'}
+                                            {t('posts.show.no_content', isZh ? '此語系尚未提供內容。' : 'No content provided for this language.')}
                                         </p>
                                     )}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-neutral-500">{isZh ? '英文內容' : 'English content'}</p>
+                                    <p className="text-sm font-medium text-neutral-500">
+                                        {t('posts.show.content_en', isZh ? '英文內容' : 'English content')}
+                                    </p>
                                     {hasEnContent ? (
                                         <div className="mt-2 whitespace-pre-line rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-neutral-800">
                                             {post.content_en}
                                         </div>
                                     ) : (
                                         <p className="mt-2 text-sm text-neutral-500">
-                                            {isZh ? '尚未填寫英文內容。' : 'No English content provided.'}
+                                            {t('posts.show.no_content', isZh ? '此語系尚未提供內容。' : 'No content provided for this language.')}
                                         </p>
                                     )}
                                 </div>
@@ -273,7 +291,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                     <CardHeader className="border-b border-neutral-200 bg-neutral-50/60">
                         <CardTitle className="flex items-center gap-2 text-[#151f54]">
                             <Paperclip className="h-5 w-5" />
-                            {isZh ? '附件' : 'Attachments'}
+                            {t('posts.show.attachments', isZh ? '附件清單' : 'Attachments')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 p-6">
@@ -286,7 +304,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                                     >
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium text-neutral-900">
-                                                {attachment.title || `${isZh ? '附件' : 'Attachment'} #${attachment.id}`}
+                                                {attachment.title || `${t('posts.show.attachment_label', isZh ? '附件' : 'Attachment')} #${attachment.id}`}
                                             </p>
                                             <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
                                                 {attachment.mime_type && <Badge variant="outline">{attachment.mime_type}</Badge>}
@@ -301,14 +319,14 @@ export default function ShowPost({ post }: ShowPostProps) {
                                                 className="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1 text-sm text-neutral-700 transition hover:border-neutral-400 hover:bg-white"
                                             >
                                                 <ExternalLink className="h-4 w-4" />
-                                                {isZh ? '檢視' : 'View'}
+                                                {t('posts.show.view_attachment', isZh ? '檢視' : 'View')}
                                             </a>
                                             <a
                                                 href={buildAttachmentDownloadUrl(attachment)}
                                                 className="inline-flex items-center gap-2 rounded-md bg-[#151f54] px-3 py-1 text-sm text-white transition hover:bg-[#1f2a6d]"
                                             >
                                                 <Download className="h-4 w-4" />
-                                                {isZh ? '下載' : 'Download'}
+                                                {t('posts.show.download_attachment', isZh ? '下載' : 'Download')}
                                             </a>
                                         </div>
                                     </div>
@@ -316,13 +334,13 @@ export default function ShowPost({ post }: ShowPostProps) {
                             </div>
                         ) : (
                             <p className="text-sm text-neutral-500">
-                                {isZh ? '此公告目前沒有附件。' : 'No attachments have been uploaded for this bulletin.'}
+                                {t('posts.show.no_attachments', isZh ? '此公告目前沒有附件。' : 'No attachments have been uploaded for this bulletin.')}
                             </p>
                         )}
                         <div>
                             <Button asChild variant="secondary" className="rounded-full border-[#151f54]/20">
                                 <Link href={attachmentManagerLink}>
-                                    {isZh ? '前往附件管理' : 'Open attachment manager'}
+                                    {t('posts.show.attachment_manager', isZh ? '開啟附件管理' : 'Open attachment manager')}
                                 </Link>
                             </Button>
                         </div>
