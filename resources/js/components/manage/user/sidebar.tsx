@@ -12,14 +12,14 @@ export default function UserSidebar() {
     const { t } = useTranslator('manage');
 
     const mainNavItems: NavItem[] = [
-        { title: t('sidebar.user.dashboard', 'Member Home'), href: '/manage/dashboard', icon: LayoutGrid },
-        { title: t('sidebar.user.profile', 'Profile'), href: '/settings/profile', icon: User },
-        { title: t('sidebar.user.security', 'Security'), href: '/settings/password', icon: ShieldCheck },
+        { title: t('sidebar.user.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
+        { title: t('sidebar.user.profile'), href: '/manage/settings/profile', icon: User },
+        { title: t('sidebar.user.security'), href: '/manage/settings/password', icon: ShieldCheck },
     ];
 
     const footerNavItems: NavItem[] = [
         {
-            title: t('sidebar.user.support', 'Support'),
+            title: t('sidebar.user.support'),
             href: 'mailto:csie@cc.ncue.edu.tw',
             icon: LifeBuoy,
         },
@@ -40,7 +40,7 @@ export default function UserSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} label={t('sidebar.user.nav_label', 'Member area')} />
+                <NavMain items={mainNavItems} label={t('sidebar.user.nav_label')} />
             </SidebarContent>
 
             <SidebarFooter>

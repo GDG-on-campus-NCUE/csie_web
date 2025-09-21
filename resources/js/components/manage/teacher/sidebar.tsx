@@ -12,16 +12,16 @@ export default function TeacherSidebar() {
     const { t } = useTranslator('manage');
 
     const mainNavItems: NavItem[] = [
-        { title: t('sidebar.teacher.dashboard', 'Teaching Home'), href: '/manage/dashboard', icon: LayoutGrid },
-        { title: t('sidebar.teacher.posts', 'Announcements'), href: '/manage/teacher/posts', icon: Megaphone },
-        { title: t('sidebar.teacher.labs', 'Research'), href: '/manage/teacher/labs', icon: Beaker },
-        { title: t('sidebar.teacher.courses', 'Courses & Activities'), href: '/manage/teacher/courses', icon: NotebookPen },
-        { title: t('sidebar.teacher.profile', 'Profile Settings'), href: '/settings/profile', icon: Settings },
+        { title: t('sidebar.teacher.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
+        { title: t('sidebar.teacher.posts'), href: '/manage/teacher/posts', icon: Megaphone },
+        { title: t('sidebar.teacher.labs'), href: '/manage/teacher/labs', icon: Beaker },
+        { title: t('sidebar.teacher.courses'), href: '/manage/teacher/courses', icon: NotebookPen },
+        { title: t('sidebar.teacher.profile'), href: '/manage/settings/profile', icon: Settings },
     ];
 
     const footerNavItems: NavItem[] = [
         {
-            title: t('sidebar.teacher.guide', 'Teaching Guide'),
+            title: t('sidebar.teacher.guide'),
             href: 'https://github.com/Grasonyang/csie_web',
             icon: HelpCircle,
         },
@@ -42,7 +42,7 @@ export default function TeacherSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} label={t('sidebar.teacher.nav_label', 'Teaching')} />
+                <NavMain items={mainNavItems} label={t('sidebar.teacher.nav_label')} />
             </SidebarContent>
 
             <SidebarFooter>

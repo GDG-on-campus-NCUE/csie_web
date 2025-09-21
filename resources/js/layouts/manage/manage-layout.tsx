@@ -3,11 +3,11 @@ import { AppShell } from '@/components/app-shell';
 import AdminManageSidebar from '@/components/manage/admin/sidebar';
 import TeacherManageSidebar from '@/components/manage/teacher/sidebar';
 import UserManageSidebar from '@/components/manage/user/sidebar';
-import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import AdminFooter from '@/components/admin-footer';
 import { type PropsWithChildren, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { type BreadcrumbItem, type SharedData } from '@/types';
+import ManageHeader from '@/components/manage/manage-header';
 
 interface ManageLayoutProps {
     role?: 'admin' | 'teacher' | 'user';
@@ -44,7 +44,7 @@ export default function ManageLayout({
                 className="relative overflow-x-hidden bg-[#f5f7fb] text-neutral-900"
             >
                 <div className="flex min-h-svh flex-col">
-                    <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                    <ManageHeader breadcrumbs={breadcrumbs} role={role} />
 
                     <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
                         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">{children}</div>

@@ -10,27 +10,30 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/profile';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: edit().url,
-    },
-];
+import ManageLayout from '@/layouts/manage/manage-layout';
+import ManageSettingsLayout from '@/layouts/manage/settings-layout';
+import { useTranslator } from '@/hooks/use-translator';
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useTranslator('manage');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('layout.breadcrumbs.dashboard'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.settings'), href: '/manage/settings/profile' },
+        { title: t('layout.breadcrumbs.settings_profile'), href: '/manage/settings/profile' },
+    ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+        <ManageLayout breadcrumbs={breadcrumbs}>
+            <Head title={t('settings.profile.head_title')} />
 
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+            <ManageSettingsLayout active="profile">
+                <section className="space-y-6">
+                    <HeadingSmall
+                        title={t('settings.profile.title')}
+                        description={t('settings.profile.description')}
+                    />
 
                     <Form
                         {...ProfileController.update.form()}
@@ -42,7 +45,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="name">{t('settings.profile.fields.name.label')}</Label>
 
                                     <Input
                                         id="name"
@@ -51,14 +54,14 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         name="name"
                                         required
                                         autoComplete="name"
-                                        placeholder="Full name"
+                                        placeholder={t('settings.profile.fields.name.placeholder')}
                                     />
 
                                     <InputError className="mt-2" message={errors.name} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                    <Label htmlFor="email">{t('settings.profile.fields.email.label')}</Label>
 
                                     <Input
                                         id="email"
@@ -68,7 +71,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         name="email"
                                         required
                                         autoComplete="username"
-                                        placeholder="Email address"
+                                        placeholder={t('settings.profile.fields.email.placeholder')}
                                     />
 
                                     <InputError className="mt-2" message={errors.email} />
@@ -77,26 +80,26 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 {mustVerifyEmail && auth.user.email_verified_at === null && (
                                     <div>
                                         <p className="-mt-4 text-sm text-muted-foreground">
-                                            您的電子郵件地址尚未驗證。{' '}
+                                            {t('settings.profile.verification.notice')}{' '}
                                             <Link
                                                 href={send()}
                                                 as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
                                             >
-                                                點擊此處重新發送驗證郵件。
+                                                {t('settings.profile.verification.action')}
                                             </Link>
                                         </p>
 
                                         {status && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                {status}
-                                            </div>
+                                            <div className="mt-2 text-sm font-medium text-green-600">{status}</div>
                                         )}
                                     </div>
                                 )}
 
                                 <div className="flex items-center gap-4">
-                                    <Button disabled={processing} data-test="update-profile-button">Save</Button>
+                                    <Button disabled={processing} data-test="update-profile-button">
+                                        {t('settings.profile.actions.save')}
+                                    </Button>
 
                                     <Transition
                                         show={recentlySuccessful}
@@ -105,16 +108,16 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">Saved</p>
+                                        <p className="text-sm text-neutral-600">{t('settings.profile.actions.saved')}</p>
                                     </Transition>
                                 </div>
                             </>
                         )}
                     </Form>
-                </div>
+                </section>
 
                 <DeleteUser />
-            </SettingsLayout>
-        </AppLayout>
+            </ManageSettingsLayout>
+        </ManageLayout>
     );
 }

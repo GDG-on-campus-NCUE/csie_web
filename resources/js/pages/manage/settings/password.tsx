@@ -1,7 +1,7 @@
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import InputError from '@/components/input-error';
-import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import ManageLayout from '@/layouts/manage/manage-layout';
+import ManageSettingsLayout from '@/layouts/manage/settings-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
@@ -11,26 +11,29 @@ import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/password';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Password settings',
-        href: edit().url,
-    },
-];
+import { useTranslator } from '@/hooks/use-translator';
 
 export default function Password() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const { t } = useTranslator('manage');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('layout.breadcrumbs.dashboard'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.settings'), href: '/manage/settings/password' },
+        { title: t('layout.breadcrumbs.settings_password'), href: '/manage/settings/password' },
+    ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Password settings" />
+        <ManageLayout breadcrumbs={breadcrumbs}>
+            <Head title={t('settings.password.head_title')} />
 
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
+            <ManageSettingsLayout active="password">
+                <section className="space-y-6">
+                    <HeadingSmall
+                        title={t('settings.password.title')}
+                        description={t('settings.password.description')}
+                    />
 
                     <Form
                         {...PasswordController.update.form()}
@@ -53,7 +56,7 @@ export default function Password() {
                         {({ errors, processing, recentlySuccessful }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="current_password">Current password</Label>
+                                    <Label htmlFor="current_password">{t('settings.password.fields.current.label')}</Label>
 
                                     <Input
                                         id="current_password"
@@ -62,14 +65,14 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="current-password"
-                                        placeholder="Current password"
+                                        placeholder={t('settings.password.fields.current.placeholder')}
                                     />
 
                                     <InputError message={errors.current_password} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password">New password</Label>
+                                    <Label htmlFor="password">{t('settings.password.fields.new.label')}</Label>
 
                                     <Input
                                         id="password"
@@ -78,14 +81,16 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="New password"
+                                        placeholder={t('settings.password.fields.new.placeholder')}
                                     />
 
                                     <InputError message={errors.password} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password_confirmation">Confirm password</Label>
+                                    <Label htmlFor="password_confirmation">
+                                        {t('settings.password.fields.confirm.label')}
+                                    </Label>
 
                                     <Input
                                         id="password_confirmation"
@@ -93,14 +98,16 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="Confirm password"
+                                        placeholder={t('settings.password.fields.confirm.placeholder')}
                                     />
 
                                     <InputError message={errors.password_confirmation} />
                                 </div>
 
                                 <div className="flex items-center gap-4">
-                                    <Button disabled={processing} data-test="update-password-button">Save password</Button>
+                                    <Button disabled={processing} data-test="update-password-button">
+                                        {t('settings.password.actions.save')}
+                                    </Button>
 
                                     <Transition
                                         show={recentlySuccessful}
@@ -109,14 +116,14 @@ export default function Password() {
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">Saved</p>
+                                        <p className="text-sm text-neutral-600">{t('settings.password.actions.saved')}</p>
                                     </Transition>
                                 </div>
                             </>
                         )}
                     </Form>
-                </div>
-            </SettingsLayout>
-        </AppLayout>
+                </section>
+            </ManageSettingsLayout>
+        </ManageLayout>
     );
 }
