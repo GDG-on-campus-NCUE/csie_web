@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import ManageLayout from '@/layouts/manage/manage-layout';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { BookOpen, LayoutGrid, Megaphone, NotebookPen, Palette, Settings, ShieldCheck, User } from 'lucide-react';
+import { BookOpen, LayoutGrid, Megaphone, NotebookPen, Settings, ShieldCheck, User } from 'lucide-react';
 import { type ComponentType } from 'react';
 import { useTranslator } from '@/hooks/use-translator';
 
@@ -99,15 +99,6 @@ export default function Dashboard() {
                               isZh ? '調整基本資料與聯絡方式' : 'Edit your personal and contact details',
                           ),
                           icon: User,
-                      },
-                      {
-                          href: '/settings/appearance',
-                          label: t('dashboard.user.actions.appearance.label', isZh ? '外觀偏好' : 'Appearance'),
-                          description: t(
-                              'dashboard.user.actions.appearance.description',
-                              isZh ? '切換介面主題與版型' : 'Adjust theme and interface preferences',
-                          ),
-                          icon: Palette,
                       },
                       {
                           href: '/settings/password',

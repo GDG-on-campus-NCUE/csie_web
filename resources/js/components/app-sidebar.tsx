@@ -17,7 +17,7 @@ import {
     Folder,
     HelpCircle,
 } from 'lucide-react';
-import AppLogo from './app-logo';
+import ManageBrand from '@/components/manage/manage-brand';
 import { useTranslator } from '@/hooks/use-translator';
 
 export function AppSidebar() {
@@ -99,7 +99,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/manage/dashboard" prefetch>
-                                <AppLogo />
+                                <ManageBrand role={role} />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

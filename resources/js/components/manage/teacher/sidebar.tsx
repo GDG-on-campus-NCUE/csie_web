@@ -1,4 +1,4 @@
-import AppLogo from '@/components/app-logo';
+import ManageBrand from '@/components/manage/manage-brand';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -34,7 +34,7 @@ export default function TeacherSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/manage/dashboard" prefetch>
-                                <AppLogo />
+                                <ManageBrand role="teacher" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
