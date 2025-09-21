@@ -330,7 +330,7 @@ export default function AttachmentsIndex({
                             </p>
                         </div>
                         <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
-                            <Link href="/manage/admin/posts">
+                            <Link href="/manage/posts">
                                 {t('attachments.index.back_to_posts', isZh ? '回公告列表' : 'Back to posts')}
                             </Link>
                         </Button>

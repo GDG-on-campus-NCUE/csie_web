@@ -38,7 +38,7 @@ export function AppSidebar() {
             },
             {
                 title: t('sidebar.admin.posts'),
-                href: '/manage/admin/posts',
+                href: '/manage/posts',
                 icon: Megaphone,
             },
             {
@@ -74,7 +74,7 @@ export function AppSidebar() {
         ],
         teacher: [
             { title: t('sidebar.teacher.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
-            { title: t('sidebar.teacher.posts'), href: '/manage/teacher/posts', icon: Megaphone },
+            { title: t('sidebar.teacher.posts'), href: '/manage/posts', icon: Megaphone },
             { title: t('sidebar.teacher.labs'), href: '/manage/teacher/labs', icon: Beaker },
             { title: t('sidebar.teacher.courses'), href: '/manage/teacher/courses', icon: NotebookPen },
             { title: t('sidebar.teacher.profile'), href: '/manage/settings/profile', icon: Settings },

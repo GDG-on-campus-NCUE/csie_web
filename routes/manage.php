@@ -9,7 +9,7 @@ use App\Http\Controllers\Manage\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Manage\Admin\LabController as AdminLabController;
 use App\Http\Controllers\Manage\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Manage\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Manage\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Manage\PostController;
 use App\Http\Controllers\Manage\Admin\PostCategoryController as AdminPostCategoryController;
 use App\Http\Controllers\Manage\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Manage\Admin\ProgramController as AdminProgramController;
@@ -27,6 +27,9 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
         });
 
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        Route::resource('posts', PostController::class);
+        Route::post('posts/bulk', [PostController::class, 'bulk'])->name('posts.bulk');
 
         Route::middleware('role:admin')
             ->prefix('admin')
@@ -61,7 +64,6 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
 
                 // 公告管理
                 Route::resource('post-categories', AdminPostCategoryController::class);
-                Route::resource('posts', AdminPostController::class);
 
                 // 聯絡我們管理
                 Route::resource('contact-messages', AdminContactMessageController::class);

@@ -234,12 +234,12 @@ export default function AdminDashboard() {
 
                     <div className="flex flex-wrap items-center gap-3">
                         <Button asChild className="bg-[#0f1c3f] hover:bg-[#172b63]">
-                            <Link href="/manage/admin/posts/create">
+                            <Link href="/manage/posts/create">
                                 {t('dashboard.admin.actions.create_post', '快速建立公告')}
                             </Link>
                         </Button>
                         <Button asChild variant="outline">
-                            <Link href="/manage/admin/posts">
+                            <Link href="/manage/posts">
                                 {t('dashboard.admin.actions.view_posts', '檢視公告列表')}
                             </Link>
                         </Button>
