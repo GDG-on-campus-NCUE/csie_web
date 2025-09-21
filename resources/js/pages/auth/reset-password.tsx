@@ -1,18 +1,11 @@
 import NewPasswordController from '@/actions/App/Http/Controllers/Auth/NewPasswordController';
-import InputError from '@/components/input-error';
+import { AuthInput, AuthPasswordInput } from '@/components/auth/auth-input';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
-import {
-    formButtonClass,
-    formFieldInputClass,
-    formFieldLabelClass,
-    formSectionClass,
-} from './styles';
+import { formButtonClass, formSectionClass } from './styles';
 
 interface ResetPasswordProps {
     token: string;
@@ -46,55 +39,34 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 {({ processing, errors }) => (
                     <div className="space-y-8">
                         <div className={formSectionClass}>
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className={formFieldLabelClass}>
-                                    {copy.emailLabel}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    autoComplete="email"
-                                    value={email}
-                                    readOnly
-                                    className={`${formFieldInputClass} cursor-not-allowed bg-slate-100 text-slate-500`}
-                                />
-                                <InputError message={errors.email} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthInput
+                                id="email"
+                                type="email"
+                                name="email"
+                                value={email}
+                                readOnly
+                                label={copy.emailLabel}
+                                error={errors.email}
+                            />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className={formFieldLabelClass}>
-                                    {copy.passwordLabel}
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    autoComplete="new-password"
-                                    autoFocus
-                                    placeholder={copy.passwordPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.password} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthPasswordInput
+                                id="password"
+                                name="password"
+                                autoComplete="new-password"
+                                autoFocus
+                                label={copy.passwordLabel}
+                                placeholder={copy.passwordPlaceholder}
+                                error={errors.password}
+                            />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password_confirmation" className={formFieldLabelClass}>
-                                    {copy.confirmLabel}
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    name="password_confirmation"
-                                    autoComplete="new-password"
-                                    placeholder={copy.confirmPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                    className="mt-1 text-sm font-medium text-red-600"
-                                />
-                            </div>
+                            <AuthPasswordInput
+                                id="password_confirmation"
+                                name="password_confirmation"
+                                autoComplete="new-password"
+                                label={copy.confirmLabel}
+                                placeholder={copy.confirmPlaceholder}
+                                error={errors.password_confirmation}
+                            />
                         </div>
 
                         <Button

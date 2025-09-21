@@ -1,9 +1,7 @@
 import PasswordResetLinkController from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController';
-import InputError from '@/components/input-error';
+import { AuthInput } from '@/components/auth/auth-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
@@ -11,8 +9,6 @@ import { LoaderCircle } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
 import {
     formButtonClass,
-    formFieldInputClass,
-    formFieldLabelClass,
     formHelperTextClass,
     formLinkClass,
     formSectionClass,
@@ -38,47 +34,40 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
             {status && <div className={formStatusClass}>{status}</div>}
 
-            <div className="space-y-8">
-                <Form {...PasswordResetLinkController.store.form()} className={formSectionClass}>
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className={formFieldLabelClass}>
-                                    {copy.emailLabel}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    autoComplete="off"
-                                    autoFocus
-                                    placeholder={copy.emailPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.email} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+            <Form {...PasswordResetLinkController.store.form()} className={formSectionClass}>
+                {({ processing, errors }) => (
+                    <>
+                        <AuthInput
+                            id="email"
+                            type="email"
+                            name="email"
+                            autoComplete="off"
+                            autoFocus
+                            label={copy.emailLabel}
+                            placeholder={copy.emailPlaceholder}
+                            error={errors.email}
+                        />
 
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className={formButtonClass}
-                                disabled={processing}
-                                data-test="email-password-reset-link-button"
-                            >
-                                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                                {copy.submit}
-                            </Button>
-                        </>
-                    )}
-                </Form>
+                        <Button
+                            type="submit"
+                            size="lg"
+                            className={formButtonClass}
+                            disabled={processing}
+                            data-test="email-password-reset-link-button"
+                        >
+                            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                            {copy.submit}
+                        </Button>
+                    </>
+                )}
+            </Form>
 
-                <div className={formHelperTextClass + ' text-center'}>
-                    <span>{copy.backPrefix}</span>{' '}
-                    <TextLink href={login()} className={formLinkClass}>
-                        {copy.backLink}
-                    </TextLink>
-                </div>
-            </div>
+            <p className={`${formHelperTextClass} text-center`}>
+                <span>{copy.backPrefix}</span>{' '}
+                <TextLink href={login()} className={formLinkClass}>
+                    {copy.backLink}
+                </TextLink>
+            </p>
         </AuthLayout>
     );
 }

@@ -38,6 +38,8 @@ return [
         'password' => [
             'label' => 'Password',
             'placeholder' => 'Enter your password',
+            'toggle_show' => 'Show password',
+            'toggle_hide' => 'Hide password',
         ],
         'password_confirmation' => [
             'label' => 'Confirm Password',
@@ -59,6 +61,12 @@ return [
         'back_to_login_link' => 'return to login',
         'resend_verification' => 'Resend verification email',
         'logout' => 'Log out',
+    ],
+
+    'footer' => [
+        'home' => 'Back to home',
+        'contact' => 'Contact us',
+        'privacy' => 'Privacy policy',
     ],
 
     'pages' => [
