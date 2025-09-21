@@ -237,9 +237,3 @@ public function index(Request $request)
 ```
 
 ---
-
-如果你要我進一步：
-- 針對某個管理頁（例如 Users 或 Posts）自動生成 React page 與一套元件（含 basic tests）？
-- 或把此文件拆成多個小節放到 `docs/manage/` 以利版本控制與多人協作？
-
-請告訴我下一步偏好，我會依此繼續執行（並會繼續使用 todo 清單追蹤）。
