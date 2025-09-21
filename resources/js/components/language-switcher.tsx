@@ -21,7 +21,7 @@ export default function LanguageSwitcher({
     const isLight = variant === 'light';
 
     const wrapperClass = cn(
-        'inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-[13px] font-semibold backdrop-blur transition',
+        'inline-flex items-center gap-1 rounded-full border px-5 py-1 text-[13px] font-semibold backdrop-blur transition',
         isLight
             ? 'border-slate-200 bg-white/80 text-slate-600 shadow-sm'
             : 'border-white/20 bg-white/10 text-white/70 shadow-sm shadow-black/10',
@@ -43,7 +43,7 @@ export default function LanguageSwitcher({
     return (
         <div className={wrapperClass} role="group" aria-label={t('layout.language_label', '語言')}>
             {isLight && (
-                <span className="hidden pr-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 sm:inline">
+                <span className="hidden pr-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 sm:inline">
                     {t('layout.language_label', '語言')}
                 </span>
             )}
