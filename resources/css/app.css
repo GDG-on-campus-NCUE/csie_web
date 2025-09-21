@@ -169,7 +169,8 @@
     }
 
     html {
-        font-family: var(--font-sans);
+        /* Use serif as the primary site font as requested */
+        font-family: var(--font-serif);
         scroll-padding-top: 5rem;
     }
 
@@ -179,13 +180,32 @@
         background-image: none;
     }
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
+    /* Headings: larger and bolder for stronger hierarchy */
+    h1 {
+        @apply font-serif font-extrabold text-5xl leading-tight text-foreground;
+        letter-spacing: -0.02em;
+    }
+
+    h2 {
+        @apply font-serif font-bold text-4xl leading-snug text-foreground;
+        letter-spacing: -0.015em;
+    }
+
+    h3 {
+        @apply font-serif font-semibold text-3xl leading-snug text-foreground;
+        letter-spacing: -0.01em;
+    }
+
+    h4 {
+        @apply font-serif font-semibold text-2xl leading-snug text-foreground;
+    }
+
+    h5 {
+        @apply font-serif font-semibold text-xl leading-snug text-foreground;
+    }
+
     h6 {
-        @apply font-serif font-semibold text-balance text-foreground;
+        @apply font-serif font-semibold text-lg leading-snug text-foreground;
     }
 
     p {
