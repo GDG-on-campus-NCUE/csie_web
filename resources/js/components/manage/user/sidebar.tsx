@@ -1,11 +1,11 @@
-import AppLogo from '@/components/app-logo';
+import ManageBrand from '@/components/manage/manage-brand';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, User, Palette, ShieldCheck, LifeBuoy } from 'lucide-react';
+import { LayoutGrid, User, ShieldCheck, LifeBuoy } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
 
 export default function UserSidebar() {
@@ -14,7 +14,6 @@ export default function UserSidebar() {
     const mainNavItems: NavItem[] = [
         { title: t('sidebar.user.dashboard', 'Member Home'), href: '/manage/dashboard', icon: LayoutGrid },
         { title: t('sidebar.user.profile', 'Profile'), href: '/settings/profile', icon: User },
-        { title: t('sidebar.user.appearance', 'Appearance'), href: '/settings/appearance', icon: Palette },
         { title: t('sidebar.user.security', 'Security'), href: '/settings/password', icon: ShieldCheck },
     ];
 
@@ -33,7 +32,7 @@ export default function UserSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/manage/dashboard" prefetch>
-                                <AppLogo />
+                                <ManageBrand role="user" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

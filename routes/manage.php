@@ -19,7 +19,7 @@ use App\Http\Controllers\Manage\Admin\PublicationController as AdminPublicationC
 use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
 
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
     ->prefix('manage')->name('manage.')
     ->group(function () {
         Route::get('/', function () {
@@ -28,7 +28,7 @@ Route::middleware(['auth', 'verified'])
 
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-        Route::middleware('manage.role:admin')
+        Route::middleware('role:admin')
             ->prefix('admin')
             ->name('admin.')
             ->group(function () {
@@ -78,14 +78,14 @@ Route::middleware(['auth', 'verified'])
                     ->name('attachments.force-delete');
             });
 
-        Route::middleware('manage.role:teacher')
+        Route::middleware('role:teacher')
             ->prefix('teacher')
             ->name('teacher.')
             ->group(function () {
                 // 預留教師管理路由
             });
 
-        Route::middleware('manage.role:user')
+        Route::middleware('role:user')
             ->prefix('user')
             ->name('user.')
             ->group(function () {
