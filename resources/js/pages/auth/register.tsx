@@ -1,9 +1,7 @@
 import RegisteredUserController from '@/actions/App/Http/Controllers/Auth/RegisteredUserController';
-import InputError from '@/components/input-error';
+import { AuthInput, AuthPasswordInput } from '@/components/auth/auth-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
@@ -11,8 +9,6 @@ import { LoaderCircle } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
 import {
     formButtonClass,
-    formFieldInputClass,
-    formFieldLabelClass,
     formHelperTextClass,
     formLinkClass,
     formSectionClass,
@@ -49,73 +45,48 @@ export default function Register() {
                 {({ processing, errors }) => (
                     <div className="space-y-8">
                         <div className={formSectionClass}>
-                            <div className="space-y-2">
-                                <Label htmlFor="name" className={formFieldLabelClass}>
-                                    {copy.nameLabel}
-                                </Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder={copy.namePlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.name} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthInput
+                                id="name"
+                                type="text"
+                                required
+                                autoFocus
+                                autoComplete="name"
+                                name="name"
+                                label={copy.nameLabel}
+                                placeholder={copy.namePlaceholder}
+                                error={errors.name}
+                            />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className={formFieldLabelClass}>
-                                    {copy.emailLabel}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder={copy.emailPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.email} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthInput
+                                id="email"
+                                type="email"
+                                required
+                                autoComplete="email"
+                                name="email"
+                                label={copy.emailLabel}
+                                placeholder={copy.emailPlaceholder}
+                                error={errors.email}
+                            />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className={formFieldLabelClass}>
-                                    {copy.passwordLabel}
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    autoComplete="new-password"
-                                    name="password"
-                                    placeholder={copy.passwordPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.password} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthPasswordInput
+                                id="password"
+                                required
+                                autoComplete="new-password"
+                                name="password"
+                                label={copy.passwordLabel}
+                                placeholder={copy.passwordPlaceholder}
+                                error={errors.password}
+                            />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password_confirmation" className={formFieldLabelClass}>
-                                    {copy.confirmLabel}
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    required
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder={copy.confirmPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                    className="mt-1 text-sm font-medium text-red-600"
-                                />
-                            </div>
+                            <AuthPasswordInput
+                                id="password_confirmation"
+                                required
+                                autoComplete="new-password"
+                                name="password_confirmation"
+                                label={copy.confirmLabel}
+                                placeholder={copy.confirmPlaceholder}
+                                error={errors.password_confirmation}
+                            />
                         </div>
 
                         <Button
@@ -129,12 +100,12 @@ export default function Register() {
                             {copy.submit}
                         </Button>
 
-                        <div className={formHelperTextClass + ' text-center'}>
+                        <p className={`${formHelperTextClass} text-center`}>
                             {copy.loginPrompt}{' '}
                             <TextLink href={login()} className={formLinkClass}>
                                 {copy.loginLink}
                             </TextLink>
-                        </div>
+                        </p>
                     </div>
                 )}
             </Form>

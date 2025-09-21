@@ -38,6 +38,8 @@ return [
         'password' => [
             'label' => '密碼',
             'placeholder' => '請輸入密碼',
+            'toggle_show' => '顯示密碼',
+            'toggle_hide' => '隱藏密碼',
         ],
         'password_confirmation' => [
             'label' => '確認密碼',
@@ -59,6 +61,12 @@ return [
         'back_to_login_link' => '返回登入頁面',
         'resend_verification' => '重新發送驗證郵件',
         'logout' => '登出',
+    ],
+
+    'footer' => [
+        'home' => '回首頁',
+        'contact' => '聯絡我們',
+        'privacy' => '隱私政策',
     ],
 
     'pages' => [

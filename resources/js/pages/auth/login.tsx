@@ -1,10 +1,8 @@
 import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
-import InputError from '@/components/input-error';
+import { AuthInput, AuthPasswordInput } from '@/components/auth/auth-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
@@ -14,8 +12,6 @@ import { useTranslator } from '@/hooks/use-translator';
 import {
     formButtonClass,
     formCheckboxLabelClass,
-    formFieldInputClass,
-    formFieldLabelClass,
     formHelperTextClass,
     formLinkClass,
     formSectionClass,
@@ -58,55 +54,44 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 {({ processing, errors }) => (
                     <div className="space-y-8">
                         <div className={formSectionClass}>
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className={formFieldLabelClass}>
-                                    {copy.emailLabel}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    autoComplete="email"
-                                    placeholder={copy.emailPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.email} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                            <AuthInput
+                                id="email"
+                                type="email"
+                                name="email"
+                                required
+                                autoFocus
+                                autoComplete="email"
+                                label={copy.emailLabel}
+                                placeholder={copy.emailPlaceholder}
+                                error={errors.email}
+                            />
 
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className={formFieldLabelClass}>
-                                        {copy.passwordLabel}
-                                    </Label>
-                                    {canResetPassword && (
-                                        <TextLink href={request()} className={formLinkClass}>
+                            <AuthPasswordInput
+                                id="password"
+                                name="password"
+                                required
+                                autoComplete="current-password"
+                                label={copy.passwordLabel}
+                                placeholder={copy.passwordPlaceholder}
+                                error={errors.password}
+                                labelSecondary={
+                                    canResetPassword ? (
+                                        <TextLink href={request()} className={`${formLinkClass} text-sm`}>
                                             {copy.forgotPassword}
                                         </TextLink>
-                                    )}
-                                </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder={copy.passwordPlaceholder}
-                                    className={formFieldInputClass}
-                                />
-                                <InputError message={errors.password} className="mt-1 text-sm font-medium text-red-600" />
-                            </div>
+                                    ) : undefined
+                                }
+                            />
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 pt-2">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
                                 />
-                                <Label htmlFor="remember" className={formCheckboxLabelClass}>
+                                <label htmlFor="remember" className={formCheckboxLabelClass}>
                                     {copy.rememberMe}
-                                </Label>
+                                </label>
                             </div>
                         </div>
 
@@ -121,12 +106,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             {copy.submit}
                         </Button>
 
-                        <div className={formHelperTextClass + ' text-center'}>
+                        <p className={`${formHelperTextClass} text-center`}>
                             {copy.registerPrompt}{' '}
                             <TextLink href={register()} className={formLinkClass}>
                                 {copy.registerLink}
                             </TextLink>
-                        </div>
+                        </p>
                     </div>
                 )}
             </Form>

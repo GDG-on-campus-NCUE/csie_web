@@ -1,18 +1,11 @@
 import ConfirmablePasswordController from '@/actions/App/Http/Controllers/Auth/ConfirmablePasswordController';
-import InputError from '@/components/input-error';
+import { AuthPasswordInput } from '@/components/auth/auth-input';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
-import {
-    formButtonClass,
-    formFieldInputClass,
-    formFieldLabelClass,
-    formSectionClass,
-} from './styles';
+import { formButtonClass, formSectionClass } from './styles';
 
 export default function ConfirmPassword() {
     const { t } = useTranslator('auth');
@@ -32,21 +25,15 @@ export default function ConfirmPassword() {
             <Form {...ConfirmablePasswordController.store.form()} resetOnSuccess={['password']} className="space-y-8">
                 {({ processing, errors }) => (
                     <div className={formSectionClass}>
-                        <div className="space-y-2">
-                            <Label htmlFor="password" className={formFieldLabelClass}>
-                                {copy.passwordLabel}
-                            </Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                name="password"
-                                placeholder={copy.passwordPlaceholder}
-                                autoComplete="current-password"
-                                autoFocus
-                                className={formFieldInputClass}
-                            />
-                            <InputError message={errors.password} className="mt-1 text-sm font-medium text-red-600" />
-                        </div>
+                        <AuthPasswordInput
+                            id="password"
+                            name="password"
+                            placeholder={copy.passwordPlaceholder}
+                            autoComplete="current-password"
+                            autoFocus
+                            label={copy.passwordLabel}
+                            error={errors.password}
+                        />
 
                         <Button
                             type="submit"
