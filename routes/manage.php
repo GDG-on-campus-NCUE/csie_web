@@ -8,7 +8,7 @@ use App\Http\Controllers\Manage\Admin\DashboardController as AdminDashboardContr
 use App\Http\Controllers\Manage\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Manage\Admin\LabController as AdminLabController;
 use App\Http\Controllers\Manage\Admin\TeacherController as AdminTeacherController;
-use App\Http\Controllers\Manage\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Manage\UserController;
 use App\Http\Controllers\Manage\PostController;
 use App\Http\Controllers\Manage\Admin\PostCategoryController as AdminPostCategoryController;
 use App\Http\Controllers\Manage\Admin\CourseController as AdminCourseController;
@@ -31,6 +31,13 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
         Route::resource('posts', PostController::class);
         Route::post('posts/bulk', [PostController::class, 'bulk'])->name('posts.bulk');
 
+        Route::middleware('role:admin')->group(function () {
+            Route::resource('users', UserController::class)->except(['show']);
+            Route::post('users/bulk', [UserController::class, 'bulk'])->name('users.bulk');
+            Route::get('users/export', [UserController::class, 'export'])->name('users.export');
+            Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+        });
+
         Route::middleware('role:admin')
             ->prefix('admin')
             ->name('admin.')
@@ -42,9 +49,6 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
                 Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
                 // 使用者與系所成員管理
-                Route::resource('users', AdminUserController::class);
-                Route::post('users/{user}/restore', [AdminUserController::class, 'restore'])
-                    ->name('users.restore');
                 Route::resource('staff', AdminStaffController::class);
                 Route::patch('staff/{staff}/restore', [AdminStaffController::class, 'restore'])
                     ->name('staff.restore');

@@ -58,7 +58,7 @@ export function AppSidebar() {
             },
             {
                 title: t('sidebar.admin.users'),
-                href: '/manage/admin/users',
+                href: '/manage/users',
                 icon: Users,
             },
             {
