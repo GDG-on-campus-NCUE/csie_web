@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Calendar, ChevronLeft, ChevronRight, Edit, Eye, FileText, Paperclip, Pin, Trash2, User } from 'lucide-react';
+import { useTranslator } from '@/hooks/use-translator';
 
 interface PostCategory {
     id: number;
@@ -83,8 +84,8 @@ const DEFAULT_PAGINATION_META: PaginationMeta = {
 };
 
 export default function PostsIndex({ posts, categories, filters = {}, perPageOptions = [] }: PostsIndexProps) {
-    const { auth, locale } = usePage<SharedData>().props;
-    const isZh = locale?.toLowerCase() === 'zh-tw';
+    const { auth } = usePage<SharedData>().props;
+    const { t, isZh, localeKey } = useTranslator('manage');
     const role = auth?.user?.role ?? 'user';
 
     const postsIndexUrl = '/manage/admin/posts';
@@ -213,9 +214,9 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
         } as const;
 
         const labels = {
-            draft: isZh ? '草稿' : 'Draft',
-            published: isZh ? '發布' : 'Published',
-            archived: isZh ? '封存' : 'Archived',
+            draft: t('posts.status.draft', isZh ? '草稿' : 'Draft'),
+            published: t('posts.status.published', isZh ? '發布' : 'Published'),
+            archived: t('posts.status.archived', isZh ? '封存' : 'Archived'),
         } as const;
 
         return <Badge variant={variants[status as keyof typeof variants]}>{labels[status as keyof typeof labels]}</Badge>;
@@ -223,10 +224,10 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) {
-            return isZh ? '未排程' : 'Not scheduled';
+            return t('posts.index.table.not_scheduled', isZh ? '未排程' : 'Not scheduled');
         }
 
-        return new Date(dateString).toLocaleString(isZh ? 'zh-TW' : 'en-US', {
+        return new Date(dateString).toLocaleString(localeKey === 'zh-TW' ? 'zh-TW' : 'en-US', {
             dateStyle: 'medium',
             timeStyle: 'short',
         });
@@ -254,13 +255,13 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
     };
 
     const breadcrumbs = [
-        { title: isZh ? '管理首頁' : 'Management', href: '/manage/dashboard' },
-        { title: isZh ? '公告管理' : 'Announcements', href: '/manage/admin/posts' },
+        { title: t('layout.breadcrumbs.dashboard', isZh ? '管理首頁' : 'Management'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.posts', isZh ? '公告管理' : 'Announcements'), href: postsIndexUrl },
     ];
 
     return (
         <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
-            <Head title={isZh ? '公告管理' : 'Announcements management'} />
+            <Head title={t('posts.index.title', isZh ? '公告管理' : 'Manage announcements')} />
 
             <section className="space-y-6">
                 <div className="rounded-3xl bg-gradient-to-br from-white via-white to-[#eef1ff] px-6 py-8 shadow-sm ring-1 ring-black/5">
@@ -268,15 +269,18 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                         <div className="space-y-2">
                             <span className="inline-flex items-center gap-2 rounded-full bg-[#151f54]/10 px-3 py-1 text-xs font-semibold text-[#151f54]">
                                 <Calendar className="h-4 w-4" />
-                                {isZh ? '公告中心' : 'Bulletin hub'}
+                                {t('posts.index.badge', isZh ? '公告中心' : 'Bulletin hub')}
                             </span>
                             <h1 className="text-3xl font-semibold text-[#151f54]">
-                                {isZh ? '公告管理' : 'Manage announcements'}
+                                {t('posts.index.title', isZh ? '公告管理' : 'Manage announcements')}
                             </h1>
                             <p className="max-w-2xl text-sm text-slate-600">
-                                {isZh
-                                    ? '掌握公告發布、置頂與附件，維持對外資訊的一致性。'
-                                    : 'Control publication status, pin important updates, and keep attachments organised.'}
+                                {t(
+                                    'posts.index.description',
+                                    isZh
+                                        ? '掌握公告發布、置頂與附件，維持對外資訊的一致性。'
+                                        : 'Control publication status, pin important updates, and keep attachments organised.'
+                                )}
                             </p>
                         </div>
                         {auth?.user && ['admin', 'teacher'].includes(role) && (
@@ -284,7 +288,9 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                 asChild
                                 className="rounded-full bg-[#151f54] px-6 text-white shadow-sm hover:bg-[#1f2a6d]"
                             >
-                                <Link href="/manage/admin/posts/create">{isZh ? '新增公告' : 'Create bulletin'}</Link>
+                                <Link href="/manage/admin/posts/create">
+                                    {t('posts.index.create', isZh ? '新增公告' : 'Create bulletin')}
+                                </Link>
                             </Button>
                         )}
                     </div>
@@ -293,7 +299,7 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                 <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
                     <CardHeader className="pb-4">
                         <CardTitle className="text-lg font-semibold text-[#151f54]">
-                            {isZh ? '篩選條件' : 'Filters'}
+                            {t('posts.index.filters_title', isZh ? '篩選條件' : 'Filters')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -303,12 +309,15 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                         >
                             <div className="xl:col-span-2">
                                 <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="post-search">
-                                    {isZh ? '關鍵字' : 'Keyword'}
+                                    {t('posts.index.filters.keyword', isZh ? '關鍵字' : 'Keyword')}
                                 </label>
                                 <Input
                                     id="post-search"
                                     type="search"
-                                    placeholder={isZh ? '輸入標題關鍵字' : 'Search by title'}
+                                    placeholder={t(
+                                        'posts.index.filters.keyword_placeholder',
+                                        isZh ? '輸入標題關鍵字' : 'Search by title'
+                                    )}
                                     value={filterState.search}
                                     onChange={(event) => handleFilterChange('search', event.target.value)}
                                 />
@@ -316,14 +325,14 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="post-category">
-                                    {isZh ? '分類' : 'Category'}
+                                    {t('posts.index.filters.category', isZh ? '分類' : 'Category')}
                                 </label>
                                 <Select
                                     id="post-category"
                                     value={filterState.category}
-                                    onValueChange={(value) => handleFilterChange('category', value)}
+                                    onChange={(event) => handleFilterChange('category', event.target.value)}
                                 >
-                                    <option value="">{isZh ? '全部' : 'All'}</option>
+                                    <option value="">{t('posts.index.filters.all', isZh ? '全部' : 'All')}</option>
                                     {categories.map((category) => (
                                         <option key={category.id} value={category.id}>
                                             {isZh ? category.name : category.name_en}
@@ -334,43 +343,43 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="post-status">
-                                    {isZh ? '狀態' : 'Status'}
+                                    {t('posts.index.filters.status', isZh ? '狀態' : 'Status')}
                                 </label>
                                 <Select
                                     id="post-status"
                                     value={filterState.status}
-                                    onValueChange={(value) => handleFilterChange('status', value)}
+                                    onChange={(event) => handleFilterChange('status', event.target.value)}
                                 >
-                                    <option value="">{isZh ? '全部' : 'All'}</option>
-                                    <option value="draft">{isZh ? '草稿' : 'Draft'}</option>
-                                    <option value="published">{isZh ? '發布' : 'Published'}</option>
-                                    <option value="archived">{isZh ? '封存' : 'Archived'}</option>
+                                    <option value="">{t('posts.index.filters.all', isZh ? '全部' : 'All')}</option>
+                                    <option value="draft">{t('posts.status.draft', isZh ? '草稿' : 'Draft')}</option>
+                                    <option value="published">{t('posts.status.published', isZh ? '發布' : 'Published')}</option>
+                                    <option value="archived">{t('posts.status.archived', isZh ? '封存' : 'Archived')}</option>
                                 </Select>
                             </div>
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="post-pinned">
-                                    {isZh ? '置頂' : 'Pinned'}
+                                    {t('posts.index.filters.pinned', isZh ? '置頂' : 'Pinned')}
                                 </label>
                                 <Select
                                     id="post-pinned"
                                     value={filterState.pinned}
-                                    onValueChange={(value) => handleFilterChange('pinned', value)}
+                                    onChange={(event) => handleFilterChange('pinned', event.target.value)}
                                 >
-                                    <option value="">{isZh ? '全部' : 'All'}</option>
-                                    <option value="1">{isZh ? '僅顯示置頂' : 'Pinned only'}</option>
-                                    <option value="0">{isZh ? '排除置頂' : 'Exclude pinned'}</option>
+                                    <option value="">{t('posts.index.filters.all', isZh ? '全部' : 'All')}</option>
+                                    <option value="1">{t('posts.index.filters.pinned_only', isZh ? '僅顯示置頂' : 'Pinned only')}</option>
+                                    <option value="0">{t('posts.index.filters.pinned_exclude', isZh ? '排除置頂' : 'Exclude pinned')}</option>
                                 </Select>
                             </div>
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="post-per-page">
-                                    {isZh ? '每頁數量' : 'Per page'}
+                                    {t('posts.index.filters.per_page', isZh ? '每頁數量' : 'Per page')}
                                 </label>
                                 <Select
                                     id="post-per-page"
                                     value={filterState.per_page}
-                                    onValueChange={(value) => handleFilterChange('per_page', value)}
+                                    onChange={(event) => handleFilterChange('per_page', event.target.value)}
                                 >
                                     {resolvedPerPageOptions.map((option) => (
                                         <option key={option} value={option}>
@@ -382,7 +391,7 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
 
                             <div className="flex items-end gap-2">
                                 <Button type="submit" className="w-full bg-[#151f54] text-white hover:bg-[#1f2a6d]">
-                                    {isZh ? '套用' : 'Apply'}
+                                    {t('posts.index.filters.apply', isZh ? '套用' : 'Apply')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -391,7 +400,7 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                     disabled={!hasActiveFilters}
                                     onClick={resetFilters}
                                 >
-                                    {isZh ? '重設' : 'Reset'}
+                                    {t('posts.index.filters.reset', isZh ? '重設' : 'Reset')}
                                 </Button>
                             </div>
                         </form>
@@ -402,17 +411,23 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                     <CardHeader className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="text-lg font-semibold text-[#151f54]">
-                                {isZh ? '公告列表' : 'Announcement list'}
+                                {t('posts.index.table.title', isZh ? '公告列表' : 'Announcement list')}
                             </CardTitle>
                             <p className="text-sm text-slate-500">
-                                {isZh
-                                    ? `共 ${paginationMeta.total} 筆資料`
-                                    : `${paginationMeta.total} records in total`}
+                                {t(
+                                    'posts.index.table.records_total',
+                                    isZh
+                                        ? `共 ${paginationMeta.total} 筆資料`
+                                        : `${paginationMeta.total} records in total`,
+                                    { total: paginationMeta.total }
+                                )}
                             </p>
                         </div>
                         {auth?.user && ['admin', 'teacher'].includes(role) && (
                             <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
-                                <Link href="/manage/admin/posts/create">{isZh ? '新增公告' : 'Create'}</Link>
+                                <Link href="/manage/admin/posts/create">
+                                    {t('posts.index.create', isZh ? '新增公告' : 'Create bulletin')}
+                                </Link>
                             </Button>
                         )}
                     </CardHeader>
@@ -421,27 +436,48 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                             <table className="min-w-full divide-y divide-neutral-200 bg-white text-sm">
                                 <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
                                     <tr>
-                                        <th className="px-6 py-3 font-medium">{isZh ? '標題' : 'Title'}</th>
-                                        <th className="px-4 py-3 font-medium">{isZh ? '分類' : 'Category'}</th>
-                                        <th className="px-4 py-3 font-medium">{isZh ? '狀態' : 'Status'}</th>
-                                        <th className="px-4 py-3 font-medium">{isZh ? '發布時間' : 'Published at'}</th>
-                                        <th className="px-4 py-3 font-medium">{isZh ? '附件' : 'Attachments'}</th>
-                                        <th className="px-4 py-3 font-medium text-right">{isZh ? '操作' : 'Actions'}</th>
+                                        <th className="px-6 py-3 font-medium">
+                                            {t('posts.index.table.columns.title', isZh ? '標題' : 'Title')}
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            {t('posts.index.table.columns.category', isZh ? '分類' : 'Category')}
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            {t('posts.index.table.columns.status', isZh ? '狀態' : 'Status')}
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            {t('posts.index.table.columns.published_at', isZh ? '發布時間' : 'Published at')}
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            {t('posts.index.table.columns.attachments', isZh ? '附件' : 'Attachments')}
+                                        </th>
+                                        <th className="px-4 py-3 font-medium text-right">
+                                            {t('posts.index.table.columns.actions', isZh ? '操作' : 'Actions')}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-100">
                                     {postsData.length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-12 text-center text-sm text-neutral-500">
-                                                {isZh ? '目前尚無符合條件的公告' : 'No announcements found with current filters.'}
+                                                {t(
+                                                    'posts.index.table.empty',
+                                                    isZh
+                                                        ? '目前尚無符合條件的公告'
+                                                        : 'No announcements found with current filters.'
+                                                )}
                                             </td>
                                         </tr>
                                     )}
                                     {postsData.map((post) => {
                                         const attachmentsLink = buildAttachmentLink(post.id);
-                                        const attachmentsCountLabel = isZh
-                                            ? `${post.attachments_count} 筆附件`
-                                            : `${post.attachments_count} attachment${post.attachments_count === 1 ? '' : 's'}`;
+                                        const attachmentsCountLabel = t(
+                                            'posts.index.table.attachments_count',
+                                            isZh
+                                                ? `${post.attachments_count} 筆附件`
+                                                : `${post.attachments_count} attachment${post.attachments_count === 1 ? '' : 's'}`,
+                                            { count: post.attachments_count }
+                                        );
 
                                         return (
                                             <tr key={post.id} className="hover:bg-[#f7f8fc]">
@@ -455,7 +491,12 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                                             <Pin className="h-3.5 w-3.5" />
                                                                         </span>
                                                                     </TooltipTrigger>
-                                                                    <TooltipContent>{isZh ? '置頂公告' : 'Pinned bulletin'}</TooltipContent>
+                                                                    <TooltipContent>
+                                                                        {t(
+                                                                            'posts.index.actions.pinned_badge',
+                                                                            isZh ? '置頂公告' : 'Pinned bulletin'
+                                                                        )}
+                                                                    </TooltipContent>
                                                                 </Tooltip>
                                                             )}
                                                             <Link href={`/manage/admin/posts/${post.id}`} className="hover:text-[#8a6300]">
@@ -488,7 +529,10 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                             className="inline-flex items-center gap-2 text-xs font-medium text-[#151f54] hover:text-[#8a6300]"
                                                         >
                                                             <FileText className="h-3.5 w-3.5" />
-                                                            {isZh ? '管理附件' : 'Manage attachments'}
+                                                            {t(
+                                                                'posts.index.table.manage_attachments',
+                                                                isZh ? '管理附件' : 'Manage attachments'
+                                                            )}
                                                         </Link>
                                                     </div>
                                                 </td>
@@ -499,12 +543,20 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                                 <Link
                                                                     href={`/manage/admin/posts/${post.id}`}
                                                                     className="inline-flex items-center justify-center rounded-full border border-neutral-200 bg-white p-2 text-[#151f54] hover:border-[#151f54]/40 hover:bg-[#f5f7ff]"
-                                                                    aria-label={isZh ? '檢視公告' : 'View announcement'}
+                                                                    aria-label={t(
+                                                                        'posts.index.actions.view_aria',
+                                                                        isZh ? '檢視公告' : 'View announcement'
+                                                                    )}
                                                                 >
                                                                     <Eye className="h-4 w-4" />
                                                                 </Link>
                                                             </TooltipTrigger>
-                                                            <TooltipContent>{isZh ? '檢視公告內容' : 'View details'}</TooltipContent>
+                                                            <TooltipContent>
+                                                                {t(
+                                                                    'posts.index.actions.view_label',
+                                                                    isZh ? '檢視公告內容' : 'View details'
+                                                                )}
+                                                            </TooltipContent>
                                                         </Tooltip>
                                                         {canEditPost(post) && (
                                                             <Tooltip>
@@ -512,12 +564,20 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                                     <Link
                                                                         href={`/manage/admin/posts/${post.id}/edit`}
                                                                         className="inline-flex items-center justify-center rounded-full border border-neutral-200 bg-white p-2 text-[#151f54] hover:border-[#151f54]/40 hover:bg-[#f5f7ff]"
-                                                                        aria-label={isZh ? '編輯公告' : 'Edit announcement'}
+                                                                        aria-label={t(
+                                                                            'posts.index.actions.edit_aria',
+                                                                            isZh ? '編輯公告' : 'Edit announcement'
+                                                                        )}
                                                                     >
                                                                         <Edit className="h-4 w-4" />
                                                                     </Link>
                                                                 </TooltipTrigger>
-                                                                <TooltipContent>{isZh ? '編輯公告內容' : 'Edit this bulletin'}</TooltipContent>
+                                                                <TooltipContent>
+                                                                    {t(
+                                                                        'posts.index.actions.edit_label',
+                                                                        isZh ? '編輯公告內容' : 'Edit this bulletin'
+                                                                    )}
+                                                                </TooltipContent>
                                                             </Tooltip>
                                                         )}
                                                         {canDeletePost(post) && (
@@ -531,12 +591,20 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                                             })
                                                                         }
                                                                         className="inline-flex items-center justify-center rounded-full border border-rose-100 bg-white p-2 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
-                                                                        aria-label={isZh ? '刪除公告' : 'Delete announcement'}
+                                                                        aria-label={t(
+                                                                            'posts.index.actions.delete_aria',
+                                                                            isZh ? '刪除公告' : 'Delete announcement'
+                                                                        )}
                                                                     >
                                                                         <Trash2 className="h-4 w-4" />
                                                                     </button>
                                                                 </TooltipTrigger>
-                                                                <TooltipContent>{isZh ? '刪除此公告' : 'Delete this bulletin'}</TooltipContent>
+                                                                <TooltipContent>
+                                                                    {t(
+                                                                        'posts.index.actions.delete_label',
+                                                                        isZh ? '刪除此公告' : 'Delete this bulletin'
+                                                                    )}
+                                                                </TooltipContent>
                                                             </Tooltip>
                                                         )}
                                                     </div>
@@ -551,9 +619,13 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                         {paginationLinks.length > 0 && (
                             <div className="flex items-center justify-between pt-2 text-sm text-neutral-500">
                                 <div>
-                                    {isZh
-                                        ? `第 ${paginationMeta.current_page} / ${paginationMeta.last_page} 頁`
-                                        : `Page ${paginationMeta.current_page} of ${paginationMeta.last_page}`}
+                                    {t(
+                                        'posts.index.table.page',
+                                        isZh
+                                            ? `第 ${paginationMeta.current_page} / ${paginationMeta.last_page} 頁`
+                                            : `Page ${paginationMeta.current_page} of ${paginationMeta.last_page}`,
+                                        { current: paginationMeta.current_page, last: paginationMeta.last_page }
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -565,7 +637,9 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                         <ChevronLeft className="h-4 w-4" />
                                     </button>
                                     {paginationLinks.map((link, index) => {
-                                        if (!link.url) {
+                                        const linkUrl = link.url;
+
+                                        if (!linkUrl) {
                                             return null;
                                         }
 
@@ -577,7 +651,7 @@ export default function PostsIndex({ posts, categories, filters = {}, perPageOpt
                                                 type="button"
                                                 key={`${link.label}-${index}`}
                                                 onClick={() => {
-                                                    const url = new URL(link.url);
+                                                    const url = new URL(linkUrl);
                                                     const pageParam = url.searchParams.get('page');
                                                     const pageNumber = pageParam ? Number(pageParam) : 1;
                                                     goToPage(pageNumber);

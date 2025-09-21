@@ -7,11 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { SharedData } from '@/types';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { Calendar, Loader2, Link as LinkIcon, Paperclip, Plus, Trash2 } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useTranslator } from '@/hooks/use-translator';
 
 export interface PostCategory {
     id: number;
@@ -56,18 +56,11 @@ export interface PostFormValues {
     attachments_remove: number[];
 }
 
-export interface StatusOption {
-    value: 'draft' | 'published' | 'archived';
-    labelZh: string;
-    labelEn: string;
-}
-
 interface PostFormProps {
     categories: PostCategory[];
     cancelUrl: string;
     mode: 'create' | 'edit';
     initialValues: PostFormValues;
-    statusOptions: StatusOption[];
     initialPreviewHtml?: string;
     existingAttachments?: ExistingAttachment[];
     onSubmit: (form: any) => void;
@@ -78,17 +71,17 @@ const emptyContent = {
     en: '',
 };
 
-const getSubmitLabels = (isZh: boolean, mode: 'create' | 'edit') => {
+const getSubmitLabels = (mode: 'create' | 'edit', t: (key: string, fallback?: string) => string, isZh: boolean) => {
     if (mode === 'create') {
         return {
-            idle: isZh ? '建立公告' : 'Create bulletin',
-            processing: isZh ? '建立中...' : 'Creating...'
+            idle: t('posts.form.actions.submit_create', isZh ? '建立公告' : 'Create bulletin'),
+            processing: t('posts.form.actions.submit_create_processing', isZh ? '建立中…' : 'Creating…'),
         };
     }
 
     return {
-        idle: isZh ? '更新公告' : 'Update bulletin',
-        processing: isZh ? '更新中...' : 'Updating...'
+        idle: t('posts.form.actions.submit_update', isZh ? '更新公告' : 'Update bulletin'),
+        processing: t('posts.form.actions.submit_update_processing', isZh ? '更新中…' : 'Updating…'),
     };
 };
 
@@ -97,13 +90,18 @@ export default function PostForm({
     cancelUrl,
     mode,
     initialValues,
-    statusOptions,
     initialPreviewHtml = '',
     existingAttachments = [],
     onSubmit,
 }: PostFormProps) {
-    const { locale } = usePage<SharedData>().props;
-    const isZh = locale?.toLowerCase() === 'zh-tw';
+    const { t, isZh } = useTranslator('manage');
+
+    const statusValues: Array<PostFormValues['status']> = ['draft', 'published', 'archived'];
+    const statusLabelFallbacks = {
+        draft: isZh ? '草稿' : 'Draft',
+        published: isZh ? '發布' : 'Published',
+        archived: isZh ? '封存' : 'Archived',
+    } as const;
 
     const form = useForm<PostFormValues>({
         title: {
@@ -290,7 +288,7 @@ export default function PostForm({
 
         const titleZh = data.title['zh-TW'].trim();
         if (titleZh === '') {
-            setError('title.zh-TW', isZh ? '請輸入中文標題。' : 'Please enter the Chinese title.');
+            setError('title.zh-TW', t('posts.form.validation.title_zh_required', isZh ? '請輸入中文標題。' : 'Please enter the Chinese title.'));
             return;
         }
 
@@ -348,7 +346,7 @@ export default function PostForm({
         if (data.source_type !== 'link') return;
 
         if (!data.source_url.trim()) {
-            setPreviewError(isZh ? '請先輸入完整的來源網址。' : 'Please provide a source URL first.');
+            setPreviewError(t('posts.form.preview.source_required', isZh ? '請先輸入來源網址。' : 'Please provide the source URL first.'));
             return;
         }
 
@@ -356,7 +354,7 @@ export default function PostForm({
         setPreviewHtml('');
         setPreviewEmbeddable(false);
         setPreviewSource(data.source_url);
-        setPreviewError(isZh ? '已在新分頁開啟來源頁面。' : 'Opened source in a new tab.');
+        setPreviewError(t('posts.form.preview.opened_new_tab', isZh ? '已在新分頁開啟來源頁面。' : 'Opened the source in a new tab.'));
         window.open(data.source_url, '_blank');
     };
 
@@ -386,7 +384,7 @@ export default function PostForm({
         };
     }, [publishEl]);
 
-    const submitLabels = useMemo(() => getSubmitLabels(isZh, mode), [isZh, mode]);
+    const submitLabels = useMemo(() => getSubmitLabels(mode, t, isZh), [mode, t, isZh]);
 
     return (
         <form onSubmit={submit}>
@@ -395,46 +393,46 @@ export default function PostForm({
                     <CardHeader className="border-b border-gray-100 bg-gray-50/50">
                         <CardTitle className="flex items-center gap-2 text-gray-900">
                             <Calendar className="h-5 w-5 text-blue-600" />
-                            {isZh ? '基本資訊' : 'Basic Information'}
+                            {t('posts.form.sections.metadata.title', isZh ? '基本資訊' : 'Metadata')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6 p-8">
                         <div className="space-y-4">
                             <Label htmlFor="title-zh" className="text-sm font-medium text-gray-900">
-                                {isZh ? '標題 (中文)' : 'Title (Chinese)'}
+                                {t('posts.form.fields.title_zh.label', isZh ? '中文標題' : 'Chinese title')}
                             </Label>
                             <Input
                                 id="title-zh"
                                 value={data.title['zh-TW']}
                                 onChange={(event) => handleTitleZhChange(event.target.value)}
-                                placeholder={isZh ? '請輸入中文標題' : 'Enter Chinese title'}
+                                placeholder={t('posts.form.fields.title_zh.placeholder', isZh ? '請輸入中文標題' : 'Enter Chinese title')}
                             />
                             <InputError message={errors['title.zh-TW']} />
                         </div>
 
                         <div className="space-y-4">
                             <Label htmlFor="title-en" className="text-sm font-medium text-gray-900">
-                                {isZh ? '標題 (英文)' : 'Title (English)'}
+                                {t('posts.form.fields.title_en.label', isZh ? '英文標題' : 'English title')}
                             </Label>
                             <Input
                                 id="title-en"
                                 value={data.title.en}
                                 onChange={(event) => handleTitleEnChange(event.target.value)}
-                                placeholder={isZh ? '請輸入英文標題' : 'Enter English title'}
+                                placeholder={t('posts.form.fields.title_en.placeholder', isZh ? '請輸入英文標題' : 'Enter English title')}
                             />
                             <InputError message={errors['title.en']} />
                         </div>
 
                         <div className="space-y-4">
                             <Label htmlFor="category" className="text-sm font-medium text-gray-900">
-                                {isZh ? '分類' : 'Category'}
+                                {t('posts.form.fields.category.label', isZh ? '公告分類' : 'Category')}
                             </Label>
                             <Select
                                 id="category"
                                 value={data.category_id}
                                 onChange={(event) => setData('category_id', event.target.value)}
                             >
-                                <option value="">{isZh ? '請選擇分類' : 'Select category'}</option>
+                                <option value="">{t('posts.form.fields.category.placeholder', isZh ? '選擇分類' : 'Select category')}</option>
                                 {categories.map((category) => (
                                     <option key={category.id} value={category.id}>
                                         {isZh ? category.name : category.name_en}
@@ -447,16 +445,17 @@ export default function PostForm({
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className="space-y-4">
                                 <Label htmlFor="status" className="text-sm font-medium text-gray-900">
-                                    {isZh ? '狀態' : 'Status'}
+                                    {t('posts.form.fields.status.label', isZh ? '發布狀態' : 'Status')}
                                 </Label>
                                 <Select
                                     id="status"
                                     value={data.status}
                                     onChange={(event) => setData('status', event.target.value as PostFormValues['status'])}
                                 >
-                                    {statusOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {isZh ? option.labelZh : option.labelEn}
+                                    <option value="">{t('posts.form.fields.status.placeholder', isZh ? '選擇狀態' : 'Select status')}</option>
+                                    {statusValues.map((value) => (
+                                        <option key={value} value={value}>
+                                            {t(`posts.status.${value}`, statusLabelFallbacks[value])}
                                         </option>
                                     ))}
                                 </Select>
@@ -464,7 +463,7 @@ export default function PostForm({
 
                             <div className="space-y-4">
                                 <Label htmlFor="publish_at" className="text-sm font-medium text-gray-900">
-                                    {isZh ? '發布時間' : 'Publish Date'}
+                                    {t('posts.form.fields.publish_at.label', isZh ? '預定發布時間' : 'Publish at')}
                                 </Label>
                                 <Input
                                     id="publish_at"
@@ -484,7 +483,7 @@ export default function PostForm({
                                     onCheckedChange={(checked) => setData('pinned', Boolean(checked))}
                                 />
                                 <Label htmlFor="pinned" className="text-sm font-medium text-gray-900">
-                                    {isZh ? '置頂公告' : 'Pin this post'}
+                                    {t('posts.form.fields.pinned.label', isZh ? '是否置頂' : 'Pin announcement')}
                                 </Label>
                             </div>
                         </div>
@@ -493,21 +492,27 @@ export default function PostForm({
 
                 <Card className="border-gray-200 bg-white shadow-sm">
                     <CardHeader className="border-b border-gray-100 bg-gray-50/50">
-                        <CardTitle className="text-gray-900">{isZh ? '內容' : 'Content'}</CardTitle>
+                        <CardTitle className="text-gray-900">
+                            {t('posts.form.sections.content.title', isZh ? '公告內容' : 'Announcement content')}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6 p-8">
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-4">
                                 <Label htmlFor="source_type" className="text-sm font-medium text-gray-900">
-                                    {isZh ? '輸入方式' : 'Input Source'}
+                                    {t('posts.form.fields.source_type.label', isZh ? '內容來源' : 'Content source')}
                                 </Label>
                                 <Select
                                     id="source_type"
                                     value={data.source_type}
                                     onChange={(event) => handleSourceTypeChange(event.target.value)}
                                 >
-                                    <option value="manual">{isZh ? '手動輸入' : 'Manual'}</option>
-                                    <option value="link">{isZh ? '外部連結' : 'Link'}</option>
+                                    <option value="manual">
+                                        {t('posts.form.fields.source_type.manual', isZh ? '手動輸入' : 'Manual input')}
+                                    </option>
+                                    <option value="link">
+                                        {t('posts.form.fields.source_type.link', isZh ? '外部連結' : 'External link')}
+                                    </option>
                                 </Select>
                                 <InputError message={errors.source_type} />
                             </div>
@@ -515,14 +520,14 @@ export default function PostForm({
                             {data.source_type === 'link' && (
                                 <div className="space-y-4">
                                     <Label htmlFor="source_url" className="text-sm font-medium text-gray-900">
-                                        {isZh ? '來源網址' : 'Source URL'}
+                                        {t('posts.form.fields.source_url.label', isZh ? '來源網址' : 'Source URL')}
                                     </Label>
                                     <div className="flex flex-col gap-2 sm:flex-row">
                                         <Input
                                             id="source_url"
                                             value={data.source_url}
                                             onChange={(event) => setData('source_url', event.target.value)}
-                                            placeholder={isZh ? '請輸入外部連結' : 'Enter the external link'}
+                                            placeholder={t('posts.form.fields.source_url.placeholder', isZh ? '請輸入外部連結' : 'https://example.com/post')}
                                         />
                                         <Button
                                             type="button"
@@ -533,10 +538,10 @@ export default function PostForm({
                                             {previewLoading ? (
                                                 <span className="flex items-center gap-2">
                                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                                    {isZh ? '開啟中' : 'Opening'}
+                                                    {t('posts.form.preview.reload', isZh ? '重新載入' : 'Reload preview')}
                                                 </span>
                                             ) : (
-                                                isZh ? '檢視' : 'View'
+                                                t('posts.show.open_source', isZh ? '前往來源' : 'Open source link')
                                             )}
                                         </Button>
                                     </div>
@@ -550,28 +555,28 @@ export default function PostForm({
                             <>
                                 <div className="space-y-4">
                                     <Label htmlFor="content-zh" className="text-sm font-medium text-gray-900">
-                                        {isZh ? '內容 (中文)' : 'Content (Chinese)'}
+                                        {t('posts.form.fields.content_zh.label', isZh ? '中文內容' : 'Chinese content')}
                                     </Label>
                                     <Textarea
                                         id="content-zh"
                                         className="min-h-[200px]"
                                         value={data.content['zh-TW']}
                                         onChange={(event) => handleContentZhChange(event.target.value)}
-                                        placeholder={isZh ? '請輸入中文內容' : 'Enter Chinese content'}
+                                        placeholder={t('posts.form.fields.content_zh.placeholder', isZh ? '請輸入中文內容' : 'Enter Chinese content')}
                                     />
                                     <InputError message={errors['content.zh-TW']} />
                                 </div>
 
                                 <div className="space-y-4">
                                     <Label htmlFor="content-en" className="text-sm font-medium text-gray-900">
-                                        {isZh ? '內容 (英文)' : 'Content (English)'}
+                                        {t('posts.form.fields.content_en.label', isZh ? '英文內容' : 'English content')}
                                     </Label>
                                     <Textarea
                                         id="content-en"
                                         className="min-h-[200px]"
                                         value={data.content.en}
                                         onChange={(event) => handleContentEnChange(event.target.value)}
-                                        placeholder={isZh ? '請輸入英文內容' : 'Enter English content'}
+                                        placeholder={t('posts.form.fields.content_en.placeholder', isZh ? '請輸入英文內容' : 'Enter English content')}
                                     />
                                     <InputError message={errors['content.en']} />
                                 </div>
@@ -579,12 +584,15 @@ export default function PostForm({
                         ) : (
                             <div className="space-y-4">
                                 <Label className="text-sm font-medium text-gray-900">
-                                    {isZh ? '內容' : 'Content Preview'}
+                                    {t('posts.form.preview.title', isZh ? '來源內容預覽' : 'Source preview')}
                                 </Label>
                                 <p className="text-sm text-gray-500">
-                                    {isZh
-                                        ? '輸入網址後按「檢視」會在新分頁開啟來源，系統不再儲存外部 HTML。'
-                                        : 'Enter the source URL and click "View" to open it in a new tab. The server no longer stores fetched HTML.'}
+                                    {t(
+                                        'posts.form.preview.not_embeddable',
+                                        isZh
+                                            ? '系統不再儲存外部 HTML，請透過來源連結檢視完整內容。'
+                                            : 'Preview cannot be embedded. Open the source in a new tab instead.'
+                                    )}
                                 </p>
                             </div>
                         )}
@@ -595,13 +603,13 @@ export default function PostForm({
                     <CardHeader className="border-b border-gray-100 bg-gray-50/50">
                         <CardTitle className="flex items-center gap-2 text-gray-900">
                             <Paperclip className="h-5 w-5 text-blue-600" />
-                            {isZh ? '附件' : 'Attachments'}
+                            {t('posts.form.sections.attachments.title', isZh ? '附件管理' : 'Attachment management')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6 p-8">
                         <div className="space-y-3">
                             <Label className="text-sm font-medium text-gray-900" htmlFor="attachment-files">
-                                {isZh ? '上傳檔案' : 'Upload files'}
+                                {t('posts.form.attachments.upload_button', isZh ? '上傳附件' : 'Upload files')}
                             </Label>
                             <Input
                                 id="attachment-files"
@@ -638,33 +646,35 @@ export default function PostForm({
 
                         <div className="space-y-3">
                             <Label className="text-sm font-medium text-gray-900">
-                                {isZh ? '外部連結' : 'External links'}
+                                {t('posts.form.attachments.links_title', isZh ? '外部連結' : 'External links')}
                             </Label>
                             <div className="space-y-4">
                                 {linkInputs.length === 0 && (
                                     <p className="text-sm text-gray-500">
-                                        {isZh ? '暫無外部連結。' : 'No external links added yet.'}
+                                        {t('posts.form.attachments.links_empty', isZh ? '暫無外部連結。' : 'No external links added yet.')}
                                     </p>
                                 )}
                                 {linkInputs.map((link) => (
                                     <div key={link.id} className="grid gap-3 rounded-lg border border-gray-200 p-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label className="text-xs font-medium text-gray-600">
-                                                {isZh ? '顯示名稱' : 'Display name'}
+                                                {t('posts.form.attachments.link_title_label', isZh ? '顯示名稱' : 'Display name')}
                                             </Label>
                                             <Input
                                                 value={link.title}
                                                 onChange={(event) => handleLinkInputChange(link.id, 'title', event.target.value)}
-                                                placeholder={isZh ? '例如：申請表下載' : 'e.g. Application form'}
+                                                placeholder={t('posts.form.attachments.link_title_sample', isZh ? '例如：申請表下載' : 'e.g. Application form')}
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-medium text-gray-600">URL</Label>
+                                            <Label className="text-xs font-medium text-gray-600">
+                                                {t('posts.form.attachments.link_url_label', 'URL')}
+                                            </Label>
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     value={link.url}
                                                     onChange={(event) => handleLinkInputChange(link.id, 'url', event.target.value)}
-                                                    placeholder="https://example.com/file.pdf"
+                                                    placeholder={t('posts.form.attachments.link_url_placeholder', 'https://example.com/file.pdf')}
                                                 />
                                                 <Button
                                                     type="button"
@@ -687,7 +697,7 @@ export default function PostForm({
                                     onClick={handleAddLinkInput}
                                 >
                                     <Plus className="h-4 w-4" />
-                                    {isZh ? '新增外部連結' : 'Add external link'}
+                                    {t('posts.form.attachments.add_link', isZh ? '新增外部連結' : 'Add external link')}
                                 </Button>
                             </div>
                         </div>
@@ -695,7 +705,7 @@ export default function PostForm({
                         {existingAttachments.length > 0 && (
                             <div className="space-y-3">
                                 <Label className="text-sm font-medium text-gray-900">
-                                    {isZh ? '現有附件' : 'Existing attachments'}
+                                    {t('posts.form.attachments.existing_title', isZh ? '既有附件' : 'Existing attachments')}
                                 </Label>
                                 <ul className="space-y-2">
                                     {existingAttachments.map((attachment) => {
@@ -724,7 +734,7 @@ export default function PostForm({
                                                                 rel="noopener noreferrer"
                                                                 className="text-blue-600 hover:underline"
                                                             >
-                                                                {isZh ? '預覽檔案' : 'View file'}
+                                                                {t('posts.form.attachments.actions.preview', isZh ? '預覽檔案' : 'View file')}
                                                             </a>
                                                         )}
                                                         {attachment.external_url && (
@@ -750,7 +760,9 @@ export default function PostForm({
                                                     onClick={() => toggleRemoveExistingAttachment(attachment.id)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
-                                                    {markedForRemoval ? (isZh ? '取消刪除' : 'Undo remove') : (isZh ? '移除' : 'Remove')}
+                                                    {markedForRemoval
+                                                        ? t('posts.form.attachments.actions.undo_remove', isZh ? '取消刪除' : 'Undo remove')
+                                                        : t('posts.form.attachments.actions.remove', isZh ? '移除' : 'Remove')}
                                                 </Button>
                                             </li>
                                         );
@@ -764,7 +776,7 @@ export default function PostForm({
                 <div className="flex items-center justify-end space-x-4 rounded-lg border border-gray-200 bg-white p-6">
                     <Link href={cancelUrl}>
                         <Button type="button" variant="secondary" className="rounded-full border border-[#151f54]/20">
-                            {isZh ? '取消' : 'Cancel'}
+                            {t('posts.form.actions.cancel', isZh ? '取消' : 'Cancel')}
                         </Button>
                     </Link>
                     <Button

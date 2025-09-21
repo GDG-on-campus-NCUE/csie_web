@@ -1,15 +1,13 @@
 import AdminDashboard from '@/components/admin/dashboard/admin-dashboard';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import { type SharedData } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { useTranslator } from '@/hooks/use-translator';
 
 export default function ManageAdminDashboard() {
-    const { locale } = usePage<SharedData>().props;
-    const isZh = locale?.toLowerCase() === 'zh-tw';
+    const { t } = useTranslator('manage');
 
     const breadcrumbs = [
-        { title: isZh ? '管理首頁' : 'Management', href: '/manage/dashboard' },
-        { title: isZh ? '系統總覽' : 'System overview', href: '/manage/admin/dashboard' },
+        { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.admin_dashboard', '系統總覽'), href: '/manage/admin/dashboard' },
     ];
 
     return (
