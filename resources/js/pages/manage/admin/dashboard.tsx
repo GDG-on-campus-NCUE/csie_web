@@ -1,4 +1,4 @@
-import AdminDashboard from '@/components/admin/dashboard/admin-dashboard';
+import AdminDashboard from '@/components/manage/admin/dashboard/admin-dashboard';
 import ManageLayout from '@/layouts/manage/manage-layout';
 import { useTranslator } from '@/hooks/use-translator';
 

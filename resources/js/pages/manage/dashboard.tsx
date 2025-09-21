@@ -1,4 +1,4 @@
-import AdminDashboard from '@/components/admin/dashboard/admin-dashboard';
+import AdminDashboard from '@/components/manage/admin/dashboard/admin-dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ManageLayout from '@/layouts/manage/manage-layout';
