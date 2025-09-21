@@ -4,7 +4,7 @@ import { type PropsWithChildren, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 
 interface ManageSettingsLayoutProps extends PropsWithChildren {
-    active: 'profile' | 'password' | 'appearance';
+    active: 'profile' | 'password';
 }
 
 interface SettingsNavItem {
@@ -15,7 +15,6 @@ interface SettingsNavItem {
 const navItems: SettingsNavItem[] = [
     { key: 'profile', href: '/manage/settings/profile' },
     { key: 'password', href: '/manage/settings/password' },
-    { key: 'appearance', href: '/manage/settings/appearance' },
 ];
 
 export default function ManageSettingsLayout({ children, active }: ManageSettingsLayoutProps) {

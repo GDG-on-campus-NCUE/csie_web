@@ -24,8 +24,5 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
                     ->middleware('throttle:6,1')
                     ->name('password.update');
 
-                Route::get('appearance', function () {
-                    return Inertia::render('manage/settings/appearance');
-                })->name('appearance.edit');
             });
     });
