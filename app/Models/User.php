@@ -53,15 +53,10 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // Role-related methods
+    // 角色相關方法
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
-    }
-
-    public function isManager(): bool
-    {
-        return $this->role === 'manager';
     }
 
     public function isTeacher(): bool
@@ -76,7 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasRoleOrHigher(string $role): bool
     {
-        $hierarchy = ['user' => 1, 'teacher' => 2, 'manager' => 3, 'admin' => 4];
+        $hierarchy = ['user' => 1, 'teacher' => 2, 'admin' => 3];
         $userLevel = $hierarchy[$this->role] ?? 0;
         $requiredLevel = $hierarchy[$role] ?? 0;
 
@@ -84,24 +79,20 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Scope: Get users that can be managed by the given user
+     * 範圍：取得指定使用者可管理的帳號
      */
     public function scopeCanBeManagedBy($query, $user)
     {
         if ($user->role === 'admin') {
-            // 管理員可以管理除管理角色外的所有帳號
-            return $query->whereNotIn('role', ['admin', 'manager'])
-                        ->where('id', '!=', $user->id);
-        } elseif ($user->role === 'manager') {
-            // 協同管理者可管理非管理角色的帳號
-            return $query->whereNotIn('role', ['admin', 'manager'])
+            // 管理員可管理所有非管理員帳號，且不得處理自己
+            return $query->where('role', '!=', 'admin')
                         ->where('id', '!=', $user->id);
         } elseif ($user->role === 'teacher') {
-            // Teacher can manage regular users only
+            // 教師僅能管理一般會員
             return $query->where('role', 'user');
         } else {
-            // Regular users cannot manage anyone
-            return $query->whereRaw('1 = 0'); // Always false
+            // 一般會員無法管理任何帳號，透過永遠為假的條件避免取得資料
+            return $query->whereRaw('1 = 0');
         }
     }
 

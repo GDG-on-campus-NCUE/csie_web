@@ -59,14 +59,8 @@ const formatDateTime = (value: string | null) => {
 export default function ShowPost({ post }: ShowPostProps) {
     const { auth } = usePage<SharedData>().props;
     const userRole = auth?.user?.role ?? 'user';
-    const layoutRole: 'admin' | 'manager' | 'teacher' | 'user' =
-        userRole === 'admin'
-            ? 'admin'
-            : userRole === 'manager'
-              ? 'manager'
-              : userRole === 'teacher'
-                ? 'teacher'
-                : 'user';
+    const layoutRole: 'admin' | 'teacher' | 'user' =
+        userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: '管理首頁', href: '/manage/dashboard' },

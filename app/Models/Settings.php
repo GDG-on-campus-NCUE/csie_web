@@ -56,15 +56,15 @@ class Settings extends Model
     }
 
     /**
-     * Scope: Get settings accessible by user (considering role hierarchy)
+     * 範圍：依角色層級取得使用者可存取的設定
      */
     public function scopeAccessibleBy($query, $user)
     {
-        if (in_array($user->role, ['admin', 'manager'], true)) {
-            // 管理角色可以檢視所有設定
+        if ($user->role === 'admin') {
+            // 管理員可以檢視所有設定
             return $query;
         } elseif ($user->role === 'teacher') {
-            // Teacher can access own settings and public user settings only
+            // 教師僅能檢視自己的設定與一般會員公開設定
             return $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere(function ($subQ) use ($user) {
@@ -75,7 +75,7 @@ class Settings extends Model
                   });
             });
         } else {
-            // Regular user can only access own settings and other public user settings
+            // 一般會員僅能檢視自己的設定與其他會員公開資訊
             return $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere(function ($subQ) use ($user) {

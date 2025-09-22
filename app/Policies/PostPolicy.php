@@ -32,17 +32,17 @@ class PostPolicy
      */
     public function view(User $user, Post $post): bool
     {
-        // 管理角色可檢視所有公告
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可檢視所有公告
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // 教師可以檢視所有公告以利協作管理
+        // 教師可檢視所有公告以利協作管理
         if ($user->role === 'teacher') {
             return true;
         }
 
-        // Regular user can only view published posts
+        // 一般會員僅能檢視已發布的公告
         return $post->status === 'published';
     }
 
@@ -51,7 +51,7 @@ class PostPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     /**
@@ -59,8 +59,8 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        // 管理角色可編輯所有公告
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可編輯所有公告
+        if ($user->role === 'admin') {
             return true;
         }
 
@@ -69,7 +69,7 @@ class PostPolicy
             return true;
         }
 
-        // Regular users cannot update posts
+        // 一般會員不可編輯公告
         return false;
     }
 
@@ -78,17 +78,17 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        // 管理角色可刪除任何公告
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可刪除任何公告
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can only delete their own posts
+        // 教師僅能刪除自己建立的公告
         if ($user->role === 'teacher') {
             return $post->created_by === $user->id;
         }
 
-        // Regular users cannot delete posts
+        // 一般會員不可刪除公告
         return false;
     }
 
@@ -97,17 +97,17 @@ class PostPolicy
      */
     public function restore(User $user, Post $post): bool
     {
-        // 管理角色可復原任何公告
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可復原任何公告
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can only restore their own posts
+        // 教師僅能復原自己建立的公告
         if ($user->role === 'teacher') {
             return $post->created_by === $user->id;
         }
 
-        // Regular users cannot restore posts
+        // 一般會員不可復原公告
         return false;
     }
 
@@ -116,8 +116,8 @@ class PostPolicy
      */
     public function forceDelete(User $user, Post $post): bool
     {
-        // 只有管理角色可以永久刪除公告
-        return in_array($user->role, ['admin', 'manager'], true);
+        // 只有管理員可以永久刪除公告
+        return $user->role === 'admin';
     }
 
     /**
@@ -125,7 +125,7 @@ class PostPolicy
      */
     public function publish(User $user, Post $post): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -133,7 +133,7 @@ class PostPolicy
      */
     public function unpublish(User $user, Post $post): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -141,7 +141,7 @@ class PostPolicy
      */
     public function manageCategories(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -149,7 +149,7 @@ class PostPolicy
      */
     public function bulkOperations(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -157,7 +157,7 @@ class PostPolicy
      */
     public function viewAnalytics(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     /**
@@ -165,7 +165,7 @@ class PostPolicy
      */
     public function schedulePost(User $user, Post $post): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -173,6 +173,6 @@ class PostPolicy
      */
     public function moderateComments(User $user, Post $post): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 }

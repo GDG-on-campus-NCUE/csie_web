@@ -74,7 +74,6 @@ export function AppSidebar() {
 
     const mainNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
         admin: adminNavItems,
-        manager: adminNavItems,
         teacher: [
             { title: t('sidebar.teacher.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
             { title: t('sidebar.teacher.posts'), href: '/manage/posts', icon: Megaphone },
@@ -109,7 +108,6 @@ export function AppSidebar() {
 
     const footerNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
         admin: adminFooterItems,
-        manager: adminFooterItems,
         teacher: [
             {
                 title: t('sidebar.teacher.guide'),

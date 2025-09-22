@@ -23,10 +23,6 @@ return [
                 'primary' => 'CSIE Admin',
                 'secondary' => 'Management Console',
             ],
-            'manager' => [
-                'primary' => 'CSIE Manager',
-                'secondary' => 'Collaborative Console',
-            ],
             'teacher' => [
                 'primary' => 'CSIE Teacher',
                 'secondary' => 'Teaching Console',

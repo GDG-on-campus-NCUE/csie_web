@@ -18,7 +18,7 @@ use App\Http\Controllers\Manage\Admin\PublicationController as AdminPublicationC
 use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
 
-Route::middleware(['auth', 'role:admin|manager'])
+Route::middleware(['auth', 'role:admin|teacher'])
     ->prefix('manage')->name('manage.')
     ->group(function () {
         Route::get('/', function () {

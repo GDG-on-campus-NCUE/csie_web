@@ -15,7 +15,7 @@ class LabPolicy
      */
     public function before(User $user): bool|null
     {
-        // Admin has access to most actions, but we'll handle specific restrictions per method
+        // 管理員大多數情境皆可操作，細部限制由各方法處理
         return null;
     }
 
@@ -40,7 +40,7 @@ class LabPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -48,12 +48,12 @@ class LabPolicy
      */
     public function update(User $user, Lab $lab): bool
     {
-        // 管理角色可更新任何實驗室
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可更新任何實驗室
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can update lab if they are a member of the lab
+        // 教師若為該實驗室成員即可更新資料
         if ($user->role === 'teacher') {
             return $this->isLabMember($user, $lab);
         }
@@ -66,7 +66,7 @@ class LabPolicy
      */
     public function delete(User $user, Lab $lab): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -74,7 +74,7 @@ class LabPolicy
      */
     public function restore(User $user, Lab $lab): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -82,7 +82,7 @@ class LabPolicy
      */
     public function forceDelete(User $user, Lab $lab): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     /**
@@ -90,12 +90,12 @@ class LabPolicy
      */
     public function manageMembers(User $user, Lab $lab): bool
     {
-        // 管理角色可管理任何實驗室成員
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可管理任何實驗室成員
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can manage members if they are a member of the lab
+        // 教師若為實驗室成員即可調整成員資訊
         if ($user->role === 'teacher') {
             return $this->isLabMember($user, $lab);
         }
@@ -108,12 +108,12 @@ class LabPolicy
      */
     public function viewAnalytics(User $user, Lab $lab): bool
     {
-        // 管理角色可檢視所有實驗室統計
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可檢視所有實驗室統計
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can view analytics if they are a member of the lab
+        // 教師若為實驗室成員即可檢視統計資訊
         if ($user->role === 'teacher') {
             return $this->isLabMember($user, $lab);
         }
@@ -126,12 +126,12 @@ class LabPolicy
      */
     public function managePosts(User $user, Lab $lab): bool
     {
-        // 管理角色可管理任何實驗室相關貼文
-        if (in_array($user->role, ['admin', 'manager'], true)) {
+        // 管理員可管理任何實驗室相關貼文
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // Teacher can manage posts if they are a member of the lab
+        // 教師若為實驗室成員即可管理貼文
         if ($user->role === 'teacher') {
             return $this->isLabMember($user, $lab);
         }
@@ -144,13 +144,13 @@ class LabPolicy
      */
     public function isLabMember(User $user, Lab $lab): bool
     {
-        // Only teachers can be lab members
+        // 僅教師具備加入實驗室的資格
         if ($user->role !== 'teacher') {
             return false;
         }
 
-        // Check if user has a teacher profile and is assigned to this lab
-        if (!$user->teacher) {
+        // 確認使用者具備教師資料並與該實驗室綁定
+        if (! $user->teacher) {
             return false;
         }
 
