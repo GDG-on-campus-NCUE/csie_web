@@ -61,7 +61,7 @@ class UserController extends Controller
             'perPageOptions' => $this->perPageOptions,
             'can' => [
                 'create' => $request->user()->can('create', User::class),
-                'manage' => in_array($request->user()->role, ['admin', 'manager'], true),
+                'manage' => $request->user()->role === 'admin',
             ],
             'authUserId' => $request->user()->id,
         ]);
@@ -196,7 +196,7 @@ class UserController extends Controller
         if ($data['action'] === 'delete') {
             $authUser = $request->user();
 
-            $privilegedRoles = ['admin', 'manager'];
+            $privilegedRoles = ['admin'];
 
             $activeAdminsCount = User::query()
                 ->whereIn('role', $privilegedRoles)
@@ -301,7 +301,7 @@ class UserController extends Controller
         }
 
         $role = $request->input('role');
-        if (in_array($role, ['admin', 'manager', 'teacher', 'user'], true)) {
+        if (in_array($role, ['admin', 'teacher', 'user'], true)) {
             $query->where('role', $role);
         } else {
             $role = '';
@@ -391,7 +391,6 @@ class UserController extends Controller
     {
         return [
             ['value' => 'admin', 'label' => '管理員'],
-            ['value' => 'manager', 'label' => '協同管理'],
             ['value' => 'teacher', 'label' => '教師'],
             ['value' => 'user', 'label' => '一般會員'],
         ];
@@ -425,14 +424,12 @@ class UserController extends Controller
 
     private function isLastActiveAdmin(User $user): bool
     {
-        if (! in_array($user->role, ['admin', 'manager'], true)) {
+        if ($user->role !== 'admin') {
             return false;
         }
 
-        $privilegedRoles = ['admin', 'manager'];
-
         $activeAdmins = User::query()
-            ->whereIn('role', $privilegedRoles)
+            ->where('role', 'admin')
             ->whereNull('deleted_at')
             ->count();
 

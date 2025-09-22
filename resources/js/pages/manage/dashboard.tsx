@@ -8,7 +8,7 @@ import { BookOpen, LayoutGrid, Megaphone, NotebookPen, Settings, ShieldCheck, Us
 import { type ComponentType } from 'react';
 import { useTranslator } from '@/hooks/use-translator';
 
-type ManageRole = 'admin' | 'manager' | 'teacher' | 'user';
+type ManageRole = 'admin' | 'teacher' | 'user';
 
 interface QuickAction {
     href: string;
@@ -22,7 +22,7 @@ export default function Dashboard() {
     const role = (auth?.user?.role ?? 'user') as ManageRole;
     const { t } = useTranslator('manage');
 
-    if (role === 'admin' || role === 'manager') {
+    if (role === 'admin') {
         const adminTitle = t('dashboard.admin.title', '系統總覽');
         const breadcrumbs = [
             { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },

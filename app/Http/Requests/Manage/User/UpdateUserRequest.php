@@ -35,7 +35,7 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($target->id)->withoutTrashed(),
             ],
-            'role' => ['required', Rule::in(['admin', 'manager', 'teacher', 'user'])],
+            'role' => ['required', Rule::in(['admin', 'teacher', 'user'])],
             'status' => ['required', Rule::in(['active', 'suspended'])],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'password_confirmation' => ['nullable'],

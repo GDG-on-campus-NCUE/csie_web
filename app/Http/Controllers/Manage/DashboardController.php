@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $user = $request->user();
 
         $dashboard = null;
-        if ($user && in_array($user->role, ['admin', 'manager'], true)) {
+        if ($user && $user->role === 'admin') {
             $dashboard = $buildDashboardData();
         }
 

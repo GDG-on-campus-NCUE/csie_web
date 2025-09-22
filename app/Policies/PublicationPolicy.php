@@ -12,41 +12,41 @@ class PublicationPolicy
 
     public function before(User $user): bool|null
     {
-        return in_array($user->role, ['admin', 'manager'], true) ? true : null;
+        return $user->role === 'admin' ? true : null;
     }
 
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     public function view(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     public function update(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     public function delete(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'teacher']);
+        return in_array($user->role, ['admin', 'teacher'], true);
     }
 
     public function restore(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 
     public function forceDelete(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'manager'], true);
+        return $user->role === 'admin';
     }
 }

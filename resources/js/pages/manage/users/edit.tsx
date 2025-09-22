@@ -13,7 +13,7 @@ interface UserPayload {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'manager' | 'teacher' | 'user';
+    role: 'admin' | 'teacher' | 'user';
     status: 'active' | 'suspended';
     email_verified_at?: string | null;
 }

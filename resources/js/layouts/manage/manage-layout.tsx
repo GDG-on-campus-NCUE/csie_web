@@ -10,7 +10,7 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import ManageHeader from '@/components/manage/manage-header';
 
 interface ManageLayoutProps {
-    role?: 'admin' | 'manager' | 'teacher' | 'user';
+    role?: 'admin' | 'teacher' | 'user';
     breadcrumbs?: BreadcrumbItem[];
 }
 
@@ -21,10 +21,10 @@ export default function ManageLayout({
 }: PropsWithChildren<ManageLayoutProps>) {
     const { auth } = usePage<SharedData>().props;
     // 依據認證資訊判斷目前角色，若有外部覆寫則以參數優先
-    const role = (roleOverride ?? auth?.user?.role ?? 'user') as 'admin' | 'manager' | 'teacher' | 'user';
+    const role = (roleOverride ?? auth?.user?.role ?? 'user') as 'admin' | 'teacher' | 'user';
 
     const Sidebar = useMemo(() => {
-        if (role === 'admin' || role === 'manager') {
+        if (role === 'admin') {
             return AdminManageSidebar;
         }
 
