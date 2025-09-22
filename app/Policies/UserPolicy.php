@@ -59,9 +59,9 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Admin can update all users except other admins (but can update self)
+        // 管理員可管理所有帳號
         if ($user->role === 'admin') {
-            return $model->role !== 'admin' || $user->id === $model->id;
+            return true;
         }
 
         // Teacher can update regular users and themselves
@@ -78,13 +78,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Admin can delete non-admin users, but not themselves
-        if ($user->role === 'admin') {
-            return $model->role !== 'admin' && $user->id !== $model->id;
-        }
-
-        // Teacher and regular users cannot delete users
-        return false;
+        return $user->role === 'admin' && $user->id !== $model->id;
     }
 
     /**
@@ -109,8 +103,8 @@ class UserPolicy
      */
     public function assignRole(User $user, User $model): bool
     {
-        // Only admin can assign roles, and only to non-admin users
-        return $user->role === 'admin' && $model->role !== 'admin';
+        // 只有管理員可以調整角色
+        return $user->role === 'admin';
     }
 
     /**
