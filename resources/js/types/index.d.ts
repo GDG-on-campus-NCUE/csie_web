@@ -66,7 +66,7 @@ export interface AdminDashboardAttachmentSummary {
     id: number;
     title: string | null;
     type: 'image' | 'document' | 'link';
-    file_size: number | null;
+    size: number | null;
     created_at: string;
     attachable?: {
         type: string | null;

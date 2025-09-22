@@ -7,12 +7,16 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttachmentDownloadController extends Controller
 {
     // GET /attachments/{attachment}
-    public function redirect(Attachment $attachment): RedirectResponse|HttpResponse
+    public function redirect(Attachment $attachment): RedirectResponse|HttpResponse|StreamedResponse
     {
+        Gate::authorize('view', $attachment);
+
         // Prefer external link when present
         if (!empty($attachment->external_url)) {
             return redirect()->away($attachment->external_url, 302);
@@ -21,13 +25,31 @@ class AttachmentDownloadController extends Controller
     }
 
     // GET /attachments/{attachment}/download
-    public function download(Attachment $attachment): RedirectResponse|HttpResponse
+    public function download(Attachment $attachment): RedirectResponse|HttpResponse|StreamedResponse
     {
+        Gate::authorize('view', $attachment);
+
         $fileUrl = (string) ($attachment->file_url ?? '');
 
         // Absolute URL -> external redirect
         if ($fileUrl !== '' && preg_match('#^https?://#i', $fileUrl)) {
             return redirect()->away($fileUrl, 302);
+        }
+
+        if ($attachment->disk && $attachment->disk_path) {
+            try {
+                $downloadName = $attachment->title ?? $attachment->filename ?? basename($attachment->disk_path);
+                $headers = [];
+                if (!empty($attachment->mime_type)) {
+                    $headers['Content-Type'] = $attachment->mime_type;
+                }
+
+                if (Storage::disk($attachment->disk)->exists($attachment->disk_path)) {
+                    return Storage::disk($attachment->disk)->download($attachment->disk_path, $downloadName, $headers);
+                }
+            } catch (FileNotFoundException) {
+                // Fallback to legacy handler below
+            }
         }
 
         // Normalize public disk path

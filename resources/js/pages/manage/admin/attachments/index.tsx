@@ -1,36 +1,46 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { type ComponentType } from 'react';
+import type { ComponentType } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import ManageLayout from '@/layouts/manage/manage-layout';
+import { useTranslator } from '@/hooks/use-translator';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import ManageLayout from '@/layouts/manage/manage-layout';
-import { cn } from '@/lib/utils';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Badge } from '@/components/ui/badge';
 import {
     ArrowDownToLine,
+    CheckSquare,
     FileText,
     Image as ImageIcon,
     LinkIcon,
     RotateCcw,
     Trash2,
 } from 'lucide-react';
-import { useTranslator } from '@/hooks/use-translator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AttachmentRecord {
     id: number;
-    attachable_type: string | null;
-    attachable_id: number | null;
+    attached_to_type: string | null;
+    attached_to_id: number | null;
     type: 'image' | 'document' | 'link';
     title: string | null;
+    filename: string | null;
+    disk: string | null;
+    disk_path: string | null;
     file_url: string | null;
     external_url: string | null;
     mime_type: string | null;
-    file_size: number | null;
+    size: number | null;
+    visibility: 'public' | 'private';
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+    uploaded_by?: number | null;
+    uploader?: { id: number; name: string; email: string } | null;
+    download_url?: string | null;
     attachable?: Record<string, any> | null;
 }
 
@@ -41,6 +51,12 @@ interface PaginationMeta {
     total: number;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface AttachmentsIndexProps {
     attachments: {
         data: AttachmentRecord[];
@@ -49,27 +65,33 @@ interface AttachmentsIndexProps {
         last_page?: number;
         per_page?: number;
         total?: number;
-        links: Array<{ url: string | null; label: string; active: boolean }>;
+        links: PaginationLink[];
     };
     filters?: {
         search?: string;
         type?: string;
-        attachable_type?: string;
-        attachable_id?: string | number;
+        attached_to_type?: string;
+        attached_to_id?: string | number;
+        visibility?: string;
         trashed?: string;
-        per_page?: number;
+        sort?: string;
+        per_page?: number | string;
     };
     typeOptions?: string[];
-    attachableTypeOptions?: string[];
+    attachedTypeOptions?: string[];
+    visibilityOptions?: string[];
     perPageOptions?: number[];
+    sortOptions?: Array<{ value: string; label: string }>;
 }
 
 type FilterState = {
     search: string;
     type: string;
-    attachable_type: string;
-    attachable_id: string;
+    attached_to_type: string;
+    attached_to_id: string;
+    visibility: string;
     trashed: string;
+    sort: string;
     per_page: string;
 };
 
@@ -85,6 +107,12 @@ const TYPE_META: Record<AttachmentRecord['type'], { key: string; fallback: { zh:
     document: { key: 'attachments.type.document', fallback: { zh: '文件', en: 'Document' }, icon: FileText },
     link: { key: 'attachments.type.link', fallback: { zh: '連結', en: 'Link' }, icon: LinkIcon },
 };
+
+const VISIBILITY_META: Record<'public' | 'private', { label: { zh: string; en: string }; variant: 'secondary' | 'outline' | 'default' }>
+    = {
+        public: { label: { zh: '公開', en: 'Public' }, variant: 'secondary' },
+        private: { label: { zh: '私有', en: 'Private' }, variant: 'outline' },
+    };
 
 const formatBytes = (bytes: number | null) => {
     if (!bytes || bytes <= 0) return '-';
@@ -109,11 +137,14 @@ export default function AttachmentsIndex({
     attachments,
     filters = {},
     typeOptions = ['image', 'document', 'link'],
-    attachableTypeOptions = [],
+    attachedTypeOptions = [],
+    visibilityOptions = ['public', 'private'],
     perPageOptions = [],
+    sortOptions = [],
 }: AttachmentsIndexProps) {
     const { t, isZh, localeKey } = useTranslator('manage');
     const { delete: destroy, patch } = useForm();
+    const bulkForm = useForm({ action: 'delete' as 'delete' | 'force', ids: [] as number[] });
 
     const attachmentsIndexUrl = '/manage/admin/attachments';
 
@@ -126,26 +157,49 @@ export default function AttachmentsIndex({
     };
     const paginationLinks = attachments?.links ?? [];
     const resolvedPerPageOptions = perPageOptions.length > 0 ? perPageOptions : [10, 20, 50];
+    const defaultSort = filters.sort ?? '-created_at';
 
     const [filterState, setFilterState] = useState<FilterState>({
         search: filters.search ?? '',
         type: filters.type ?? '',
-        attachable_type: filters.attachable_type ?? '',
-        attachable_id: filters.attachable_id ? String(filters.attachable_id) : '',
+        attached_to_type: filters.attached_to_type ?? '',
+        attached_to_id: filters.attached_to_id ? String(filters.attached_to_id) : '',
+        visibility: filters.visibility ?? '',
         trashed: filters.trashed ?? '',
+        sort: filters.sort ?? defaultSort,
         per_page: String(filters.per_page ?? paginationMeta.per_page ?? DEFAULT_PAGINATION_META.per_page),
     });
+
+    const [selected, setSelected] = useState<number[]>([]);
 
     useEffect(() => {
         setFilterState({
             search: filters.search ?? '',
             type: filters.type ?? '',
-            attachable_type: filters.attachable_type ?? '',
-            attachable_id: filters.attachable_id ? String(filters.attachable_id) : '',
+            attached_to_type: filters.attached_to_type ?? '',
+            attached_to_id: filters.attached_to_id ? String(filters.attached_to_id) : '',
+            visibility: filters.visibility ?? '',
             trashed: filters.trashed ?? '',
+            sort: filters.sort ?? defaultSort,
             per_page: String(filters.per_page ?? paginationMeta.per_page ?? DEFAULT_PAGINATION_META.per_page),
         });
-    }, [filters.search, filters.type, filters.attachable_type, filters.attachable_id, filters.trashed, filters.per_page, paginationMeta.per_page]);
+    }, [
+        filters.search,
+        filters.type,
+        filters.attached_to_type,
+        filters.attached_to_id,
+        filters.visibility,
+        filters.trashed,
+        filters.sort,
+        filters.per_page,
+        paginationMeta.per_page,
+        defaultSort,
+    ]);
+
+    useEffect(() => {
+        const visibleIds = attachmentsData.map((attachment) => attachment.id);
+        setSelected((previous) => previous.filter((id) => visibleIds.includes(id)));
+    }, [attachmentsData]);
 
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         setFilterState((prev) => ({
@@ -185,67 +239,50 @@ export default function AttachmentsIndex({
         const resetState: FilterState = {
             search: '',
             type: '',
-            attachable_type: '',
-            attachable_id: '',
+            attached_to_type: '',
+            attached_to_id: '',
+            visibility: '',
             trashed: '',
+            sort: defaultSort,
             per_page: String(paginationMeta.per_page ?? DEFAULT_PAGINATION_META.per_page),
         };
         setFilterState(resetState);
-        router.get(attachmentsIndexUrl, { per_page: resetState.per_page }, {
-            preserveScroll: true,
-            replace: true,
-        });
-    };
-
-    const hasActiveFilters = useMemo(() => {
-        const { search, type, attachable_type, attachable_id, trashed } = filterState;
-        return [search, type, attachable_type, attachable_id, trashed].some((value) => value !== '');
-    }, [filterState]);
-
-    const formatTypeLabel = (type: AttachmentRecord['type']) => {
-        const meta = TYPE_META[type];
-        return t(meta.key, isZh ? meta.fallback.zh : meta.fallback.en);
-    };
-
-    const formatAttachableLabel = (attachment: AttachmentRecord) => {
-        if (!attachment.attachable_type) {
-            return t('attachments.index.status.unassigned', isZh ? '未關聯' : 'Unassigned');
-        }
-
-        const baseType = attachment.attachable_type.split('\\').pop() ?? attachment.attachable_type;
-        const identifier =
-            attachment.attachable?.title ?? attachment.attachable?.name ?? attachment.attachable?.slug ?? attachment.attachable_id;
-
-        if (attachment.attachable_type.includes('Post')) {
-            const title = attachment.attachable?.title ?? `#${attachment.attachable_id ?? '?'}`;
-            return t('attachments.index.status.post', `${isZh ? '公告' : 'Post'} · ${title}`, { title });
-        }
-
-        if (identifier) {
-            return t(
-                'attachments.index.status.generic_with_identifier',
-                `${baseType} · ${identifier}`,
-                {
-                    type: baseType,
-                    identifier,
-                },
-            );
-        }
-
-        return t(
-            'attachments.index.status.generic_without_identifier',
-            `${baseType} #${attachment.attachable_id ?? '?'}`,
+        router.get(
+            attachmentsIndexUrl,
+            { sort: defaultSort, per_page: resetState.per_page },
             {
-                type: baseType,
-                id: attachment.attachable_id ?? '?',
+                preserveScroll: true,
+                replace: true,
             },
         );
     };
 
-    const formatDateTime = (value: string) => new Date(value).toLocaleString(localeKey === 'zh-TW' ? 'zh-TW' : 'en-US');
+    const hasActiveFilters = useMemo(() => {
+        const { search, type, attached_to_type, attached_to_id, visibility, trashed } = filterState;
+        return [search, type, attached_to_type, attached_to_id, visibility, trashed].some((value) => value !== '');
+    }, [filterState]);
+
+    const toggleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelected(attachmentsData.map((attachment) => attachment.id));
+        } else {
+            setSelected([]);
+        }
+    };
+
+    const toggleSelect = (attachmentId: number, checked: boolean) => {
+        setSelected((previous) => {
+            if (checked) {
+                return Array.from(new Set([...previous, attachmentId]));
+            }
+            return previous.filter((id) => id !== attachmentId);
+        });
+    };
+
+    const hasSelection = selected.length > 0;
 
     const handleSoftDelete = (attachment: AttachmentRecord) => {
-        const name = attachment.title ?? attachment.file_url ?? attachment.external_url ?? attachment.id;
+        const name = attachment.title ?? attachment.filename ?? attachment.file_url ?? attachment.external_url ?? attachment.id;
 
         if (
             confirm(
@@ -277,9 +314,7 @@ export default function AttachmentsIndex({
             confirm(
                 t(
                     'attachments.index.dialogs.force_delete_confirm',
-                    isZh
-                        ? '確定要永久刪除此附件？此動作無法復原。'
-                        : 'Permanently delete this attachment? This action cannot be undone.',
+                    isZh ? '確定要永久刪除此附件？此動作無法復原。' : 'Permanently delete this attachment? This action cannot be undone.',
                 ),
             )
         ) {
@@ -289,6 +324,89 @@ export default function AttachmentsIndex({
             });
         }
     };
+
+    const handleBulk = (action: 'delete' | 'force') => {
+        if (!hasSelection || bulkForm.processing) {
+            return;
+        }
+
+        const message =
+            action === 'delete'
+                ? t(
+                      'attachments.index.dialogs.bulk_delete_confirm',
+                      isZh
+                          ? `確定要移除選取的 ${selected.length} 個附件嗎？`
+                          : `Delete ${selected.length} selected attachments?`,
+                      { count: selected.length },
+                  )
+                : t(
+                      'attachments.index.dialogs.bulk_force_confirm',
+                      isZh
+                          ? `確定要永久刪除選取的 ${selected.length} 個附件？`
+                          : `Permanently delete ${selected.length} attachments?`,
+                      { count: selected.length },
+                  );
+
+        if (!confirm(message)) {
+            return;
+        }
+
+        bulkForm.setData({ action, ids: selected });
+        bulkForm.post(`${attachmentsIndexUrl}/bulk`, {
+            preserveScroll: true,
+            onSuccess: () => setSelected([]),
+        });
+    };
+
+    const formatTypeLabel = (type: AttachmentRecord['type']) => {
+        const meta = TYPE_META[type];
+        return t(meta.key, isZh ? meta.fallback.zh : meta.fallback.en);
+    };
+
+    const formatVisibility = (visibility: 'public' | 'private') => {
+        const meta = VISIBILITY_META[visibility];
+        return meta ? (isZh ? meta.label.zh : meta.label.en) : visibility;
+    };
+
+    const formatAttachableLabel = (attachment: AttachmentRecord) => {
+        if (!attachment.attached_to_type) {
+            return t('attachments.index.status.unassigned', isZh ? '未關聯' : 'Unassigned');
+        }
+
+        const baseType = attachment.attached_to_type.split('\\').pop() ?? attachment.attached_to_type;
+        const identifier =
+            attachment.attachable?.title ??
+            attachment.attachable?.name ??
+            attachment.attachable?.slug ??
+            attachment.attached_to_id;
+
+        if (attachment.attached_to_type.includes('Post')) {
+            const title = attachment.attachable?.title ?? `#${attachment.attached_to_id ?? '?'}`;
+            return t('attachments.index.status.post', `${isZh ? '公告' : 'Post'} · ${title}`, { title });
+        }
+
+        if (identifier) {
+            return t(
+                'attachments.index.status.generic_with_identifier',
+                `${baseType} · ${identifier}`,
+                {
+                    type: baseType,
+                    identifier,
+                },
+            );
+        }
+
+        return t(
+            'attachments.index.status.generic_without_identifier',
+            `${baseType} #${attachment.attached_to_id ?? '?'}`,
+            {
+                type: baseType,
+                id: attachment.attached_to_id ?? '?',
+            },
+        );
+    };
+
+    const formatDateTime = (value: string) => new Date(value).toLocaleString(localeKey === 'zh-TW' ? 'zh-TW' : 'en-US');
 
     const resolvePaginationLabel = (label: string) => {
         if (/previous/i.test(label)) {
@@ -329,11 +447,33 @@ export default function AttachmentsIndex({
                                 )}
                             </p>
                         </div>
-                        <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
-                            <Link href="/manage/posts">
-                                {t('attachments.index.back_to_posts', isZh ? '回公告列表' : 'Back to posts')}
-                            </Link>
-                        </Button>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="w-full rounded-full border-[#151f54]/20 text-[#151f54] hover:bg-[#eef1ff] sm:w-auto"
+                                disabled={!hasSelection || bulkForm.processing}
+                                onClick={() => handleBulk('delete')}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('attachments.index.actions.bulk_delete', isZh ? '批次刪除' : 'Bulk delete')}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full rounded-full border-rose-200 text-rose-600 hover:bg-rose-50 sm:w-auto"
+                                disabled={!hasSelection || bulkForm.processing}
+                                onClick={() => handleBulk('force')}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('attachments.index.actions.bulk_force', isZh ? '批次永久刪除' : 'Bulk permanently delete')}
+                            </Button>
+                            <Button asChild variant="outline" className="w-full rounded-full border-[#151f54]/30 sm:w-auto">
+                                <Link href="/manage/posts">
+                                    {t('attachments.index.back_to_posts', isZh ? '回公告列表' : 'Back to posts')}
+                                </Link>
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -388,11 +528,11 @@ export default function AttachmentsIndex({
                                 </label>
                                 <Select
                                     id="attachment-source-type"
-                                    value={filterState.attachable_type}
-                                    onChange={(event) => handleFilterChange('attachable_type', event.target.value)}
+                                    value={filterState.attached_to_type}
+                                    onChange={(event) => handleFilterChange('attached_to_type', event.target.value)}
                                 >
                                     <option value="">{t('attachments.index.filters.all_sources', isZh ? '全部來源' : 'All sources')}</option>
-                                    {attachableTypeOptions.map((option) => (
+                                    {attachedTypeOptions.map((option) => (
                                         <option key={option} value={option}>
                                             {option}
                                         </option>
@@ -412,9 +552,27 @@ export default function AttachmentsIndex({
                                         'attachments.index.filters.source_id_placeholder',
                                         isZh ? '輸入來源資料 ID' : 'Enter source record ID',
                                     )}
-                                    value={filterState.attachable_id}
-                                    onChange={(event) => handleFilterChange('attachable_id', event.target.value)}
+                                    value={filterState.attached_to_id}
+                                    onChange={(event) => handleFilterChange('attached_to_id', event.target.value)}
                                 />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-visibility">
+                                    {t('attachments.index.filters.visibility', isZh ? '可見範圍' : 'Visibility')}
+                                </label>
+                                <Select
+                                    id="attachment-visibility"
+                                    value={filterState.visibility}
+                                    onChange={(event) => handleFilterChange('visibility', event.target.value)}
+                                >
+                                    <option value="">{t('attachments.index.filters.visibility_all', isZh ? '全部' : 'All')}</option>
+                                    {visibilityOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                            {formatVisibility(option as 'public' | 'private')}
+                                        </option>
+                                    ))}
+                                </Select>
                             </div>
 
                             <div>
@@ -429,6 +587,34 @@ export default function AttachmentsIndex({
                                     <option value="">{t('attachments.index.filters.active_only', isZh ? '僅顯示現存' : 'Active only')}</option>
                                     <option value="with">{t('attachments.index.filters.include_deleted', isZh ? '含已刪除' : 'Include deleted')}</option>
                                     <option value="only">{t('attachments.index.filters.deleted_only', isZh ? '僅已刪除' : 'Only deleted')}</option>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-sort">
+                                    {t('attachments.index.filters.sort', isZh ? '排序' : 'Sort')}
+                                </label>
+                                <Select
+                                    id="attachment-sort"
+                                    value={filterState.sort}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        handleFilterChange('sort', value);
+                                        router.get(attachmentsIndexUrl, buildFilterQuery({ sort: value }), {
+                                            preserveScroll: true,
+                                            preserveState: true,
+                                            replace: true,
+                                        });
+                                    }}
+                                >
+                                    {(sortOptions.length > 0 ? sortOptions : [
+                                        { value: '-created_at', label: isZh ? '上傳時間（新到舊）' : 'Newest first' },
+                                        { value: 'created_at', label: isZh ? '上傳時間（舊到新）' : 'Oldest first' },
+                                    ]).map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
                                 </Select>
                             </div>
 
@@ -491,17 +677,37 @@ export default function AttachmentsIndex({
                                 )}
                             </p>
                         </div>
+                        {hasSelection && (
+                            <div className="flex items-center gap-2 text-sm text-[#151f54]">
+                                <CheckSquare className="h-4 w-4" />
+                                {t(
+                                    'attachments.index.table.selected_count',
+                                    isZh ? `已選取 ${selected.length} 筆` : `${selected.length} selected`,
+                                    { count: selected.length },
+                                )}
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="overflow-hidden rounded-2xl border border-neutral-200/70">
                             <table className="min-w-full divide-y divide-neutral-200 bg-white text-sm">
                                 <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
                                     <tr>
-                                        <th className="px-6 py-3 font-medium">
-                                            {t(
-                                                'attachments.index.table.columns.attachment',
-                                                isZh ? '附件資訊' : 'Attachment',
-                                            )}
+                                        <th className="w-12 px-4 py-3">
+                                            <Checkbox
+                                                aria-label={t('attachments.index.table.columns.select_all', isZh ? '全選附件' : 'Select all')}
+                                                checked={
+                                                    selected.length === 0
+                                                        ? false
+                                                        : selected.length === attachmentsData.length
+                                                        ? true
+                                                        : 'indeterminate'
+                                                }
+                                                onCheckedChange={(checked) => toggleSelectAll(Boolean(checked))}
+                                            />
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            {t('attachments.index.table.columns.attachment', isZh ? '附件資訊' : 'Attachment')}
                                         </th>
                                         <th className="px-4 py-3 font-medium">
                                             {t('attachments.index.table.columns.source', isZh ? '來源' : 'Source')}
@@ -517,90 +723,98 @@ export default function AttachmentsIndex({
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-neutral-100">
+                                <tbody className="divide-y divide-neutral-200">
                                     {attachmentsData.length === 0 && (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-sm text-neutral-500">
-                                                {t(
-                                                    'attachments.index.table.empty',
-                                                    isZh
-                                                        ? '目前尚無符合條件的附件'
-                                                        : 'No attachments match the current filters.',
-                                                )}
+                                            <td colSpan={6} className="px-6 py-8 text-center text-sm text-neutral-500">
+                                                {t('attachments.index.table.empty', isZh ? '目前沒有符合條件的附件' : 'No attachments found for the current filters.')}
                                             </td>
                                         </tr>
                                     )}
                                     {attachmentsData.map((attachment) => {
-                                        const isDeleted = Boolean(attachment.deleted_at);
-                                        const TypeIcon = TYPE_META[attachment.type].icon;
+                                        const Icon = TYPE_META[attachment.type]?.icon ?? FileText;
+                                        const visibilityMeta = VISIBILITY_META[attachment.visibility];
+                                        const displayName = attachment.title ?? attachment.filename ?? attachment.external_url ?? `#${attachment.id}`;
 
                                         return (
-                                            <tr key={attachment.id} className={cn('hover:bg-[#f7f8fc]', isDeleted && 'bg-rose-50/60')}>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="inline-flex size-8 items-center justify-center rounded-xl bg-[#151f54]/10 text-[#151f54]">
-                                                                <TypeIcon className="h-4 w-4" />
-                                                            </span>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-semibold text-[#151f54]">
-                                                                    {attachment.title ?? attachment.file_url ?? attachment.external_url ?? `#${attachment.id}`}
-                                                                </span>
-                                                                <span className="text-xs text-neutral-500">
-                                                                    {t('attachments.index.table.meta.type', isZh ? '類型' : 'Type')} ·{' '}
-                                                                    {formatTypeLabel(attachment.type)}
-                                                                </span>
+                                            <tr key={attachment.id} className={attachment.deleted_at ? 'bg-neutral-50/60 text-neutral-500' : ''}>
+                                                <td className="px-4 py-4">
+                                                    <Checkbox
+                                                        aria-label={t('attachments.index.table.columns.select_row', isZh ? '選取附件' : 'Select attachment')}
+                                                        checked={selected.includes(attachment.id)}
+                                                        onCheckedChange={(checked) => toggleSelect(attachment.id, Boolean(checked))}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-start gap-3">
+                                                        <span className={cn('flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f4ff] text-[#151f54]', attachment.deleted_at && 'opacity-70')}>
+                                                            <Icon className="h-5 w-5" />
+                                                        </span>
+                                                        <div className="space-y-1">
+                                                            <p className="font-medium text-neutral-800 line-clamp-2">{displayName}</p>
+                                                            <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+                                                                <span>{attachment.mime_type ?? '-'}</span>
+                                                                <span>·</span>
+                                                                <Badge variant={visibilityMeta?.variant ?? 'secondary'} className="text-[11px]">
+                                                                    {formatVisibility(attachment.visibility)}
+                                                                </Badge>
                                                             </div>
+                                                            {attachment.external_url && (
+                                                                <a
+                                                                    href={attachment.external_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex text-xs text-blue-600 hover:text-blue-700"
+                                                                >
+                                                                    {attachment.external_url}
+                                                                </a>
+                                                            )}
                                                         </div>
-                                                        {attachment.mime_type && (
-                                                            <span className="text-xs text-neutral-500">MIME · {attachment.mime_type}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-neutral-600">
+                                                    <div className="space-y-1">
+                                                        <div>{formatAttachableLabel(attachment)}</div>
+                                                        {attachment.uploader && (
+                                                            <div className="text-xs text-neutral-500">
+                                                                {t('attachments.index.table.uploader', isZh ? `上傳者：${attachment.uploader.name}` : `Uploaded by ${attachment.uploader.name}`, {
+                                                                    name: attachment.uploader.name,
+                                                                })}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">{formatAttachableLabel(attachment)}</td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">{formatBytes(attachment.file_size)}</td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">{formatDateTime(attachment.updated_at)}</td>
+                                                <td className="px-4 py-4 text-sm text-neutral-600">{formatBytes(attachment.size)}</td>
+                                                <td className="px-4 py-4 text-sm text-neutral-600">
+                                                    <div className="space-y-1">
+                                                        <div>{formatDateTime(attachment.updated_at)}</div>
+                                                        {attachment.deleted_at && (
+                                                            <div className="text-xs text-rose-500">
+                                                                {t('attachments.index.table.deleted_at', isZh ? `已刪除：${formatDateTime(attachment.deleted_at)}` : `Deleted at ${formatDateTime(attachment.deleted_at)}`)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {attachment.external_url && (
+                                                        {attachment.type !== 'link' && (
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <a
-                                                                        href={attachment.external_url}
+                                                                        href={attachment.download_url ?? attachment.file_url ?? undefined}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center justify-center rounded-full border border-neutral-200 bg-white p-2 text-[#151f54] hover:border-[#151f54]/40 hover:bg-[#f5f7ff]"
-                                                                    >
-                                                                        <LinkIcon className="h-4 w-4" />
-                                                                    </a>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    {t(
-                                                                        'attachments.index.actions.visit_external',
-                                                                        isZh ? '開啟外部連結' : 'Open external link',
-                                                                    )}
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        )}
-                                                        {attachment.file_url && (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <a
-                                                                        href={`/attachments/${attachment.id}/download`}
-                                                                        className="inline-flex items-center justify-center rounded-full border border-emerald-100 bg-white p-2 text-emerald-600 transition hover:border-emerald-200 hover:bg-emerald-50"
+                                                                        className="inline-flex items-center justify-center rounded-full border border-blue-100 bg-white p-2 text-blue-600 transition hover:border-blue-200 hover:bg-blue-50"
                                                                     >
                                                                         <ArrowDownToLine className="h-4 w-4" />
                                                                     </a>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    {t(
-                                                                        'attachments.index.actions.download',
-                                                                        isZh ? '下載附件' : 'Download attachment',
-                                                                    )}
+                                                                    {t('attachments.index.actions.download', isZh ? '下載附件' : 'Download attachment')}
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         )}
-                                                        {isDeleted ? (
+                                                        {attachment.deleted_at ? (
                                                             <>
                                                                 <Tooltip>
                                                                     <TooltipTrigger asChild>
@@ -613,10 +827,7 @@ export default function AttachmentsIndex({
                                                                         </button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        {t(
-                                                                            'attachments.index.actions.restore',
-                                                                            isZh ? '還原附件' : 'Restore attachment',
-                                                                        )}
+                                                                        {t('attachments.index.actions.restore', isZh ? '還原附件' : 'Restore attachment')}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                                 <Tooltip>
@@ -630,10 +841,7 @@ export default function AttachmentsIndex({
                                                                         </button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        {t(
-                                                                            'attachments.index.actions.force_delete',
-                                                                            isZh ? '永久刪除' : 'Permanently delete',
-                                                                        )}
+                                                                        {t('attachments.index.actions.force_delete', isZh ? '永久刪除' : 'Permanently delete')}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </>
@@ -649,10 +857,7 @@ export default function AttachmentsIndex({
                                                                     </button>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    {t(
-                                                                        'attachments.index.actions.delete',
-                                                                        isZh ? '刪除附件' : 'Delete attachment',
-                                                                    )}
+                                                                    {t('attachments.index.actions.delete', isZh ? '刪除附件' : 'Delete attachment')}
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         )}
@@ -666,7 +871,7 @@ export default function AttachmentsIndex({
                         </div>
 
                         {paginationLinks.length > 0 && (
-                            <div className="flex items-center justify-between pt-2 text-sm text-neutral-500">
+                            <div className="flex flex-col gap-2 pt-2 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     {t(
                                         'attachments.index.pagination.summary',
@@ -679,7 +884,7 @@ export default function AttachmentsIndex({
                                         },
                                     )}
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     {paginationLinks.map((link, index) => {
                                         const rawLabel = sanitizeLabel(link.label);
                                         const label = resolvePaginationLabel(rawLabel);
