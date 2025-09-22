@@ -7,6 +7,7 @@ use App\Models\ContactMessage;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class BuildAdminDashboardData
 {
@@ -24,7 +25,9 @@ class BuildAdminDashboardData
         $documentAttachments = (clone $attachmentsQuery)->where('type', 'document')->count();
         $linkAttachments = (clone $attachmentsQuery)->where('type', 'link')->count();
         $trashedAttachments = Attachment::onlyTrashed()->count();
-        $totalAttachmentSize = (int) Attachment::query()->sum('size');
+        $totalAttachmentSize = Schema::hasColumn($attachmentsQuery->getModel()->getTable(), 'size')
+            ? (int) Attachment::query()->sum('size')
+            : 0;
 
         $recentPosts = Post::query()
             ->with(['category:id,name,name_en'])
