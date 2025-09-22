@@ -80,14 +80,14 @@ function PostListItem({
     const localeKey = locale?.toLowerCase() ?? 'zh-tw';
 
     return (
-        <li className="flex flex-col gap-2 rounded-2xl bg-neutral-50/70 px-4 py-3 text-sm text-neutral-700 ring-1 ring-black/5">
+        <li className="flex flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="font-medium text-neutral-900">{title}</div>
-                <Badge variant="outline" className="border-[#0f1c3f]/20 bg-[#0f1c3f]/10 text-[#0f1c3f]">
+                <div className="font-medium text-slate-900">{title}</div>
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
                     {badgeCopy[post.status] ?? post.status}
                 </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 {publishAt && (
                     <span>
                         {publishAt.locale(localeKey).format('YYYY/MM/DD HH:mm')}
@@ -117,20 +117,20 @@ function AttachmentListItem({
     const localeKey = locale?.toLowerCase() ?? 'zh-tw';
 
     return (
-        <li className="flex flex-col gap-2 rounded-2xl bg-neutral-50/70 px-4 py-3 text-sm text-neutral-700 ring-1 ring-black/5">
+        <li className="flex flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="font-medium text-neutral-900">
+                <div className="font-medium text-slate-900">
                     {attachment.title ?? t('dashboard.admin.attachments.untitled', '未命名附件')}
                 </div>
-                <Badge variant="outline" className="border-neutral-200 bg-white text-neutral-600">
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
                     {t(`dashboard.admin.attachments.types.${attachment.type}`, attachment.type)}
                 </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <span>{formatBytes(attachment.size)}</span>
                 {createdAt && <span>{createdAt.locale(localeKey).format('YYYY/MM/DD HH:mm')}</span>}
                 {attachment.attachable?.label && (
-                    <span className="truncate text-neutral-600">
+                    <span className="truncate text-slate-600">
                         {attachment.attachable.label}
                     </span>
                 )}
@@ -218,13 +218,13 @@ export default function AdminDashboard() {
             <section className="space-y-4">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="space-y-2">
-                        <p className="text-sm font-medium uppercase tracking-wide text-[#0f1c3f]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                             {t('dashboard.admin.badge', '管理儀表板')}
                         </p>
-                        <h1 className="text-3xl font-semibold text-neutral-900">
+                        <h1 className="text-3xl font-semibold text-slate-900">
                             {t('dashboard.admin.title', '系統總覽')}
                         </h1>
-                        <p className="max-w-2xl text-sm text-neutral-500">
+                        <p className="max-w-2xl text-sm text-slate-600">
                             {t(
                                 'dashboard.admin.description',
                                 '即時掌握公告、附件與聯絡訊息狀態，協助團隊快速行動。'
@@ -233,12 +233,12 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <Button asChild className="bg-[#0f1c3f] hover:bg-[#172b63]">
+                        <Button asChild className="rounded-full px-5">
                             <Link href="/manage/posts/create">
                                 {t('dashboard.admin.actions.create_post', '快速建立公告')}
                             </Link>
                         </Button>
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" className="rounded-full px-5">
                             <Link href="/manage/posts">
                                 {t('dashboard.admin.actions.view_posts', '檢視公告列表')}
                             </Link>
@@ -252,13 +252,13 @@ export default function AdminDashboard() {
                     {metrics.map((metric) => (
                         <Card
                             key={metric.key}
-                            className="rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5"
+                            className="rounded-2xl border border-slate-200 bg-white shadow-sm"
                         >
                             <CardHeader className="gap-1">
-                                <CardDescription className="text-sm text-neutral-500">
+                                <CardDescription className="text-sm text-slate-500">
                                     {metric.label}
                                 </CardDescription>
-                                <CardTitle className="text-3xl font-semibold text-neutral-900">
+                                <CardTitle className="text-3xl font-semibold text-slate-900">
                                     {formatNumber(metric.value)}
                                 </CardTitle>
                             </CardHeader>
@@ -270,25 +270,25 @@ export default function AdminDashboard() {
                     {attachmentMetrics.map((metric) => (
                         <Card
                             key={metric.key}
-                            className="rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5"
+                            className="rounded-2xl border border-slate-200 bg-white shadow-sm"
                         >
                             <CardHeader className="gap-1">
-                                <CardDescription className="text-sm text-neutral-500">
+                                <CardDescription className="text-sm text-slate-500">
                                     {metric.label}
                                 </CardDescription>
-                                <CardTitle className="text-3xl font-semibold text-neutral-900">
+                                <CardTitle className="text-3xl font-semibold text-slate-900">
                                     {formatNumber(metric.value)}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                     ))}
 
-                    <Card className="rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5">
+                    <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <CardHeader className="gap-1">
-                            <CardDescription className="text-sm text-neutral-500">
+                            <CardDescription className="text-sm text-slate-500">
                                 {attachmentCopy.totalSize}
                             </CardDescription>
-                            <CardTitle className="text-3xl font-semibold text-neutral-900">
+                            <CardTitle className="text-3xl font-semibold text-slate-900">
                                 {formatBytes(adminDashboard.attachments.totalSize)}
                             </CardTitle>
                         </CardHeader>
@@ -297,18 +297,18 @@ export default function AdminDashboard() {
             </section>
 
             <section className="grid gap-6 lg:grid-cols-2">
-                <Card className="h-full rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-neutral-900">
+                        <CardTitle className="text-lg font-semibold text-slate-900">
                             {t('dashboard.admin.posts.title', '最新公告')}
                         </CardTitle>
-                        <CardDescription className="text-sm text-neutral-500">
+                        <CardDescription className="text-sm text-slate-500">
                             {t('dashboard.admin.posts.description', '追蹤最近發佈或更新的公告')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {adminDashboard.recentPosts.length === 0 ? (
-                            <p className="text-sm text-neutral-500">
+                            <p className="text-sm text-slate-500">
                                 {t('dashboard.admin.posts.empty', '目前沒有公告記錄。')}
                             </p>
                         ) : (
@@ -326,18 +326,18 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="h-full rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-neutral-900">
+                        <CardTitle className="text-lg font-semibold text-slate-900">
                             {t('dashboard.admin.attachments.recent_title', '最新附件')}
                         </CardTitle>
-                        <CardDescription className="text-sm text-neutral-500">
+                        <CardDescription className="text-sm text-slate-500">
                             {t('dashboard.admin.attachments.recent_description', '檢視最近上傳或建立的附件資源')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {adminDashboard.recentAttachments.length === 0 ? (
-                            <p className="text-sm text-neutral-500">
+                            <p className="text-sm text-slate-500">
                                 {t('dashboard.admin.attachments.empty', '目前沒有附件記錄。')}
                             </p>
                         ) : (
@@ -357,12 +357,12 @@ export default function AdminDashboard() {
             </section>
 
             <section>
-                <Card className="rounded-3xl border-none bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-neutral-900">
+                        <CardTitle className="text-lg font-semibold text-slate-900">
                             {t('dashboard.admin.contact.title', '聯絡訊息狀態')}
                         </CardTitle>
-                        <CardDescription className="text-sm text-neutral-500">
+                        <CardDescription className="text-sm text-slate-500">
                             {t('dashboard.admin.contact.description', '即時掌握聯絡表單處理進度')}
                         </CardDescription>
                     </CardHeader>
@@ -371,12 +371,12 @@ export default function AdminDashboard() {
                             {(['new', 'in_progress', 'resolved', 'spam'] as const).map((key) => (
                                 <div
                                     key={key}
-                                    className="flex flex-col gap-1 rounded-2xl bg-neutral-50/70 px-4 py-3 text-sm text-neutral-600 ring-1 ring-black/5"
+                                    className="flex flex-col gap-1 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm"
                                 >
-                                    <span className="text-xs uppercase tracking-wide text-neutral-500">
+                                    <span className="text-xs uppercase tracking-wide text-slate-500">
                                         {t(`dashboard.admin.contact.status.${key}`, key)}
                                     </span>
-                                    <span className="text-2xl font-semibold text-neutral-900">
+                                    <span className="text-2xl font-semibold text-slate-900">
                                         {formatNumber(adminDashboard.contactMessages[key])}
                                     </span>
                                 </div>

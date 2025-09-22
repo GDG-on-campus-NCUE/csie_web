@@ -98,22 +98,22 @@ export default function Dashboard() {
                 <div className="rounded-3xl bg-white px-6 py-8 shadow-sm ring-1 ring-black/5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-[#151f54]/10 px-3 py-1 text-xs font-semibold text-[#151f54]">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                                 <LayoutGrid className="h-4 w-4" />
                                 {t('dashboard.common.manage_center')}
                             </span>
-                            <h1 className="text-3xl font-semibold text-[#151f54]">{title}</h1>
+                            <h1 className="text-3xl font-semibold text-slate-900">{title}</h1>
                             <p className="max-w-2xl text-sm text-slate-600">{description}</p>
                         </div>
-                        <Button asChild className="rounded-full bg-[#151f54] px-6 text-white shadow-sm hover:bg-[#1f2a6d]">
+                        <Button asChild className="rounded-full px-6">
                             <Link href="/manage/dashboard">{t('dashboard.common.back_to_overview')}</Link>
                         </Button>
                     </div>
                 </div>
 
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-[#151f54]">
+                        <CardTitle className="text-lg font-semibold text-slate-900">
                             {t('dashboard.common.quick_actions')}
                         </CardTitle>
                     </CardHeader>
@@ -122,10 +122,10 @@ export default function Dashboard() {
                             <Link
                                 key={href}
                                 href={href}
-                                className="group flex flex-col gap-3 rounded-2xl border border-transparent bg-[#f7f8fc] px-5 py-4 text-left shadow-sm transition hover:border-[#151f54]/20 hover:bg-white"
+                                className="group flex flex-col gap-3 rounded-2xl border border-transparent bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:border-slate-200 hover:bg-white"
                             >
-                                <span className="inline-flex items-center gap-2 text-sm font-medium text-[#151f54]">
-                                    <span className="inline-flex size-8 items-center justify-center rounded-xl bg-white text-[#151f54] shadow-sm">
+                                <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                                    <span className="inline-flex size-8 items-center justify-center rounded-xl bg-white text-slate-700 shadow-sm">
                                         <Icon className="h-4 w-4" />
                                     </span>
                                     {label}
