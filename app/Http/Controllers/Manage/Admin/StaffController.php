@@ -61,13 +61,22 @@ class StaffController extends Controller
                 ];
             });
 
+        $teachersPerPage = (int) $request->input('per_page', 15);
+        if ($teachersPerPage < 1) {
+            $teachersPerPage = 15;
+        }
+
+        if ($teachersPerPage > 200) {
+            $teachersPerPage = 200;
+        }
+
         $teachers = Teacher::with([
                 'user:id,name,email',
                 'labs:id,name,name_en',
             ])
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(20);
+            ->paginate($teachersPerPage);
 
         $teachers->getCollection()->transform(function (Teacher $teacher) {
             return [
@@ -113,6 +122,8 @@ class StaffController extends Controller
                 'trashed' => $trashedStaff,
             ],
             'teachers' => $teachers,
+            'perPage' => $teachersPerPage,
+            'perPageOptions' => [15, 30, 50, 100, 200],
         ]);
     }
 
@@ -149,7 +160,7 @@ class StaffController extends Controller
 
         Staff::create($data);
 
-        return redirect()->route('manage.admin.staff.index');
+        return redirect()->route('manage.staff.index');
     }
 
     // 顯示編輯表單
@@ -186,14 +197,14 @@ class StaffController extends Controller
 
         $staff->update($data);
 
-        return redirect()->route('manage.admin.staff.index');
+        return redirect()->route('manage.staff.index');
     }
 
     // 刪除職員
     public function destroy(Staff $staff)
     {
         $staff->delete();
-        return redirect()->route('manage.admin.staff.index');
+        return redirect()->route('manage.staff.index');
     }
 
     public function restore(int $staff)
@@ -203,7 +214,7 @@ class StaffController extends Controller
 
         $record->restore();
 
-        return redirect()->route('manage.admin.staff.index')->with('success', '職員已復原');
+        return redirect()->route('manage.staff.index')->with('success', '職員已復原');
     }
 
     public function forceDelete(int $staff)
@@ -213,6 +224,6 @@ class StaffController extends Controller
 
         $record->forceDelete();
 
-        return redirect()->route('manage.admin.staff.index')->with('success', '職員已永久刪除');
+        return redirect()->route('manage.staff.index')->with('success', '職員已永久刪除');
     }
 }

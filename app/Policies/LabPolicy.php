@@ -40,7 +40,7 @@ class LabPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -48,8 +48,8 @@ class LabPolicy
      */
     public function update(User $user, Lab $lab): bool
     {
-        // Admin can update any lab
-        if ($user->role === 'admin') {
+        // 管理角色可更新任何實驗室
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -66,7 +66,7 @@ class LabPolicy
      */
     public function delete(User $user, Lab $lab): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -74,7 +74,7 @@ class LabPolicy
      */
     public function restore(User $user, Lab $lab): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -82,7 +82,7 @@ class LabPolicy
      */
     public function forceDelete(User $user, Lab $lab): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -90,8 +90,8 @@ class LabPolicy
      */
     public function manageMembers(User $user, Lab $lab): bool
     {
-        // Admin can manage any lab members
-        if ($user->role === 'admin') {
+        // 管理角色可管理任何實驗室成員
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -108,8 +108,8 @@ class LabPolicy
      */
     public function viewAnalytics(User $user, Lab $lab): bool
     {
-        // Admin can view any lab analytics
-        if ($user->role === 'admin') {
+        // 管理角色可檢視所有實驗室統計
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -126,8 +126,8 @@ class LabPolicy
      */
     public function managePosts(User $user, Lab $lab): bool
     {
-        // Admin can manage any lab posts
-        if ($user->role === 'admin') {
+        // 管理角色可管理任何實驗室相關貼文
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 

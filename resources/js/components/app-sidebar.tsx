@@ -29,49 +29,52 @@ export function AppSidebar() {
     const role = auth.user.role;
     const { t } = useTranslator('manage');
 
+    const adminNavItems: NavItem[] = [
+        {
+            title: t('sidebar.admin.dashboard'),
+            href: '/manage/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: t('sidebar.admin.posts'),
+            href: '/manage/posts',
+            icon: Megaphone,
+        },
+        {
+            title: t('sidebar.admin.staff'),
+            href: '/manage/staff',
+            icon: UserCheck,
+        },
+        {
+            title: t('sidebar.admin.labs'),
+            href: '/manage/labs',
+            icon: Beaker,
+        },
+        {
+            title: t('sidebar.admin.academics'),
+            href: '/manage/academics',
+            icon: GraduationCap,
+        },
+        {
+            title: t('sidebar.admin.users'),
+            href: '/manage/users',
+            icon: Users,
+        },
+        {
+            title: t('sidebar.admin.messages'),
+            href: '/manage/contact-messages',
+            icon: Mail,
+        },
+        {
+            title: t('sidebar.admin.attachments'),
+            href: '/manage/attachments',
+            icon: FileText,
+        },
+    ];
+
     const mainNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
-        admin: [
-            {
-                title: t('sidebar.admin.dashboard'),
-                href: '/manage/dashboard',
-                icon: LayoutGrid,
-            },
-            {
-                title: t('sidebar.admin.posts'),
-                href: '/manage/posts',
-                icon: Megaphone,
-            },
-            {
-                title: t('sidebar.admin.staff'),
-                href: '/manage/admin/staff',
-                icon: UserCheck,
-            },
-            {
-                title: t('sidebar.admin.labs'),
-                href: '/manage/admin/labs',
-                icon: Beaker,
-            },
-            {
-                title: t('sidebar.admin.academics'),
-                href: '/manage/admin/academics',
-                icon: GraduationCap,
-            },
-            {
-                title: t('sidebar.admin.users'),
-                href: '/manage/users',
-                icon: Users,
-            },
-            {
-                title: t('sidebar.admin.messages'),
-                href: '/manage/admin/contact-messages',
-                icon: Mail,
-            },
-            {
-                title: t('sidebar.admin.attachments'),
-                href: '/manage/admin/attachments',
-                icon: FileText,
-            },
-        ],
+        admin: adminNavItems,
+        manager: adminNavItems,
         teacher: [
             { title: t('sidebar.teacher.dashboard'), href: '/manage/dashboard', icon: LayoutGrid },
             { title: t('sidebar.teacher.posts'), href: '/manage/posts', icon: Megaphone },
@@ -86,24 +89,27 @@ export function AppSidebar() {
         ],
     };
 
+    const adminFooterItems: NavItem[] = [
+        {
+            title: t('sidebar.footer.settings'),
+            href: '/manage/settings/profile',
+            icon: Settings,
+        },
+        {
+            title: t('sidebar.footer.docs'),
+            href: 'https://laravel.com/docs',
+            icon: HelpCircle,
+        },
+        {
+            title: t('sidebar.footer.repo'),
+            href: 'https://github.com/Grasonyang/csie_web',
+            icon: Folder,
+        },
+    ];
+
     const footerNavItemsByRole: Record<SharedData['auth']['user']['role'], NavItem[]> = {
-        admin: [
-            {
-                title: t('sidebar.footer.settings'),
-                href: '/manage/settings/profile',
-                icon: Settings,
-            },
-            {
-                title: t('sidebar.footer.docs'),
-                href: 'https://laravel.com/docs',
-                icon: HelpCircle,
-            },
-            {
-                title: t('sidebar.footer.repo'),
-                href: 'https://github.com/Grasonyang/csie_web',
-                icon: Folder,
-            },
-        ],
+        admin: adminFooterItems,
+        manager: adminFooterItems,
         teacher: [
             {
                 title: t('sidebar.teacher.guide'),

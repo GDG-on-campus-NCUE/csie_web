@@ -9,7 +9,7 @@ class AttachmentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     public function view(?User $user, Attachment $attachment): bool
@@ -22,7 +22,7 @@ class AttachmentPolicy
             return false;
         }
 
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -31,16 +31,16 @@ class AttachmentPolicy
 
     public function delete(User $user, Attachment $attachment): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     public function restore(User $user, Attachment $attachment): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     public function forceDelete(User $user, Attachment $attachment): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 }

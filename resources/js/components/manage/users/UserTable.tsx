@@ -12,7 +12,7 @@ export interface UserRow {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'user';
+    role: 'admin' | 'manager' | 'teacher' | 'user';
     status: 'active' | 'suspended';
     avatar?: string | null;
     email_verified_at?: string | null;
@@ -51,6 +51,7 @@ interface UserTableProps {
 
 const roleLabels: Record<UserRow['role'], string> = {
     admin: '管理員',
+    manager: '協同管理',
     teacher: '教師',
     user: '一般會員',
 };

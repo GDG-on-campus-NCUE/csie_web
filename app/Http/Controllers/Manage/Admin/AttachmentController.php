@@ -15,7 +15,7 @@ use Inertia\Response;
 class AttachmentController extends Controller
 {
     /** @var list<int> */
-    private array $perPageOptions = [10, 20, 50];
+    private array $perPageOptions = [15, 30, 50, 100, 200];
 
     /**
      * 附件列表。
@@ -48,7 +48,7 @@ class AttachmentController extends Controller
             ->filter()
             ->values();
 
-        return Inertia::render('manage/admin/attachments/index', [
+        return Inertia::render('manage/attachments/index', [
             'attachments' => $payload,
             'filters' => array_merge($filters, [
                 'sort' => $sortParam,
@@ -69,7 +69,7 @@ class AttachmentController extends Controller
         $attachment->delete();
 
         return redirect()
-            ->route('manage.admin.attachments.index', $request->only(['page']))
+            ->route('manage.attachments.index', $request->only(['page']))
             ->with('success', '附件已移至回收桶');
     }
 
@@ -82,7 +82,7 @@ class AttachmentController extends Controller
         $record->restore();
 
         return redirect()
-            ->route('manage.admin.attachments.index', $request->only(['page']))
+            ->route('manage.attachments.index', $request->only(['page']))
             ->with('success', '附件已復原');
     }
 
@@ -96,7 +96,7 @@ class AttachmentController extends Controller
         $record->forceDelete();
 
         return redirect()
-            ->route('manage.admin.attachments.index', $request->only(['page']))
+            ->route('manage.attachments.index', $request->only(['page']))
             ->with('success', '附件已永久刪除');
     }
 
@@ -126,7 +126,7 @@ class AttachmentController extends Controller
             }
 
             return redirect()
-                ->route('manage.admin.attachments.index')
+                ->route('manage.attachments.index')
                 ->with('success', '已將選取的附件移至回收桶');
         }
 
@@ -137,7 +137,7 @@ class AttachmentController extends Controller
         }
 
         return redirect()
-            ->route('manage.admin.attachments.index')
+            ->route('manage.attachments.index')
             ->with('success', '已永久刪除選取的附件');
     }
 
@@ -232,10 +232,14 @@ class AttachmentController extends Controller
 
     private function resolvePerPage(Request $request): int
     {
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = (int) $request->input('per_page', 15);
 
-        if (! in_array($perPage, $this->perPageOptions, true)) {
-            $perPage = 20;
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
         }
 
         return $perPage;

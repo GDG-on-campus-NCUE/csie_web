@@ -100,7 +100,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'user';
+    role: 'admin' | 'manager' | 'teacher' | 'user';
     status?: 'active' | 'suspended';
     locale?: string | null;
     avatar?: string;

@@ -16,7 +16,7 @@ class TeacherController extends Controller
     public function index(Request $request)
     {
         // 導向新的統一列表頁，維持查詢參數（例如分頁或語系）
-        return redirect()->route('manage.admin.staff.index', array_merge(
+        return redirect()->route('manage.staff.index', array_merge(
             $request->query(),
             ['tab' => 'teachers']
         ));
@@ -63,7 +63,7 @@ class TeacherController extends Controller
 
         Teacher::create($validated);
 
-        return redirect()->route('manage.admin.teachers.index')
+        return redirect()->route('manage.teachers.index')
             ->with('success', '教師建立成功');
     }
 
@@ -123,7 +123,7 @@ class TeacherController extends Controller
 
         $teacher->update($validated);
 
-        return redirect()->route('manage.admin.teachers.index')
+        return redirect()->route('manage.teachers.index')
             ->with('success', '教師更新成功');
     }
 
@@ -134,7 +134,7 @@ class TeacherController extends Controller
     {
         $teacher->delete();
 
-        return redirect()->route('manage.admin.teachers.index')
+        return redirect()->route('manage.teachers.index')
             ->with('success', '教師刪除成功');
     }
 }

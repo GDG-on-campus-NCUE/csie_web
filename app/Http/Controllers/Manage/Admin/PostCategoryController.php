@@ -52,7 +52,7 @@ class PostCategoryController extends Controller
 
         PostCategory::create($validated);
 
-        return redirect()->route('manage.admin.post-categories.index')
+        return redirect()->route('manage.post-categories.index')
             ->with('success', '分類建立成功');
     }
 
@@ -95,7 +95,7 @@ class PostCategoryController extends Controller
 
         $postCategory->update($validated);
 
-        return redirect()->route('manage.admin.post-categories.index')
+        return redirect()->route('manage.post-categories.index')
             ->with('success', '分類更新成功');
     }
 
@@ -110,7 +110,7 @@ class PostCategoryController extends Controller
 
         $postCategory->delete();
 
-        return redirect()->route('manage.admin.post-categories.index')
+        return redirect()->route('manage.post-categories.index')
             ->with('success', '分類刪除成功');
     }
 }

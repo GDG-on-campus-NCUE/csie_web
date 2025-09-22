@@ -56,6 +56,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Create a manager user.
+     */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'manager',
+        ]);
+    }
+
+    /**
      * Create a teacher user.
      */
     public function teacher(): static

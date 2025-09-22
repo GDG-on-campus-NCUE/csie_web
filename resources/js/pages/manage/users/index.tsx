@@ -58,7 +58,7 @@ export default function UsersIndex({
     authUserId,
 }: UsersIndexProps) {
     const defaultSort = sortOptions[0]?.value ?? '-created_at';
-    const defaultPerPage = String(perPageOptions[0] ?? 20);
+    const defaultPerPage = String(perPageOptions[0] ?? 15);
 
     const [filterState, setFilterState] = useState<FilterState>({
         q: filters.q ?? '',

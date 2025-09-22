@@ -24,7 +24,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher']);
+        return in_array($user->role, ['admin', 'manager']);
     }
 
     /**
@@ -33,13 +33,8 @@ class UserPolicy
     public function view(User $user, User $model): bool
     {
         // Admin can view all users
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
-        }
-
-        // Teacher can view regular users
-        if ($user->role === 'teacher') {
-            return $model->role === 'user' || $user->id === $model->id;
         }
 
         // User can only view themselves
@@ -51,7 +46,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -60,13 +55,8 @@ class UserPolicy
     public function update(User $user, User $model): bool
     {
         // 管理員可管理所有帳號
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
-        }
-
-        // Teacher can update regular users and themselves
-        if ($user->role === 'teacher') {
-            return $model->role === 'user' || $user->id === $model->id;
         }
 
         // User can only update themselves
@@ -78,7 +68,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->role === 'admin' && $user->id !== $model->id;
+        return in_array($user->role, ['admin', 'manager'], true) && $user->id !== $model->id;
     }
 
     /**
@@ -86,7 +76,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -95,7 +85,7 @@ class UserPolicy
     public function forceDelete(User $user, User $model): bool
     {
         // Admin can force delete users, but not themselves
-        return $user->role === 'admin' && $user->id !== $model->id;
+        return in_array($user->role, ['admin', 'manager'], true) && $user->id !== $model->id;
     }
 
     /**
@@ -104,7 +94,7 @@ class UserPolicy
     public function assignRole(User $user, User $model): bool
     {
         // 只有管理員可以調整角色
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -112,7 +102,7 @@ class UserPolicy
      */
     public function manageTeacherAssignments(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -121,7 +111,7 @@ class UserPolicy
     public function viewSettings(User $user, User $model): bool
     {
         // Admin can view all settings
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -135,7 +125,7 @@ class UserPolicy
     public function updateSettings(User $user, User $model): bool
     {
         // Admin can update all settings
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'manager'], true)) {
             return true;
         }
 
@@ -148,7 +138,7 @@ class UserPolicy
      */
     public function accessAdminDashboard(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'manager'], true);
     }
 
     /**
@@ -156,6 +146,6 @@ class UserPolicy
      */
     public function accessManageDashboard(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher']);
+        return in_array($user->role, ['admin', 'manager']);
     }
 }

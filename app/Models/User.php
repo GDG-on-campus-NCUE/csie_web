@@ -59,6 +59,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'admin';
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
     public function isTeacher(): bool
     {
         return $this->role === 'teacher';
@@ -71,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasRoleOrHigher(string $role): bool
     {
-        $hierarchy = ['user' => 1, 'teacher' => 2, 'admin' => 3];
+        $hierarchy = ['user' => 1, 'teacher' => 2, 'manager' => 3, 'admin' => 4];
         $userLevel = $hierarchy[$this->role] ?? 0;
         $requiredLevel = $hierarchy[$role] ?? 0;
 
@@ -84,8 +89,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeCanBeManagedBy($query, $user)
     {
         if ($user->role === 'admin') {
-            // Admin can manage all users except other admins
-            return $query->where('role', '!=', 'admin')
+            // 管理員可以管理除管理角色外的所有帳號
+            return $query->whereNotIn('role', ['admin', 'manager'])
+                        ->where('id', '!=', $user->id);
+        } elseif ($user->role === 'manager') {
+            // 協同管理者可管理非管理角色的帳號
+            return $query->whereNotIn('role', ['admin', 'manager'])
                         ->where('id', '!=', $user->id);
         } elseif ($user->role === 'teacher') {
             // Teacher can manage regular users only
