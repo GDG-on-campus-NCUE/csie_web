@@ -37,66 +37,70 @@
 - Include exact file paths in descriptions
 
 ## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Laravel Backend**: `app/Http/Controllers/`, `app/Models/`, `app/Policies/`, `tests/Feature/`, `tests/Unit/`
+- **React Frontend**: `resources/js/pages/`, `resources/js/components/ui/`, `resources/js/__tests__/`
+- **Internationalization**: `resources/lang/{locale}/` (backend), `/lang/{locale}/{component}.json` (frontend)
+- **Database**: `database/migrations/`, `database/seeders/`, `database/factories/`
 
 ## Phase 3.1: Setup
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T001 Create Laravel feature structure (migration, model, controller, policy)
+- [ ] T002 Configure TypeScript and React dependencies in package.json
+- [ ] T003 [P] Set up PHPUnit test configuration
+- [ ] T004 [P] Set up Jest + React Testing Library configuration
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T005 [P] Feature test for Controller@index in tests/Feature/ExampleControllerTest.php
+- [ ] T006 [P] Feature test for Controller@store in tests/Feature/ExampleControllerTest.php
+- [ ] T007 [P] Feature test for Controller@show in tests/Feature/ExampleControllerTest.php
+- [ ] T008 [P] Policy test for authorization in tests/Unit/ExamplePolicyTest.php
+- [ ] T009 [P] React component test in resources/js/__tests__/components/ExampleComponent.test.tsx
 
-## Localization & CI checks (project-specific requirement)
+## Laravel + React + TypeScript specific requirements
 
-When tasks involve UI text, content, or templates, ensure the following:
-- The task description MUST reference the exact locale file(s) to update (e.g., `resources/lang/zh-TW/announcements.php` or `resources/lang/en/messages.json`).
-- Add a unit/CI check task that validates the presence of new locale keys. Example check (CI job):
+When tasks involve multilingual content or UI changes:
+- Backend locale tasks MUST reference `resources/lang/{locale}/` files for validation messages
+- Frontend locale tasks MUST reference `/lang/{locale}/{component}.json` files for UI text
+- Inertia.js props MUST include required translations for the page
+- React components MUST use shared UI components from `resources/js/components/ui/`
 
+Example locale validation (CI job):
 ```yaml
-# Example CI job snippet (optional):
-name: validate-locales
+name: validate-laravel-locales
 run: |
-   # Script should exit non-zero if new strings lack locale entries
-   node ./scripts/validate-locales.js --paths "resources/lang/**"
+   php artisan lang:validate --locale=zh-TW,en
+   npm run test:i18n -- --validate-keys
 ```
 
-This ensures non-negotiable: "所有新增文字需放入語系檔" is enforced during the task pipeline.
-
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] User model in src/models/user.py
-- [ ] T009 [P] UserService CRUD in src/services/user_service.py
-- [ ] T010 [P] CLI --create-user in src/cli/user_commands.py
-- [ ] T011 POST /api/users endpoint
-- [ ] T012 GET /api/users/{id} endpoint
-- [ ] T013 Input validation
-- [ ] T014 Error handling and logging
+- [ ] T010 [P] Eloquent Model in app/Models/Example.php
+- [ ] T011 [P] Laravel Policy in app/Policies/ExamplePolicy.php  
+- [ ] T012 [P] Form Request validation in app/Http/Requests/StoreExampleRequest.php
+- [ ] T013 [P] API Resource in app/Http/Resources/ExampleResource.php
+- [ ] T014 Controller methods in app/Http/Controllers/ExampleController.php
+- [ ] T015 Database migration in database/migrations/create_examples_table.php
+- [ ] T016 [P] React page component in resources/js/pages/Example/Index.tsx
+- [ ] T017 [P] Shared UI components in resources/js/components/ui/
 
-## Phase 3.4: Integration
-- [ ] T015 Connect UserService to DB
-- [ ] T016 Auth middleware
-- [ ] T017 Request/response logging
-- [ ] T018 CORS and security headers
+## Phase 3.4: Integration  
+- [ ] T018 Inertia.js route registration in routes/web.php
+- [ ] T019 Service Provider registration (if needed)
+- [ ] T020 Database seeder in database/seeders/ExampleSeeder.php
+- [ ] T021 [P] Frontend locale files in /lang/{locale}/example.json
+- [ ] T022 [P] Backend locale files in resources/lang/{locale}/example.php
 
 ## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+- [ ] T023 [P] Unit tests for Model in tests/Unit/ExampleTest.php
+- [ ] T024 [P] Performance tests for Controller endpoints
+- [ ] T025 [P] React component interaction tests
+- [ ] T026 [P] Update API documentation
+- [ ] T027 Manual testing verification
 
 ## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
-- T008 blocks T009, T015
-- T016 blocks T018
-- Implementation before polish (T019-T023)
+- Tests (T005-T009) before implementation (T010-T017)
+- T015 (migration) before T010 (model)
+- T010-T013 (backend) before T016-T017 (frontend)
+- T018-T022 (integration) before T023-T027 (polish)
 
 ## Parallel Example
 ```

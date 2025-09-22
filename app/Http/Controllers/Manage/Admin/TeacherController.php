@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Manage\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Manage\Admin\StoreTeacherRequest;
+use App\Http\Requests\Manage\Admin\UpdateTeacherRequest;
+use App\Http\Resources\TeacherResource;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -35,36 +38,18 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTeacherRequest $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'name' => 'required|string|max:255',
-            'name_en' => 'nullable|string|max:255',
-            'title' => 'required|string|max:255',
-            'title_en' => 'nullable|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-            'office' => 'nullable|string',
-            'job_title' => 'nullable|string',
-            'photo_url' => 'nullable|url',
-            'bio' => 'nullable|string',
-            'bio_en' => 'nullable|string',
-            'expertise' => 'nullable|string',
-            'expertise_en' => 'nullable|string',
-            'education' => 'nullable|string',
-            'education_en' => 'nullable|string',
-            'sort_order' => 'integer',
-            'visible' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $validated['bio'] = $this->sanitizeRichText($validated['bio'] ?? null);
-        $validated['bio_en'] = $this->sanitizeRichText($validated['bio_en'] ?? null);
+        if ($request->hasFile('avatar')) {
+            $validated['photo_url'] = $request->file('avatar')->store('teachers', 'public');
+        }
 
-        Teacher::create($validated);
+        $teacher = Teacher::create($validated);
 
-        return redirect()->route('manage.teachers.index')
-            ->with('success', '教師建立成功');
+        return redirect()->route('manage.staff.index', ['tab' => 'teachers'])
+            ->with('success', __('manage.success.created', ['item' => __('manage.teacher.title')]));
     }
 
     /**
@@ -73,7 +58,7 @@ class TeacherController extends Controller
     public function show(Teacher $teacher)
     {
         return Inertia::render('manage/admin/teachers/show', [
-            'teacher' => $teacher->load(['user', 'labs', 'links', 'projects', 'publications']),
+            'teacher' => new TeacherResource($teacher->load(['user', 'links', 'projects', 'publications'])),
         ]);
     }
 
@@ -83,7 +68,7 @@ class TeacherController extends Controller
     public function edit(Teacher $teacher)
     {
         return Inertia::render('manage/admin/teachers/edit', [
-            'teacher' => $teacher->load(['user', 'links']),
+            'teacher' => new TeacherResource($teacher->load(['user', 'links'])),
             'users' => User::where('role', 'teacher')
                 ->where(function($query) use ($teacher) {
                     $query->whereDoesntHave('teacher')
@@ -95,36 +80,18 @@ class TeacherController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Teacher $teacher)
+    public function update(UpdateTeacherRequest $request, Teacher $teacher)
     {
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'name' => 'required|string|max:255',
-            'name_en' => 'nullable|string|max:255',
-            'title' => 'required|string|max:255',
-            'title_en' => 'nullable|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-            'office' => 'nullable|string',
-            'job_title' => 'nullable|string',
-            'photo_url' => 'nullable|url',
-            'bio' => 'nullable|string',
-            'bio_en' => 'nullable|string',
-            'expertise' => 'nullable|string',
-            'expertise_en' => 'nullable|string',
-            'education' => 'nullable|string',
-            'education_en' => 'nullable|string',
-            'sort_order' => 'integer',
-            'visible' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $validated['bio'] = $this->sanitizeRichText($validated['bio'] ?? null);
-        $validated['bio_en'] = $this->sanitizeRichText($validated['bio_en'] ?? null);
+        if ($request->hasFile('avatar')) {
+            $validated['photo_url'] = $request->file('avatar')->store('teachers', 'public');
+        }
 
         $teacher->update($validated);
 
-        return redirect()->route('manage.teachers.index')
-            ->with('success', '教師更新成功');
+        return redirect()->route('manage.staff.index', ['tab' => 'teachers'])
+            ->with('success', __('manage.success.updated', ['item' => __('manage.teacher.title')]));
     }
 
     /**
@@ -134,7 +101,7 @@ class TeacherController extends Controller
     {
         $teacher->delete();
 
-        return redirect()->route('manage.teachers.index')
-            ->with('success', '教師刪除成功');
+        return redirect()->route('manage.staff.index', ['tab' => 'teachers'])
+            ->with('success', __('manage.success.deleted', ['item' => __('manage.teacher.title')]));
     }
 }

@@ -1,25 +1,28 @@
 <!--
 Sync Impact Report
 
-- Version change: 1.0.0 -> 1.0.0
- - Version change: 1.0.0 -> 1.0.1
- - Modified principles:
-   - PRINCIPLE_1 (multilingual storage) -> 堅守多語 JSON 儲存與 Tab 切換設計
-   - PRINCIPLE_2 (styling & components) -> 保持 Tailwind 與共用元件架構，不額外寫散落 CSS
-   - PRINCIPLE_3..PRINCIPLE_5 -> reserved (kept for future principles)
- - Added sections:
-	- Additional Constraints
-	- Development Workflow
-	- Governance (expanded)
- - Removed sections:
-	- None
- - Templates reviewed and impact:
-	- .specify/templates/plan-template.md ✅ reviewed — Constitution Check steps present and aligned
-	- .specify/templates/spec-template.md ✅ reviewed — mandatory sections consistent with principles
-	- .specify/templates/tasks-template.md ✅ reviewed — contains CI example for locale key validation
-	- .specify/templates/agent-file-template.md ✅ reviewed
- - Follow-up TODOs (deferred items):
- 	- TODO(RATIFICATION_DATE): confirm and fill project ratification date (unknown from repo)
+- Version change: 1.0.1 -> 2.0.0
+- Modified principles:
+  - 堅守多語 JSON 儲存與 Tab 切換設計 (expanded with Laravel locale integration)
+  - 保持 Tailwind 與共用元件架構，不額外寫散落 CSS (refined for React + TypeScript)
+  - NEW: Laravel 11 + React + TypeScript + Inertia.js 架構原則
+  - NEW: 白底簡約設計與 UI/UX 原則
+  - NEW: 測試規範與資料流原則
+- Added sections:
+  - Technology Stack Requirements
+  - Data Flow & Architecture Constraints
+  - Testing & Quality Assurance
+  - UI/UX Design Principles
+- Removed sections:
+  - Generic principles 3-5 (replaced with specific CSIE requirements)
+- Templates requiring updates:
+  - .specify/templates/plan-template.md ✅ updated with Laravel/React context
+  - .specify/templates/spec-template.md ✅ reviewed - no changes needed  
+  - .specify/templates/tasks-template.md ✅ updated with PHPUnit/Jest testing requirements
+  - .github/copilot-instructions.md ✅ fully rewritten for CSIE context
+- Follow-up TODOs:
+  - CI pipeline validation for technology stack compliance (pending)
+  - Documentation updates for development workflow (pending)
 
 -->
 
@@ -27,48 +30,114 @@ Sync Impact Report
 
 ## Core Principles
 
-### 堅守多語 JSON 儲存與 Tab 切換設計
-所有以使用者可見的文字內容（公告標題、內文、附件描述等）MUST 以多語 JSON 結構儲存，並以 locale 為 key（例如 `zh-TW`, `en`）。使用者介面在呈現多語內容時 MUST 提供清晰的 Tab 切換，讓編輯者與閱讀者可直接在相同畫面切換語言檢視與編輯。
+### 堅守多語 JSON 儲存與 Laravel locale 整合
+所有使用者可見的文字內容（公告標題、內文、附件描述等）MUST 以多語 JSON 結構儲存於資料庫，並以 locale 為 key（例如 `zh-TW`, `en`）。後端使用 Laravel 的 `resources/lang/{locale}` 進行系統錯誤訊息處理，前端多語內容透過 `/lang/{locale}/{component}.json` 載入。使用者介面 MUST 提供清晰的 Tab 切換，讓編輯者與閱讀者可直接在相同畫面切換語言檢視與編輯。
 
-理由：此策略與既有介面語言策略一致，能保證資料結構一致性、便於匯出備份與搜尋，並降低因散落翻譯字串帶來的遺失風險。
+理由：此策略整合 Laravel 內建 i18n 機制與前端需求，保證資料結構一致性、便於匯出備份與搜尋，並降低因散落翻譯字串帶來的遺失風險。
+
+### Laravel 11 + React + TypeScript + Inertia.js 架構原則
+專案 MUST 使用 Laravel 11 作為後端框架，搭配 React + TypeScript 作為前端技術棧，並透過 Inertia.js 實現 SSR-like 的頁面渲染。後端 Controller MUST 使用 `Inertia::render()` 回傳頁面資料，前端 Page 組件 MUST 接收 props 作為唯一資料來源。禁止在前端使用傳統 AJAX 調用，除非明確標示為 client-only fetch 且有適當的 loading 狀態。
+
+理由：Inertia.js 提供 SPA 體驗同時保持傳統 server-side routing 的簡潔性，TypeScript 確保型別安全，React 功能組件提供良好的開發體驗。
 
 ### 保持 Tailwind 與共用元件架構，不額外寫散落 CSS
-前端樣式實作 MUST 儘量使用已採用的 Tailwind 實用工具類別與團隊維護的共用元件庫，禁止新增未經審核的全域或局部散置 CSS 檔案。任何需要新增樣式的情況，應優先擴充共用元件或在 design token / component 層級進行。
+前端樣式實作 MUST 使用 Tailwind CSS utility classes 與 `resources/js/components/ui/` 下的共用元件庫。禁止新增未經審核的全域或局部散置 CSS 檔案。任何需要新增樣式的情況，應優先擴充共用元件或在 design token / component 層級進行。元件設計 MUST 遵循單一職責原則，頁面組合由簡單元件構成。
 
-理由：維持一致的視覺語言、降低樣式衝突與維運成本，並促進元件複用。
+理由：維持一致的視覺語言、降低樣式衝突與維運成本，並促進元件複用。React 組件化設計便於測試與維護。
 
-### 原則三（保留）
-此處為保留槽：目前憲法主要原則已由前兩項明確定義。任何新增的核心原則需按「治理」章節的修訂程序提出與通過。
+### 白底簡約設計與 UI/UX 原則
+整體介面風格 MUST 以白底（#FFFFFF）為主，文字與圖像留白充足，元件簡潔。導覽設計 MUST 符合 ARCHITECTURE.md 定義的主菜單結構。所有表單與內容編輯介面 MUST 提供清晰的操作回饋與錯誤提示。響應式設計 MUST 支援桌面與行動裝置瀏覽。
 
-### 原則四（保留）
-此處為保留槽：保留給未來可能加入的核心原則。
+理由：簡潔設計提升使用者體驗，白底設計符合學術機構專業形象，良好的資訊架構便於訪客快速找到所需內容。
 
-### 原則五（保留）
-此處為保留槽：保留給未來可能加入的核心原則或細分指引。
+### 測試規範與資料流原則
+後端每個 Controller method MUST 對應一個 Feature test（`tests/Feature`），測試須覆蓋正常流程、未授權存取、輸入驗證錯誤、空結果等情境。前端每個主要 Page 與 UI 元件 MUST 具備 Jest + React Testing Library 測試。所有多語 JSON 資料處理 MUST 包含序列化測試。資料流 MUST 遵循：資料庫 → Eloquent Model → API Resource/DTO → Inertia props → React 組件。
 
-## Additional Constraints
+理由：完整的測試覆蓋確保系統穩定性，明確的資料流向簡化除錯與維護，提升開發效率。
 
-Mission: 優化公告管理模組，強化多語內容、附件與發布體驗。
+## Technology Stack Requirements
 
-Constraints and requirements:
-- 儲存與傳輸：所有多語內容 MUST 以多語 JSON 儲存並以 locale key 組織。
-- UI/UX：編輯介面 MUST 提供語言 Tab 切換，且切換狀態與保存機制須避免資料遺失。
-- 樣式與元件：不得新增散落 CSS，所有樣式變更應透過共用元件或 Tailwind 設計系統實作。
-- 非協商條件（see Non‑Negotiables）: 所有新增文字需放入語系檔（locale files），不得直接硬編在模板或元件中。
+### Mandatory Technologies
+- **Backend**: Laravel 11 with PHP 8.2+, MySQL database
+- **Frontend**: React with TypeScript, Inertia.js for SSR-like rendering
+- **Styling**: Tailwind CSS (exclusive styling solution)
+- **Testing**: PHPUnit for backend, Jest + React Testing Library for frontend
+- **Architecture**: Eloquent Models, Policies, FormRequests, API Resources
 
-## Development Workflow
+### Forbidden Technologies
+- Traditional AJAX calls (use Inertia.js page props instead)
+- Custom CSS files outside shared component system
+- Large i18n libraries (use minimal helpers with project `/lang` directory)
+- Direct database queries bypassing Eloquent models
 
-Code review & quality gates:
+## Data Flow & Architecture Constraints
 
-- PRs that change UI or introduce text content MUST include corresponding locale file updates. CI checks SHOULD validate presence of locale keys for new strings.
-- PRs that add or modify styles MUST reference existing shared components or design tokens; adding new CSS files is NOT allowed without governance approval.
-- Feature branches MUST include automated tests for content serialization (multi-lang JSON) and for any backend attachment handling.
-- Design/UX changes to the language tab behavior MUST include a quickstart.md style manual showing how editors use the tabbed editor and how to migrate existing content if needed.
+### Backend Requirements
+- Controllers MUST use `Inertia::render()` for page responses
+- Data transformation MUST use API Resources or DTOs
+- Authorization MUST use Laravel Policies
+- Route organization: `web.php` (public), `manage.php` (role-based), `auth.php` (authentication)
+- Every Controller method MUST have corresponding PHPUnit Feature test
 
-Release & deployment:
+### Frontend Requirements
+- Pages MUST receive data only through Inertia props
+- Components MUST follow single responsibility principle
+- State management MUST be local to components (no global state libraries)
+- Language switching MUST use Tab interface for multi-language content
+- Directory structure: `pages/` (Inertia pages), `components/ui/` (shared), `components/page/` (composite)
 
-- Backwards compatibility: data migrations that change the multi-language JSON shape MUST include a reversible migration plan and a migration test suite.
-- Rollouts that affect content editors SHOULD be feature-flagged and accompanied by brief documentation and a support plan.
+### Internationalization Rules
+- Backend: Use Laravel's `resources/lang/{locale}` for system messages only
+- Frontend: Use `/lang/{locale}/{component}.json` for UI text
+- Content: Store multi-language data as JSON in database with locale keys
+- Loading: Inject only required translations per page via Inertia props
+
+## Testing & Quality Assurance
+
+### Backend Testing Requirements
+- Every Controller method MUST have a Feature test in `tests/Feature/`
+- Test coverage MUST include: normal flow, unauthorized access, validation errors, empty results
+- Multi-language JSON serialization MUST be tested
+- Database relationships and Model methods MUST have Unit tests
+- Example: `tests/Feature/AnnouncementControllerTest.php`
+
+### Frontend Testing Requirements
+- Every major Page component MUST have Jest + React Testing Library tests
+- Shared UI components MUST be tested for props validation and rendering
+- Multi-language Tab switching functionality MUST be tested
+- Form submission and validation states MUST be tested
+- Test location: `resources/js/__tests__/`
+
+### CI/CD Requirements
+- PRs changing UI MUST include locale file updates
+- Style changes MUST reference existing shared components
+- Automated tests MUST pass before merge
+- Locale key validation for new strings MUST be enforced
+
+## UI/UX Design Principles
+
+### Visual Design
+- Primary background: White (#FFFFFF)
+- Typography: Sufficient whitespace for readability
+- Component design: Clean and minimal
+- Responsive design: Desktop and mobile support
+
+### Navigation Structure
+Navigation MUST follow ARCHITECTURE.md specification:
+- 簡介 (Introduction)
+- 系所成員 (Department Members) 
+- 學術研究 (Academic Research)
+- 課程修業 (Curriculum)
+- 招生專區 (Admissions)
+- 公告 (Announcements)
+- 聯絡我們 (Contact Us)
+
+### User Experience
+- Language switching: Clear Tab interface
+- Forms: Immediate validation feedback
+- Loading states: Clear indicators for async operations
+- Error handling: User-friendly error messages
+- Content editing: Prevent data loss during language switching
 
 ## Governance
 
@@ -86,4 +155,4 @@ Compliance & enforcement
 - CI and reviewers MUST verify non-negotiable items (localization updates, no scattered CSS, use of shared components) before merging UI/content PRs.
 - Violations MUST be documented in the PR and accompanied by a remediation plan.
 
-**Version**: 1.0.1 | **Ratified**: TODO(RATIFICATION_DATE) | **Last Amended**: 2025-09-19
+**Version**: 2.0.0 | **Ratified**: 2025-09-22 | **Last Amended**: 2025-09-22
