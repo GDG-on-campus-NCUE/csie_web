@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
 
                 // 附件管理
                 Route::resource('attachments', AdminAttachmentController::class)->only(['index', 'destroy']);
+                Route::post('attachments/bulk', [AdminAttachmentController::class, 'bulk'])->name('attachments.bulk');
                 Route::patch('attachments/{attachment}/restore', [AdminAttachmentController::class, 'restore'])
                     ->name('attachments.restore');
                 Route::delete('attachments/{attachment}/force', [AdminAttachmentController::class, 'forceDelete'])

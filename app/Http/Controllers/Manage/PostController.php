@@ -497,13 +497,19 @@ class PostController extends Controller
                 $path = $file->store('attachments', 'public');
                 $mime = $file->getMimeType();
                 $type = str_starts_with((string) $mime, 'image/') ? 'image' : 'document';
+                $originalName = $file->getClientOriginalName();
 
                 $post->attachments()->create([
                     'type' => $type,
-                    'title' => $file->getClientOriginalName(),
-                    'file_url' => '/storage/' . $path,
+                    'title' => $originalName,
+                    'filename' => $originalName,
+                    'disk' => 'public',
+                    'disk_path' => $path,
+                    'file_url' => Storage::disk('public')->url($path),
                     'mime_type' => $mime,
-                    'file_size' => $file->getSize(),
+                    'size' => $file->getSize(),
+                    'uploaded_by' => $request->user()->id,
+                    'visibility' => 'public',
                     'sort_order' => ++$currentSort,
                 ]);
             }
@@ -523,6 +529,8 @@ class PostController extends Controller
                     'type' => 'link',
                     'title' => $title !== '' ? $title : null,
                     'external_url' => $url,
+                    'uploaded_by' => $request->user()->id,
+                    'visibility' => 'public',
                     'sort_order' => ++$currentSort,
                 ]);
             }
@@ -532,13 +540,7 @@ class PostController extends Controller
     private function removeAttachments(EloquentCollection $attachments): void
     {
         foreach ($attachments as $attachment) {
-            if ($attachment->file_url && str_starts_with($attachment->file_url, '/storage/')) {
-                $path = Str::after($attachment->file_url, '/storage/');
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-            }
-
+            $attachment->deleteFileFromDisk();
             $attachment->delete();
         }
     }

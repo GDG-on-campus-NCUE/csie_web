@@ -11,7 +11,7 @@ interface BulletinAttachment {
     file_url?: string | null;
     external_url?: string | null;
     mime_type?: string | null;
-    file_size?: number | null;
+    size?: number | null;
 }
 
 interface BulletinPost {
@@ -195,7 +195,7 @@ export default function BulletinShow({ post }: BulletinShowProps) {
                                                         </span>
                                                     </span>
                                                     <span className="text-xs text-neutral-400">
-                                                        {formatFileSize(attachment.file_size)}
+                                                        {formatFileSize(attachment.size)}
                                                     </span>
                                                 </a>
                                             </li>

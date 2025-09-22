@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Manage;
 
+use App\Models\Attachment;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\User;
@@ -57,7 +58,36 @@ class PostManagementTest extends TestCase
 
         $fileAttachment = $post->attachments()->where('type', 'document')->first();
         $this->assertNotNull($fileAttachment);
-        $this->assertTrue(Storage::disk('public')->exists(str_replace('/storage/', '', $fileAttachment->file_url)));
+        $this->assertEquals('public', $fileAttachment->disk);
+        $this->assertNotNull($fileAttachment->disk_path);
+        $this->assertTrue(Storage::disk('public')->exists($fileAttachment->disk_path));
+    }
+
+    public function test_attachment_upload_validation_rejects_large_file(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $category = PostCategory::factory()->create();
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('manage.posts.store'), [
+                'title' => '附件驗證',
+                'slug' => null,
+                'category_id' => $category->id,
+                'excerpt' => '超大附件測試',
+                'content' => '<p>內容</p>',
+                'status' => 'draft',
+                'attachments' => [
+                    'files' => [
+                        UploadedFile::fake()->create('超大檔案.pdf', 25000, 'application/pdf'),
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHasErrors(['attachments.files.0']);
+        $this->assertSame(0, Attachment::count());
     }
 
     public function test_admin_can_schedule_post(): void

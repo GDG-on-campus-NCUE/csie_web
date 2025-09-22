@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Attachment;
 use App\Models\Lab;
 use App\Models\Post;
 use App\Models\Publication;
 use App\Models\Staff;
 use App\Models\User;
+use App\Policies\AttachmentPolicy;
 use App\Policies\LabPolicy;
 use App\Policies\PostPolicy;
 use App\Policies\PublicationPolicy;
@@ -18,6 +20,8 @@ class AuthServiceProvider extends ServiceProvider
 {
     /** @var array<class-string, class-string> */
     protected $policies = [
+        // 附件授權政策
+        Attachment::class => AttachmentPolicy::class,
         // 職員授權政策
         Staff::class => StaffPolicy::class,
         // 實驗室授權政策

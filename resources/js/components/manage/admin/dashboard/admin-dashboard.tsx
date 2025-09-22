@@ -127,7 +127,7 @@ function AttachmentListItem({
                 </Badge>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
-                <span>{formatBytes(attachment.file_size)}</span>
+                <span>{formatBytes(attachment.size)}</span>
                 {createdAt && <span>{createdAt.locale(localeKey).format('YYYY/MM/DD HH:mm')}</span>}
                 {attachment.attachable?.label && (
                     <span className="truncate text-neutral-600">
