@@ -262,28 +262,28 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             <Head title="公告管理" />
 
             <section className="space-y-6">
-                <Card className="border-0 bg-gradient-to-br from-white via-white to-[#eef1ff] shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-2">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-[#151f54]/10 px-3 py-1 text-xs font-semibold text-[#151f54]">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                                 <Filter className="h-4 w-4" /> 公告總覽
                             </span>
-                            <h1 className="text-3xl font-semibold text-[#151f54]">公告管理</h1>
+                            <h1 className="text-3xl font-semibold text-slate-900">公告管理</h1>
                             <p className="text-sm text-slate-600">
                                 管理公告分類、排程發布及附件檔案，確保資訊即時且一致。
                             </p>
                         </div>
                         {can.create && (
-                            <Button asChild className="rounded-full bg-[#151f54] px-6 text-white shadow-sm hover:bg-[#1f2a6d]">
+                            <Button asChild className="rounded-full px-6">
                                 <Link href="/manage/posts/create">新增公告</Link>
                             </Button>
                         )}
                     </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 shadow-sm">
                     <CardHeader className="border-b border-slate-100 pb-4">
-                        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-[#151f54]">
+                        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                             <Filter className="h-5 w-5" /> 篩選條件
                         </CardTitle>
                     </CardHeader>
@@ -400,14 +400,14 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                             </div>
 
                             <div className="flex items-end gap-2">
-                                <Button type="submit" className="w-full bg-[#151f54] text-white hover:bg-[#1f2a6d]">
+                                <Button type="submit" className="w-full rounded-full">
                                     套用
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="secondary"
                                     disabled={!hasActiveFilters}
-                                    className="w-full"
+                                    className="w-full rounded-full"
                                     onClick={resetFilters}
                                 >
                                     重設
@@ -417,11 +417,11 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                     </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 shadow-sm">
                     <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <CardTitle className="text-lg font-semibold text-[#151f54]">公告列表</CardTitle>
-                            <p className="text-sm text-slate-500">共 {pagination.total} 筆資料</p>
+                            <CardTitle className="text-lg font-semibold text-slate-900">公告列表</CardTitle>
+                            <p className="text-sm text-slate-600">共 {pagination.total} 筆資料</p>
                         </div>
                         {can.bulk && (
                             <div className="flex flex-wrap items-center gap-2">
@@ -488,7 +488,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                         const isSelected = selected.includes(post.id);
 
                                         return (
-                                            <tr key={post.id} className="bg-white hover:bg-[#f7f8fc]">
+                                            <tr key={post.id} className="bg-white hover:bg-slate-50">
                                                 {can.bulk && (
                                                     <td className="px-4 py-3">
                                                         <Checkbox
@@ -501,7 +501,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                     <div className="flex flex-col gap-1">
                                                         <Link
                                                             href={`/manage/posts/${post.id}`}
-                                                            className="font-semibold text-[#151f54] hover:text-[#8a6300]"
+                                                            className="font-semibold text-slate-800 hover:text-slate-900"
                                                         >
                                                             {post.title}
                                                         </Link>
@@ -526,7 +526,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                             <TooltipTrigger asChild>
                                                                 <Link
                                                                     href={`/manage/posts/${post.id}`}
-                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-[#151f54]/40 hover:text-[#151f54]"
+                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:text-slate-900"
                                                                 >
                                                                     <Eye className="h-4 w-4" />
                                                                 </Link>
@@ -537,7 +537,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                             <TooltipTrigger asChild>
                                                                 <Link
                                                                     href={`/manage/posts/${post.id}/edit`}
-                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-[#151f54]/40 hover:text-[#151f54]"
+                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:text-slate-900"
                                                                 >
                                                                     <Pen className="h-4 w-4" />
                                                                 </Link>
@@ -565,7 +565,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                             'inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm transition',
                                             pagination.current_page <= 1
                                                 ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-                                                : 'border-transparent bg-[#151f54] text-white hover:bg-[#1f2a6d]'
+                                                : 'border-transparent bg-slate-900 text-white hover:bg-slate-800'
                                         )}
                                         onClick={() => changePage(pagination.current_page - 1)}
                                         disabled={pagination.current_page <= 1}
@@ -589,8 +589,8 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                 className={cn(
                                                     'inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm transition',
                                                     link.active
-                                                        ? 'border-[#151f54]/30 bg-[#151f54] text-white'
-                                                        : 'border-transparent bg-white text-slate-600 hover:bg-[#f5f7ff]'
+                                                        ? 'border-slate-900/30 bg-slate-900 text-white'
+                                                        : 'border-transparent bg-white text-slate-600 hover:bg-slate-50'
                                                 )}
                                                 onClick={() => changePage(pageNumber)}
                                             >
@@ -604,7 +604,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                             'inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm transition',
                                             pagination.current_page >= pagination.last_page
                                                 ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-                                                : 'border-transparent bg-[#151f54] text-white hover:bg-[#1f2a6d]'
+                                                : 'border-transparent bg-slate-900 text-white hover:bg-slate-800'
                                         )}
                                         onClick={() => changePage(pagination.current_page + 1)}
                                         disabled={pagination.current_page >= pagination.last_page}

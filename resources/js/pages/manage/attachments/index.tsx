@@ -432,11 +432,11 @@ export default function AttachmentsIndex({
         <ManageLayout breadcrumbs={breadcrumbs}>
             <Head title={t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')} />
 
-            <section className="space-y-6 px-4 py-8 sm:px-6 lg:px-0">
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+            <section className="space-y-6">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-[#151f54]">
+                            <h1 className="text-3xl font-semibold text-slate-900">
                                 {t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')}
                             </h1>
                             <p className="text-sm text-slate-600">
@@ -451,8 +451,8 @@ export default function AttachmentsIndex({
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <Button
                                 type="button"
-                                variant="secondary"
-                                className="w-full rounded-full border-[#151f54]/20 text-[#151f54] hover:bg-[#eef1ff] sm:w-auto"
+                                variant="outline"
+                                className="w-full rounded-full sm:w-auto"
                                 disabled={!hasSelection || bulkForm.processing}
                                 onClick={() => handleBulk('delete')}
                             >
@@ -461,15 +461,15 @@ export default function AttachmentsIndex({
                             </Button>
                             <Button
                                 type="button"
-                                variant="outline"
-                                className="w-full rounded-full border-rose-200 text-rose-600 hover:bg-rose-50 sm:w-auto"
+                                variant="destructive"
+                                className="w-full rounded-full sm:w-auto"
                                 disabled={!hasSelection || bulkForm.processing}
                                 onClick={() => handleBulk('force')}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 {t('attachments.index.actions.bulk_force', isZh ? '批次永久刪除' : 'Bulk permanently delete')}
                             </Button>
-                            <Button asChild variant="outline" className="w-full rounded-full border-[#151f54]/30 sm:w-auto">
+                            <Button asChild variant="outline" className="w-full rounded-full sm:w-auto">
                                 <Link href="/manage/posts">
                                     {t('attachments.index.back_to_posts', isZh ? '回公告列表' : 'Back to posts')}
                                 </Link>
@@ -478,9 +478,9 @@ export default function AttachmentsIndex({
                     </CardContent>
                 </Card>
 
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="pb-4">
-                        <CardTitle className="text-lg font-semibold text-[#151f54]">
+                        <CardTitle className="text-lg font-semibold text-slate-900">
                             {t('attachments.index.filters_title', isZh ? '篩選條件' : 'Filters')}
                         </CardTitle>
                     </CardHeader>
@@ -490,7 +490,7 @@ export default function AttachmentsIndex({
                             className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6"
                         >
                             <div className="xl:col-span-2">
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-search">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-search">
                                     {t('attachments.index.filters.search', isZh ? '搜尋附件' : 'Search attachments')}
                                 </label>
                                 <Input
@@ -506,7 +506,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-type">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-type">
                                     {t('attachments.index.filters.type', isZh ? '附件類型' : 'Type')}
                                 </label>
                                 <Select
@@ -524,7 +524,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-source-type">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-source-type">
                                     {t('attachments.index.filters.attachable', isZh ? '資料來源' : 'Attachable')}
                                 </label>
                                 <Select
@@ -542,7 +542,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-source-id">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-source-id">
                                     {t('attachments.index.filters.source_id', isZh ? '來源 ID' : 'Source ID')}
                                 </label>
                                 <Input
@@ -559,7 +559,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-visibility">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-visibility">
                                     {t('attachments.index.filters.visibility', isZh ? '可見範圍' : 'Visibility')}
                                 </label>
                                 <Select
@@ -577,7 +577,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-trashed">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-trashed">
                                     {t('attachments.index.filters.trashed', isZh ? '刪除範圍' : 'Trashed filter')}
                                 </label>
                                 <Select
@@ -592,7 +592,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-sort">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-sort">
                                     {t('attachments.index.filters.sort', isZh ? '排序' : 'Sort')}
                                 </label>
                                 <Select
@@ -620,7 +620,7 @@ export default function AttachmentsIndex({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-neutral-700" htmlFor="attachment-per-page">
+                                <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="attachment-per-page">
                                     {t('attachments.index.filters.per_page', isZh ? '每頁數量' : 'Per page')}
                                 </label>
                                 <Select
@@ -690,9 +690,9 @@ export default function AttachmentsIndex({
                         )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="overflow-hidden rounded-2xl border border-neutral-200/70">
-                            <table className="min-w-full divide-y divide-neutral-200 bg-white text-sm">
-                                <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200/80">
+                            <table className="min-w-full divide-y divide-slate-200 bg-white text-sm">
+                                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                                     <tr>
                                         <th className="w-12 px-4 py-3">
                                             <Checkbox
@@ -724,10 +724,10 @@ export default function AttachmentsIndex({
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-neutral-200">
+                                <tbody className="divide-y divide-slate-200">
                                     {attachmentsData.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center text-sm text-neutral-500">
+                                            <td colSpan={6} className="px-6 py-8 text-center text-sm text-slate-500">
                                                 {t('attachments.index.table.empty', isZh ? '目前沒有符合條件的附件' : 'No attachments found for the current filters.')}
                                             </td>
                                         </tr>
@@ -738,7 +738,7 @@ export default function AttachmentsIndex({
                                         const displayName = attachment.title ?? attachment.filename ?? attachment.external_url ?? `#${attachment.id}`;
 
                                         return (
-                                            <tr key={attachment.id} className={attachment.deleted_at ? 'bg-neutral-50/60 text-neutral-500' : ''}>
+                                            <tr key={attachment.id} className={attachment.deleted_at ? 'bg-slate-50 text-slate-500' : ''}>
                                                 <td className="px-4 py-4">
                                                     <Checkbox
                                                         aria-label={t('attachments.index.table.columns.select_row', isZh ? '選取附件' : 'Select attachment')}
@@ -748,15 +748,15 @@ export default function AttachmentsIndex({
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-start gap-3">
-                                                        <span className={cn('flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f4ff] text-[#151f54]', attachment.deleted_at && 'opacity-70')}>
+                                                        <span className={cn('flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700', attachment.deleted_at && 'opacity-70')}>
                                                             <Icon className="h-5 w-5" />
                                                         </span>
                                                         <div className="space-y-1">
-                                                            <p className="font-medium text-neutral-800 line-clamp-2">{displayName}</p>
-                                                            <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+                                                            <p className="font-medium text-slate-800 line-clamp-2">{displayName}</p>
+                                                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                                                                 <span>{attachment.mime_type ?? '-'}</span>
                                                                 <span>·</span>
-                                                                <Badge variant={visibilityMeta?.variant ?? 'secondary'} className="text-[11px]">
+                                                                <Badge variant={visibilityMeta?.variant ?? 'secondary'} className="text-[11px] text-slate-700">
                                                                     {formatVisibility(attachment.visibility)}
                                                                 </Badge>
                                                             </div>
@@ -773,11 +773,11 @@ export default function AttachmentsIndex({
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">
+                                                <td className="px-4 py-4 text-sm text-slate-600">
                                                     <div className="space-y-1">
                                                         <div>{formatAttachableLabel(attachment)}</div>
                                                         {attachment.uploader && (
-                                                            <div className="text-xs text-neutral-500">
+                                                            <div className="text-xs text-slate-500">
                                                                 {t('attachments.index.table.uploader', isZh ? `上傳者：${attachment.uploader.name}` : `Uploaded by ${attachment.uploader.name}`, {
                                                                     name: attachment.uploader.name,
                                                                 })}
@@ -785,8 +785,8 @@ export default function AttachmentsIndex({
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">{formatBytes(attachment.size)}</td>
-                                                <td className="px-4 py-4 text-sm text-neutral-600">
+                                                <td className="px-4 py-4 text-sm text-slate-600">{formatBytes(attachment.size)}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-600">
                                                     <div className="space-y-1">
                                                         <div>{formatDateTime(attachment.updated_at)}</div>
                                                         {attachment.deleted_at && (
@@ -872,7 +872,7 @@ export default function AttachmentsIndex({
                         </div>
 
                         {paginationLinks.length > 0 && (
-                            <div className="flex flex-col gap-2 pt-2 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-2 pt-2 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     {t(
                                         'attachments.index.pagination.summary',
@@ -894,7 +894,7 @@ export default function AttachmentsIndex({
                                             return (
                                                 <span
                                                     key={`${rawLabel}-${index}`}
-                                                    className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-neutral-200 px-2 text-sm text-neutral-400"
+                                                    className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-slate-200 px-2 text-sm text-slate-400"
                                                 >
                                                     {label}
                                                 </span>
@@ -915,8 +915,8 @@ export default function AttachmentsIndex({
                                                 className={cn(
                                                     'inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm transition',
                                                     link.active
-                                                        ? 'border-[#151f54]/20 bg-[#151f54] text-white'
-                                                        : 'border-transparent bg-white text-neutral-600 hover:bg-[#f5f7ff]'
+                                                        ? 'border-slate-900/30 bg-slate-900 text-white'
+                                                        : 'border-transparent bg-white text-slate-600 hover:bg-slate-50'
                                                 )}
                                                 aria-label={label}
                                             >
