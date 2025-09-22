@@ -98,6 +98,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
     const layoutRole: 'admin' | 'teacher' | 'user' =
         userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
     const [selected, setSelected] = useState<number[]>([]);
+    const defaultPerPage = perPageOptions[0] ?? 20;
 
     const initialFilters: FilterState = {
         search: filters.search ?? '',
@@ -106,10 +107,20 @@ export default function PostsIndex({ posts, categories, authors, filters, status
         author: filters.author ?? '',
         date_from: filters.date_from ?? '',
         date_to: filters.date_to ?? '',
-        per_page: filters.per_page ?? String(perPageOptions[0] ?? 20),
+        per_page: filters.per_page ?? String(defaultPerPage),
     } as FilterState;
 
     const [filterState, setFilterState] = useState<FilterState>(initialFilters);
+    const resolvedPerPage = Number(filterState.per_page || defaultPerPage);
+
+    const postData = posts?.data ?? [];
+    const pagination: PaginationMeta = posts?.meta ?? {
+        current_page: 1,
+        last_page: 1,
+        per_page: resolvedPerPage,
+        total: postData.length,
+    };
+    const paginationLinks = posts?.links ?? [];
 
     const bulkForm = useForm({
         action: '',
@@ -148,11 +159,11 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             author: '',
             date_from: '',
             date_to: '',
-            per_page: String(perPageOptions[0] ?? 20),
+            per_page: String(defaultPerPage),
         });
         router.get(
             '/manage/posts',
-            { per_page: perPageOptions[0] ?? 20 },
+            { per_page: defaultPerPage },
             {
                 preserveState: true,
                 preserveScroll: true,
@@ -162,7 +173,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelected(posts.data.map((post) => post.id));
+            setSelected(postData.map((post) => post.id));
         } else {
             setSelected([]);
         }
@@ -192,9 +203,6 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             },
         });
     };
-
-    const pagination = posts.meta;
-    const paginationLinks = posts.links ?? [];
 
     const changePage = (page: number) => {
         if (page <= 0 || page > pagination.last_page || page === pagination.current_page) {
@@ -235,13 +243,13 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             author: filters.author ?? '',
             date_from: filters.date_from ?? '',
             date_to: filters.date_to ?? '',
-            per_page: filters.per_page ?? String(perPageOptions[0] ?? 20),
+            per_page: filters.per_page ?? String(defaultPerPage),
         } as FilterState);
     }, [filters.search, filters.category, filters.status, filters.author, filters.date_from, filters.date_to, filters.per_page, perPageOptions]);
 
     useEffect(() => {
         setSelected([]);
-    }, [posts.meta.current_page, posts.meta.total]);
+    }, [pagination.current_page, pagination.total]);
 
     return (
         <ManageLayout role={layoutRole} breadcrumbs={breadcrumbs}>
@@ -446,7 +454,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                         {can.bulk && (
                                             <th className="px-4 py-3">
                                                 <Checkbox
-                                                    checked={selected.length === posts.data.length && posts.data.length > 0}
+                                                    checked={selected.length === postData.length && postData.length > 0}
                                                     onCheckedChange={(value) => toggleSelectAll(Boolean(value))}
                                                 />
                                             </th>
@@ -462,14 +470,14 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {posts.data.length === 0 && (
+                                    {postData.length === 0 && (
                                         <tr>
                                             <td colSpan={can.bulk ? 9 : 8} className="px-4 py-12 text-center text-sm text-slate-500">
                                                 尚無符合條件的公告
                                             </td>
                                         </tr>
                                     )}
-                                    {posts.data.map((post) => {
+                                    {postData.map((post) => {
                                         const statusInfo = statusBadgeMap[post.status];
                                         const isSelected = selected.includes(post.id);
 

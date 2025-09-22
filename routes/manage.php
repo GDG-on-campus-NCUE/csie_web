@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 
 // 管理後台控制器
 use App\Http\Controllers\Manage\DashboardController;
-use App\Http\Controllers\Manage\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Manage\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Manage\Admin\LabController as AdminLabController;
 use App\Http\Controllers\Manage\Admin\TeacherController as AdminTeacherController;
@@ -43,10 +42,8 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
             ->name('admin.')
             ->group(function () {
                 Route::get('/', function () {
-                    return redirect()->route('manage.admin.dashboard');
+                    return redirect()->route('manage.dashboard');
                 });
-
-                Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
                 // 使用者與系所成員管理
                 Route::resource('staff', AdminStaffController::class);
