@@ -23,13 +23,15 @@ export default function Dashboard() {
     const { t } = useTranslator('manage');
 
     if (role === 'admin') {
+        const adminTitle = t('dashboard.admin.title', '系統總覽');
         const breadcrumbs = [
-            { title: t('layout.breadcrumbs.dashboard'), href: '/manage/dashboard' },
-            { title: t('layout.breadcrumbs.admin_dashboard'), href: '/manage/admin/dashboard' },
+            { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },
+            { title: adminTitle, href: '/manage/dashboard' },
         ];
 
         return (
             <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
+                <Head title={adminTitle} />
                 <AdminDashboard />
             </ManageLayout>
         );

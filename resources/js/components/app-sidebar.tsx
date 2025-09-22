@@ -33,7 +33,7 @@ export function AppSidebar() {
         admin: [
             {
                 title: t('sidebar.admin.dashboard'),
-                href: '/manage/admin/dashboard',
+                href: '/manage/dashboard',
                 icon: LayoutGrid,
             },
             {

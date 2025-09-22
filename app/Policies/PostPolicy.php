@@ -37,9 +37,9 @@ class PostPolicy
             return true;
         }
 
-        // Teacher can view published posts and their own posts
+        // 教師可以檢視所有公告以利協作管理
         if ($user->role === 'teacher') {
-            return $post->status === 'published' || $post->created_by === $user->id;
+            return true;
         }
 
         // Regular user can only view published posts
@@ -64,9 +64,9 @@ class PostPolicy
             return true;
         }
 
-        // Teacher can only update their own posts
+        // 教師可以編輯所有公告以支援團隊維護
         if ($user->role === 'teacher') {
-            return $post->created_by === $user->id;
+            return true;
         }
 
         // Regular users cannot update posts
