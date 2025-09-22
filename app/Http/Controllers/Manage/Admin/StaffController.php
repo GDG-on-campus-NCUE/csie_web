@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Manage\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Manage\Admin\StoreStaffRequest;
+use App\Http\Requests\Manage\Admin\UpdateStaffRequest;
+use App\Http\Resources\StaffResource;
+use App\Http\Resources\TeacherResource;
 use App\Models\Staff;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -134,77 +138,50 @@ class StaffController extends Controller
     }
 
     // 儲存新的職員
-    public function store(Request $request)
+    public function store(StoreStaffRequest $request)
     {
-        $data = $request->validate([
-            'email' => ['nullable', 'string', 'email'],
-            'phone' => ['nullable', 'string', 'regex:/^\+?[0-9\s\-]+$/'],
-            'photo' => ['nullable', 'file'],
-            'name' => ['required', 'string'],
-            'name_en' => ['nullable', 'string'],
-            'position' => ['nullable', 'string'],
-            'position_en' => ['nullable', 'string'],
-            'bio' => ['nullable', 'string'],
-            'bio_en' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer'],
-            'visible' => ['boolean'],
-        ]);
+        $data = $request->validated();
 
-        if ($request->hasFile('photo')) {
+        if ($request->hasFile('avatar')) {
             // 儲存上傳圖片路徑
-            $data['photo_url'] = $request->file('photo')->store('staff', 'public');
+            $data['photo_url'] = $request->file('avatar')->store('staff', 'public');
         }
 
-        $data['bio'] = $this->sanitizeRichText($data['bio'] ?? null);
-        $data['bio_en'] = $this->sanitizeRichText($data['bio_en'] ?? null);
+        $staff = Staff::create($data);
 
-        Staff::create($data);
-
-        return redirect()->route('manage.staff.index');
+        return redirect()->route('manage.staff.index')
+            ->with('success', __('manage.success.created', ['item' => __('manage.staff.title')]));
     }
 
     // 顯示編輯表單
     public function edit(Staff $staff)
     {
         return Inertia::render('manage/admin/staff/edit', [
-            'staff' => $staff,
+            'staff' => new StaffResource($staff),
         ]);
     }
 
     // 更新職員資料
-    public function update(Request $request, Staff $staff)
+    public function update(UpdateStaffRequest $request, Staff $staff)
     {
-        $data = $request->validate([
-            'email' => ['nullable', 'string'],
-            'phone' => ['nullable', 'string'],
-            'photo' => ['nullable', 'file'],
-            'name' => ['required', 'string'],
-            'name_en' => ['nullable', 'string'],
-            'position' => ['nullable', 'string'],
-            'position_en' => ['nullable', 'string'],
-            'bio' => ['nullable', 'string'],
-            'bio_en' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer'],
-            'visible' => ['boolean'],
-        ]);
+        $data = $request->validated();
 
-        if ($request->hasFile('photo')) {
-            $data['photo_url'] = $request->file('photo')->store('staff', 'public');
+        if ($request->hasFile('avatar')) {
+            $data['photo_url'] = $request->file('avatar')->store('staff', 'public');
         }
-
-        $data['bio'] = $this->sanitizeRichText($data['bio'] ?? null);
-        $data['bio_en'] = $this->sanitizeRichText($data['bio_en'] ?? null);
 
         $staff->update($data);
 
-        return redirect()->route('manage.staff.index');
+        return redirect()->route('manage.staff.index')
+            ->with('success', __('manage.success.updated', ['item' => __('manage.staff.title')]));
     }
 
     // 刪除職員
     public function destroy(Staff $staff)
     {
         $staff->delete();
-        return redirect()->route('manage.staff.index');
+        return redirect()->route('manage.staff.index')
+            ->with('success', __('manage.success.deleted', ['item' => __('manage.staff.title')]));
     }
 
     public function restore(int $staff)

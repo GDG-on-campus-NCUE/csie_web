@@ -34,20 +34,42 @@
 [Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: PHP 8.2+, Laravel 11, TypeScript, React  
+**Primary Dependencies**: Laravel Inertia.js, Tailwind CSS, Jest, PHPUnit  
+**Storage**: MySQL database with Eloquent ORM  
+**Testing**: PHPUnit (backend), Jest + React Testing Library (frontend)  
+**Target Platform**: Web application (desktop + mobile responsive)
+**Project Type**: Laravel + React web application  
+**Performance Goals**: <200ms page response, smooth Tab switching for i18n  
+**Constraints**: White background design, no custom CSS outside shared components  
+**Scale/Scope**: University department website with multi-language content
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Laravel + React + TypeScript Architecture**:
+- [ ] Uses Laravel 11 backend with Inertia.js for page rendering
+- [ ] Frontend uses React with TypeScript (no traditional AJAX)
+- [ ] All styling uses Tailwind CSS and shared components from `resources/js/components/ui/`
+- [ ] No custom CSS files outside the shared component system
+
+**Multilingual Requirements**:
+- [ ] Multi-language content stored as JSON in database with locale keys
+- [ ] Backend uses `resources/lang/{locale}/` for system messages only  
+- [ ] Frontend uses `/lang/{locale}/{component}.json` for UI text
+- [ ] Language switching provides Tab interface for editors/readers
+
+**Testing & Quality**:
+- [ ] Every Controller method has PHPUnit Feature test
+- [ ] React components have Jest + React Testing Library tests
+- [ ] Multi-language JSON serialization is tested
+- [ ] No hardcoded strings (all text in locale files)
+
+**Design Principles**:
+- [ ] White background (#FFFFFF) with clean, minimal design
+- [ ] Navigation follows ARCHITECTURE.md structure
+- [ ] Data flow: Database → Model → Resource → Inertia props → React
+- [ ] Components follow single responsibility principle
 
 ## Project Structure
 
@@ -64,42 +86,48 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 ```
-# Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# Laravel + React Web Application
+app/
+├── Http/
+│   ├── Controllers/
+│   ├── Requests/
+│   ├── Resources/
+│   └── Middleware/
+├── Models/
+├── Policies/
+└── Services/
+
+resources/
+├── js/
+│   ├── pages/          # Inertia.js pages
+│   ├── components/
+│   │   ├── ui/         # Shared components
+│   │   └── page/       # Composite components
+│   └── __tests__/      # Frontend tests
+├── css/                # Tailwind CSS
+└── lang/               # Laravel backend locales
+
+lang/                   # Frontend locale files
+├── zh-TW/
+└── en/
 
 tests/
-├── contract/
-├── integration/
-└── unit/
+├── Feature/            # Controller integration tests
+├── Unit/               # Model/Policy unit tests
+└── Performance/
 
-# Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+database/
+├── migrations/
+├── seeders/
+└── factories/
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure]
+routes/
+├── web.php             # Public routes
+├── manage.php          # Role-based management
+└── auth.php            # Authentication
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: Laravel + React web application with Inertia.js
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -208,4 +236,4 @@ ios/ or android/
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v2.0.0 - See `/memory/constitution.md`*
