@@ -2,11 +2,13 @@ import EmailVerificationNotificationController from '@/actions/App/Http/Controll
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/auth-layout';
-import { logout } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
 import { formButtonClass, formLinkClass, formStatusClass } from './styles';
+
+// 使用常數避免 Wayfinder 尚未生成時造成匯入錯誤
+const LOGOUT_ROUTE = '/logout';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     const { t } = useTranslator('auth');
@@ -32,7 +34,12 @@ export default function VerifyEmail({ status }: { status?: string }) {
                             {copy.submit}
                         </Button>
 
-                        <TextLink href={logout()} className={`${formLinkClass} text-sm font-semibold`}>
+                        <TextLink
+                            href={LOGOUT_ROUTE}
+                            method="post"
+                            as="button"
+                            className={`${formLinkClass} text-sm font-semibold`}
+                        >
                             {copy.logout}
                         </TextLink>
                     </>
