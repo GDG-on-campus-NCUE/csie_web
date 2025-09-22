@@ -16,14 +16,27 @@ class PublicationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
+        }
+
         $publications = Publication::orderBy('year', 'desc')
             ->orderBy('title->zh-TW')
-            ->paginate(20);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('manage/admin/publications/index', [
             'publications' => $publications,
+            'perPage' => $perPage,
+            'perPageOptions' => [15, 30, 50, 100, 200],
+            'filters' => $request->only(['per_page']),
         ]);
     }
 
@@ -76,7 +89,7 @@ class PublicationController extends Controller
 
         Publication::create($publicationData);
 
-        return redirect()->route('manage.admin.publications.index')
+        return redirect()->route('manage.publications.index')
             ->with('success', '論文建立成功');
     }
 
@@ -141,7 +154,7 @@ class PublicationController extends Controller
 
         $publication->update($publicationData);
 
-        return redirect()->route('manage.admin.publications.index')
+        return redirect()->route('manage.publications.index')
             ->with('success', '論文更新成功');
     }
 
@@ -152,7 +165,7 @@ class PublicationController extends Controller
     {
         $publication->delete();
 
-        return redirect()->route('manage.admin.publications.index')
+        return redirect()->route('manage.publications.index')
             ->with('success', '論文刪除成功');
     }
 }

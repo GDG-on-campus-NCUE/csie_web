@@ -13,14 +13,27 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
+        }
+
         $projects = Project::with(['teachers'])
             ->orderBy('start_date', 'desc')
-            ->paginate(20);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('manage/admin/projects/index', [
             'projects' => $projects,
+            'perPage' => $perPage,
+            'perPageOptions' => [15, 30, 50, 100, 200],
+            'filters' => $request->only(['per_page']),
         ]);
     }
 
@@ -66,7 +79,7 @@ class ProjectController extends Controller
             $project->teachers()->attach($teacherIds);
         }
 
-        return redirect()->route('manage.admin.projects.index')
+        return redirect()->route('manage.projects.index')
             ->with('success', '研究計畫建立成功');
     }
 
@@ -120,7 +133,7 @@ class ProjectController extends Controller
         $project->update($validated);
         $project->teachers()->sync($teacherIds);
 
-        return redirect()->route('manage.admin.projects.index')
+        return redirect()->route('manage.projects.index')
             ->with('success', '研究計畫更新成功');
     }
 
@@ -132,7 +145,7 @@ class ProjectController extends Controller
         $project->teachers()->detach();
         $project->delete();
 
-        return redirect()->route('manage.admin.projects.index')
+        return redirect()->route('manage.projects.index')
             ->with('success', '研究計畫刪除成功');
     }
 }

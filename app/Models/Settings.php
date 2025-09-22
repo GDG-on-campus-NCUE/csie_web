@@ -60,8 +60,8 @@ class Settings extends Model
      */
     public function scopeAccessibleBy($query, $user)
     {
-        if ($user->role === 'admin') {
-            // Admin can access all settings
+        if (in_array($user->role, ['admin', 'manager'], true)) {
+            // 管理角色可以檢視所有設定
             return $query;
         } elseif ($user->role === 'teacher') {
             // Teacher can access own settings and public user settings only

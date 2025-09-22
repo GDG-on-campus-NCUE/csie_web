@@ -71,8 +71,14 @@ class PostController extends Controller
             }
         }
 
-        $perPage = (int) $request->input('per_page', 20);
-        $perPage = in_array($perPage, [10, 20, 50], true) ? $perPage : 20;
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
+        }
 
         $posts = $query
             ->orderByDesc(DB::raw("CASE WHEN status = 'scheduled' THEN publish_at END"))
@@ -112,7 +118,7 @@ class PostController extends Controller
             'authors' => $authors,
             'filters' => $request->only(['search', 'category', 'status', 'author', 'date_from', 'date_to', 'per_page']),
             'statusOptions' => ['draft', 'published', 'scheduled'],
-            'perPageOptions' => [10, 20, 50],
+            'perPageOptions' => [15, 30, 50, 100, 200],
             'can' => [
                 'create' => $request->user()?->can('create', Post::class) ?? false,
                 'bulk' => $request->user()?->can('bulkOperations', Post::class) ?? false,

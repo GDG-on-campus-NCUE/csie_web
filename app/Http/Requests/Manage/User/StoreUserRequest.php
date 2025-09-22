@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->withoutTrashed(),
             ],
-            'role' => ['required', Rule::in(['admin', 'teacher', 'user'])],
+            'role' => ['required', Rule::in(['admin', 'manager', 'teacher', 'user'])],
             'status' => ['required', Rule::in(['active', 'suspended'])],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'password_confirmation' => ['required_with:password'],

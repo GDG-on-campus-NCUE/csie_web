@@ -29,7 +29,14 @@ class ContactMessageController extends Controller
             $query->where('status', $status);
         }
 
-        $perPage = max(1, (int) $request->input('per_page', 20));
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
+        }
 
         $messages = $query
             ->orderBy('status', 'asc')
@@ -46,7 +53,7 @@ class ContactMessageController extends Controller
                 'resolved' => 'resolved',
                 'spam' => 'spam',
             ],
-            'perPageOptions' => [10, 20, 50],
+            'perPageOptions' => [15, 30, 50, 100, 200],
         ]);
     }
 
@@ -56,7 +63,7 @@ class ContactMessageController extends Controller
     public function create()
     {
         // 通常不需要手動建立聯絡訊息
-        return redirect()->route('manage.admin.contact-messages.index');
+        return redirect()->route('manage.contact-messages.index');
     }
 
     /**
@@ -65,7 +72,7 @@ class ContactMessageController extends Controller
     public function store(Request $request)
     {
         // 通常不需要手動建立聯絡訊息
-        return redirect()->route('manage.admin.contact-messages.index');
+        return redirect()->route('manage.contact-messages.index');
     }
 
     /**
@@ -102,7 +109,7 @@ class ContactMessageController extends Controller
 
         $contactMessage->update($validated);
 
-        return redirect()->route('manage.admin.contact-messages.index')
+        return redirect()->route('manage.contact-messages.index')
             ->with('success', '聯絡訊息狀態更新成功');
     }
 
@@ -113,7 +120,7 @@ class ContactMessageController extends Controller
     {
         $contactMessage->delete();
 
-        return redirect()->route('manage.admin.contact-messages.index')
+        return redirect()->route('manage.contact-messages.index')
             ->with('success', '聯絡訊息刪除成功');
     }
 
@@ -128,7 +135,7 @@ class ContactMessageController extends Controller
             'processed_at' => now(),
         ]);
 
-        return redirect()->route('manage.admin.contact-messages.index')
+        return redirect()->route('manage.contact-messages.index')
             ->with('success', '已標記為垃圾訊息');
     }
 
@@ -143,7 +150,7 @@ class ContactMessageController extends Controller
             'processed_at' => now(),
         ]);
 
-        return redirect()->route('manage.admin.contact-messages.index')
+        return redirect()->route('manage.contact-messages.index')
             ->with('success', '已標記為已處理');
     }
 }

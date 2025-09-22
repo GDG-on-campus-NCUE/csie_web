@@ -14,7 +14,7 @@ class ProgramController extends Controller
      */
     public function index(Request $request)
     {
-        return redirect()->route('manage.admin.academics.index', array_merge(
+        return redirect()->route('manage.academics.index', array_merge(
             $request->query(),
             ['tab' => 'programs']
         ));
@@ -49,7 +49,7 @@ class ProgramController extends Controller
 
         Program::create($validated);
 
-        return redirect()->route('manage.admin.academics.index', ['tab' => 'programs'])
+        return redirect()->route('manage.academics.index', ['tab' => 'programs'])
             ->with('success', '學程建立成功');
     }
 
@@ -94,7 +94,7 @@ class ProgramController extends Controller
 
         $program->update($validated);
 
-        return redirect()->route('manage.admin.academics.index', ['tab' => 'programs'])
+        return redirect()->route('manage.academics.index', ['tab' => 'programs'])
             ->with('success', '學程更新成功');
     }
 
@@ -109,7 +109,7 @@ class ProgramController extends Controller
 
         $program->delete();
 
-        return redirect()->route('manage.admin.academics.index', ['tab' => 'programs'])
+        return redirect()->route('manage.academics.index', ['tab' => 'programs'])
             ->with('success', '學程刪除成功');
     }
 }

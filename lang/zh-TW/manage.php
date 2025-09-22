@@ -23,6 +23,10 @@ return [
                 'primary' => 'CSIE 後台',
                 'secondary' => '系統管理中心',
             ],
+            'manager' => [
+                'primary' => 'CSIE 管理',
+                'secondary' => '協同管理中心',
+            ],
             'teacher' => [
                 'primary' => 'CSIE 教師',
                 'secondary' => '教學管理後台',

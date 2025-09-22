@@ -98,7 +98,7 @@ type FilterState = {
 const DEFAULT_PAGINATION_META: PaginationMeta = {
     current_page: 1,
     last_page: 1,
-    per_page: 20,
+    per_page: 15,
     total: 0,
 };
 
@@ -146,7 +146,7 @@ export default function AttachmentsIndex({
     const { delete: destroy, patch } = useForm();
     const bulkForm = useForm({ action: 'delete' as 'delete' | 'force', ids: [] as number[] });
 
-    const attachmentsIndexUrl = '/manage/admin/attachments';
+    const attachmentsIndexUrl = '/manage/attachments';
 
     const attachmentsData = attachments?.data ?? [];
     const paginationMeta: PaginationMeta = {
@@ -156,7 +156,8 @@ export default function AttachmentsIndex({
         total: attachments?.meta?.total ?? attachments?.total ?? DEFAULT_PAGINATION_META.total,
     };
     const paginationLinks = attachments?.links ?? [];
-    const resolvedPerPageOptions = perPageOptions.length > 0 ? perPageOptions : [10, 20, 50];
+    const resolvedPerPageOptions =
+        perPageOptions.length > 0 ? perPageOptions : [15, 30, 50, 100, 200];
     const defaultSort = filters.sort ?? '-created_at';
 
     const [filterState, setFilterState] = useState<FilterState>({
@@ -428,7 +429,7 @@ export default function AttachmentsIndex({
     ];
 
     return (
-        <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
+        <ManageLayout breadcrumbs={breadcrumbs}>
             <Head title={t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')} />
 
             <section className="space-y-6 px-4 py-8 sm:px-6 lg:px-0">

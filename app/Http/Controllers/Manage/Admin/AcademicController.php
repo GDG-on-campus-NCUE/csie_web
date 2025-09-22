@@ -63,9 +63,13 @@ class AcademicController extends Controller
             }
         }
 
-        $coursePerPage = (int) ($courseFilters['per_page'] ?? 20);
+        $coursePerPage = (int) ($courseFilters['per_page'] ?? 15);
         if ($coursePerPage < 1) {
-            $coursePerPage = 20;
+            $coursePerPage = 15;
+        }
+
+        if ($coursePerPage > 200) {
+            $coursePerPage = 200;
         }
 
         $courses = $courseQuery
@@ -96,9 +100,13 @@ class AcademicController extends Controller
             }
         }
 
-        $programPerPage = (int) ($programFilters['per_page'] ?? 20);
+        $programPerPage = (int) ($programFilters['per_page'] ?? 15);
         if ($programPerPage < 1) {
-            $programPerPage = 20;
+            $programPerPage = 15;
+        }
+
+        if ($programPerPage > 200) {
+            $programPerPage = 200;
         }
 
         $programs = $programQuery
@@ -120,10 +128,10 @@ class AcademicController extends Controller
             'courses' => $courses,
             'courseProgramOptions' => $programOptions,
             'courseFilters' => $courseFilters,
-            'coursePerPageOptions' => [10, 20, 50],
+            'coursePerPageOptions' => [15, 30, 50, 100, 200],
             'programs' => $programs,
             'programFilters' => $programFilters,
-            'programPerPageOptions' => [10, 20, 50],
+            'programPerPageOptions' => [15, 30, 50, 100, 200],
             'activeTab' => $activeTab,
             'query' => $query,
         ]);

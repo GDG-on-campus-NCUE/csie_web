@@ -11,7 +11,7 @@ class DashboardController extends Controller
 {
     public function __invoke(BuildAdminDashboardData $buildDashboardData): Response
     {
-        return Inertia::render('manage/admin/dashboard', [
+        return Inertia::render('manage/dashboard', [
             'adminDashboard' => $buildDashboardData(),
         ]);
     }

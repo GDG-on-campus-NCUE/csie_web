@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->enum('role', ['admin','teacher','user'])->default('user')->index();
+            $table->enum('role', ['admin','manager','teacher','user'])->default('user')->index();
             $table->string('locale')->nullable();
             $table->enum('status', ['active','suspended'])->default('active');
             $table->timestamp('email_verified_at')->nullable();

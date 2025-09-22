@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class UserController extends Controller
 {
     /** @var list<int> */
-    private array $perPageOptions = [10, 20, 50];
+    private array $perPageOptions = [15, 30, 50, 100, 200];
 
     public function __construct()
     {
@@ -61,7 +61,7 @@ class UserController extends Controller
             'perPageOptions' => $this->perPageOptions,
             'can' => [
                 'create' => $request->user()->can('create', User::class),
-                'manage' => $request->user()->role === 'admin',
+                'manage' => in_array($request->user()->role, ['admin', 'manager'], true),
             ],
             'authUserId' => $request->user()->id,
         ]);
@@ -145,7 +145,7 @@ class UserController extends Controller
         }
 
         if ($this->isLastActiveAdmin($user)) {
-            return back()->with('error', '系統至少需要保留一位管理員，無法刪除此帳號');
+            return back()->with('error', '系統至少需要保留一位管理成員，無法刪除此帳號');
         }
 
         DB::transaction(function () use ($user) {
@@ -196,15 +196,19 @@ class UserController extends Controller
         if ($data['action'] === 'delete') {
             $authUser = $request->user();
 
+            $privilegedRoles = ['admin', 'manager'];
+
             $activeAdminsCount = User::query()
-                ->where('role', 'admin')
+                ->whereIn('role', $privilegedRoles)
                 ->whereNull('deleted_at')
                 ->count();
 
-            $targetActiveAdmins = $users->filter(fn (User $target) => $target->role === 'admin' && ! $target->trashed());
+            $targetActiveAdmins = $users->filter(
+                fn (User $target) => in_array($target->role, $privilegedRoles, true) && ! $target->trashed()
+            );
 
             if ($targetActiveAdmins->isNotEmpty() && $targetActiveAdmins->count() >= $activeAdminsCount) {
-                return back()->with('error', '系統至少需要保留一位管理員，無法刪除所有管理員帳號');
+                return back()->with('error', '系統至少需要保留一位管理成員，無法刪除所有管理成員帳號');
             }
 
             foreach ($users as $target) {
@@ -213,7 +217,7 @@ class UserController extends Controller
                 }
 
                 if ($this->isLastActiveAdmin($target)) {
-                    return back()->with('error', '系統至少需要保留一位管理員，無法刪除此帳號');
+                    return back()->with('error', '系統至少需要保留一位管理成員，無法刪除此帳號');
                 }
             }
 
@@ -297,7 +301,7 @@ class UserController extends Controller
         }
 
         $role = $request->input('role');
-        if (in_array($role, ['admin', 'teacher', 'user'], true)) {
+        if (in_array($role, ['admin', 'manager', 'teacher', 'user'], true)) {
             $query->where('role', $role);
         } else {
             $role = '';
@@ -367,10 +371,14 @@ class UserController extends Controller
 
     private function resolvePerPage(Request $request): int
     {
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = (int) $request->input('per_page', 15);
 
-        if (! in_array($perPage, $this->perPageOptions, true)) {
-            $perPage = 20;
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
         }
 
         return $perPage;
@@ -383,6 +391,7 @@ class UserController extends Controller
     {
         return [
             ['value' => 'admin', 'label' => '管理員'],
+            ['value' => 'manager', 'label' => '協同管理'],
             ['value' => 'teacher', 'label' => '教師'],
             ['value' => 'user', 'label' => '一般會員'],
         ];
@@ -416,12 +425,14 @@ class UserController extends Controller
 
     private function isLastActiveAdmin(User $user): bool
     {
-        if ($user->role !== 'admin') {
+        if (! in_array($user->role, ['admin', 'manager'], true)) {
             return false;
         }
 
+        $privilegedRoles = ['admin', 'manager'];
+
         $activeAdmins = User::query()
-            ->where('role', 'admin')
+            ->whereIn('role', $privilegedRoles)
             ->whereNull('deleted_at')
             ->count();
 

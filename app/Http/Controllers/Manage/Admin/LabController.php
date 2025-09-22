@@ -40,10 +40,13 @@ class LabController extends Controller
             $query->where('visible', $visible === '1');
         }
 
-        $allowedPerPage = [10, 20, 50];
-        $perPage = (int) $request->input('per_page', 20);
-        if (! in_array($perPage, $allowedPerPage, true)) {
-            $perPage = 20;
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+
+        if ($perPage > 200) {
+            $perPage = 200;
         }
 
         $labs = $query
@@ -65,9 +68,9 @@ class LabController extends Controller
                 'search' => $search,
                 'teacher' => $request->input('teacher', ''),
                 'visible' => $visible ?? '',
-                'per_page' => $perPage,
+                'per_page' => (string) $perPage,
             ],
-            'perPageOptions' => $allowedPerPage,
+            'perPageOptions' => [15, 30, 50, 100, 200],
         ]);
     }
 
@@ -101,7 +104,7 @@ class LabController extends Controller
 
         Lab::create($data);
 
-        return redirect()->route('manage.admin.labs.index');
+        return redirect()->route('manage.labs.index');
     }
 
     // 顯示編輯表單
@@ -135,13 +138,13 @@ class LabController extends Controller
 
         $lab->update($data);
 
-        return redirect()->route('manage.admin.labs.index');
+        return redirect()->route('manage.labs.index');
     }
 
     // 刪除實驗室
     public function destroy(Lab $lab)
     {
         $lab->delete();
-        return redirect()->route('manage.admin.labs.index');
+        return redirect()->route('manage.labs.index');
     }
 }

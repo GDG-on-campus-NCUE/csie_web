@@ -3,7 +3,7 @@ import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { useTranslator } from '@/hooks/use-translator';
 
-export type ManageRole = 'admin' | 'teacher' | 'user';
+export type ManageRole = 'admin' | 'manager' | 'teacher' | 'user';
 
 interface ManageBrandProps {
     role?: ManageRole;
