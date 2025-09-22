@@ -215,9 +215,13 @@ class PostController extends Controller
                     'id' => $attachment->id,
                     'type' => $attachment->type,
                     'title' => $attachment->title,
-                    'file_url' => $attachment->file_url,
+                    'filename' => $attachment->filename,
+                    'disk_path' => $attachment->disk_path,
                     'external_url' => $attachment->external_url,
                     'mime_type' => $attachment->mime_type,
+                    'size' => $attachment->size,
+                    'visibility' => $attachment->visibility,
+                    'download_url' => route('public.attachments.download', $attachment),
                 ]),
                 'created_at' => optional($post->created_at)?->toIso8601String(),
                 'updated_at' => optional($post->updated_at)?->toIso8601String(),
@@ -247,9 +251,13 @@ class PostController extends Controller
                     'id' => $attachment->id,
                     'type' => $attachment->type,
                     'title' => $attachment->title,
-                    'file_url' => $attachment->file_url,
+                    'filename' => $attachment->filename,
+                    'disk_path' => $attachment->disk_path,
                     'external_url' => $attachment->external_url,
                     'mime_type' => $attachment->mime_type,
+                    'size' => $attachment->size,
+                    'visibility' => $attachment->visibility,
+                    'download_url' => route('public.attachments.download', $attachment),
                 ]),
             ],
             'categories' => PostCategory::query()->select('id', 'name', 'name_en', 'slug')->orderBy('name')->get(),
@@ -495,15 +503,18 @@ class PostController extends Controller
                 }
 
                 $path = $file->store('attachments', 'public');
-                $mime = $file->getMimeType();
-                $type = str_starts_with((string) $mime, 'image/') ? 'image' : 'document';
+                $mime = $file->getClientMimeType() ?? $file->getMimeType();
+                $type = $mime && str_starts_with((string) $mime, 'image/') ? 'image' : 'document';
 
                 $post->attachments()->create([
                     'type' => $type,
                     'title' => $file->getClientOriginalName(),
-                    'file_url' => '/storage/' . $path,
+                    'filename' => $file->getClientOriginalName(),
+                    'disk_path' => $path,
                     'mime_type' => $mime,
-                    'file_size' => $file->getSize(),
+                    'size' => $file->getSize(),
+                    'visibility' => Attachment::VISIBILITY_PUBLIC,
+                    'uploaded_by' => $request->user()?->id,
                     'sort_order' => ++$currentSort,
                 ]);
             }
@@ -522,7 +533,10 @@ class PostController extends Controller
                 $post->attachments()->create([
                     'type' => 'link',
                     'title' => $title !== '' ? $title : null,
+                    'filename' => $title !== '' ? $title : null,
                     'external_url' => $url,
+                    'visibility' => Attachment::VISIBILITY_PUBLIC,
+                    'uploaded_by' => $request->user()?->id,
                     'sort_order' => ++$currentSort,
                 ]);
             }
@@ -532,11 +546,9 @@ class PostController extends Controller
     private function removeAttachments(EloquentCollection $attachments): void
     {
         foreach ($attachments as $attachment) {
-            if ($attachment->file_url && str_starts_with($attachment->file_url, '/storage/')) {
-                $path = Str::after($attachment->file_url, '/storage/');
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
+            $path = $attachment->disk_path;
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
             }
 
             $attachment->delete();

@@ -57,7 +57,9 @@ class PostManagementTest extends TestCase
 
         $fileAttachment = $post->attachments()->where('type', 'document')->first();
         $this->assertNotNull($fileAttachment);
-        $this->assertTrue(Storage::disk('public')->exists(str_replace('/storage/', '', $fileAttachment->file_url)));
+        $this->assertNotNull($fileAttachment->disk_path);
+        $this->assertTrue(Storage::disk('public')->exists($fileAttachment->disk_path));
+        $this->assertGreaterThan(0, $fileAttachment->size);
     }
 
     public function test_admin_can_schedule_post(): void

@@ -7,11 +7,13 @@ use App\Models\Post;
 use App\Models\Publication;
 use App\Models\Staff;
 use App\Models\User;
+use App\Models\Attachment;
 use App\Policies\LabPolicy;
 use App\Policies\PostPolicy;
 use App\Policies\PublicationPolicy;
 use App\Policies\StaffPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\AttachmentPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -26,6 +28,8 @@ class AuthServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         // 貼文授權政策
         Post::class => PostPolicy::class,
+        // 附件授權政策
+        Attachment::class => AttachmentPolicy::class,
         // 發表論文授權政策
         Publication::class => PublicationPolicy::class,
     ];

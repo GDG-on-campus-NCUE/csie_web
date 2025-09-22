@@ -18,6 +18,15 @@ use App\Http\Controllers\Manage\Admin\ProjectController as AdminProjectControlle
 use App\Http\Controllers\Manage\Admin\PublicationController as AdminPublicationController;
 use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
+use App\Models\User;
+
+Route::bind('user', function ($value) {
+    if ($value instanceof User) {
+        return $value;
+    }
+
+    return User::withTrashed()->findOrFail($value);
+});
 
 Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
     ->prefix('manage')->name('manage.')
@@ -73,6 +82,7 @@ Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
                     ->name('contact-messages.resolved');
 
                 // 附件管理
+                Route::delete('attachments/bulk', [AdminAttachmentController::class, 'bulkDestroy'])->name('attachments.bulk-destroy');
                 Route::resource('attachments', AdminAttachmentController::class)->only(['index', 'destroy']);
                 Route::patch('attachments/{attachment}/restore', [AdminAttachmentController::class, 'restore'])
                     ->name('attachments.restore');

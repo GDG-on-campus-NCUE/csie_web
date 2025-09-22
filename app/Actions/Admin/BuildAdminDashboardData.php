@@ -24,7 +24,7 @@ class BuildAdminDashboardData
         $documentAttachments = (clone $attachmentsQuery)->where('type', 'document')->count();
         $linkAttachments = (clone $attachmentsQuery)->where('type', 'link')->count();
         $trashedAttachments = Attachment::onlyTrashed()->count();
-        $totalAttachmentSize = (int) Attachment::query()->sum('file_size');
+        $totalAttachmentSize = (int) Attachment::query()->sum('size');
 
         $recentPosts = Post::query()
             ->with(['category:id,name,name_en'])
@@ -53,21 +53,25 @@ class BuildAdminDashboardData
             ->all();
 
         $recentAttachments = Attachment::query()
-            ->with(['attachable'])
+            ->with(['attachedTo'])
             ->orderByDesc('created_at')
             ->limit(6)
             ->get()
             ->map(function (Attachment $attachment) {
-                $attachable = $attachment->attachable;
+                $attachable = $attachment->attachedTo;
 
                 return [
                     'id' => $attachment->id,
                     'title' => $attachment->title,
                     'type' => $attachment->type,
-                    'file_size' => $attachment->file_size,
+                    'filename' => $attachment->filename,
+                    'disk_path' => $attachment->disk_path,
+                    'download_url' => route('public.attachments.download', $attachment),
+                    'external_url' => $attachment->external_url,
+                    'size' => $attachment->size,
                     'created_at' => optional($attachment->created_at)->toIso8601String(),
                     'attachable' => $attachable ? [
-                        'type' => class_basename($attachment->attachable_type),
+                        'type' => $attachment->attached_to_type ? class_basename($attachment->attached_to_type) : null,
                         'id' => method_exists($attachable, 'getKey') ? $attachable->getKey() : null,
                         'label' => $attachable->title
                             ?? $attachable->name

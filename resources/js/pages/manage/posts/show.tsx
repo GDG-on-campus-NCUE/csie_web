@@ -10,9 +10,11 @@ interface AttachmentSummary {
     id: number;
     type: 'image' | 'document' | 'link';
     title: string | null;
-    file_url: string | null;
+    filename: string | null;
+    download_url: string | null;
     external_url: string | null;
     mime_type: string | null;
+    size: number | null;
 }
 
 interface PostDetail {
@@ -36,6 +38,18 @@ interface PostDetail {
 interface ShowPostProps {
     post: PostDetail;
 }
+
+const formatAttachmentSize = (bytes: number | null) => {
+    if (!bytes || bytes <= 0) return '';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let index = 0;
+    while (value >= 1024 && index < units.length - 1) {
+        value /= 1024;
+        index += 1;
+    }
+    return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[index]}`;
+};
 
 const statusBadgeMap: Record<'draft' | 'published' | 'scheduled', { label: string; variant: 'secondary' | 'outline' | 'default' }> = {
     draft: { label: '草稿', variant: 'secondary' },
@@ -148,38 +162,48 @@ export default function ShowPost({ post }: ShowPostProps) {
                             <CardTitle className="text-lg font-semibold text-[#151f54]">附件與連結</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 p-6">
-                            {post.attachments.map((attachment) => (
-                                <div
-                                    key={attachment.id}
-                                    className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
-                                >
-                                    <div className="space-y-1">
-                                        <span className="text-sm font-semibold text-[#151f54]">
-                                            {attachment.title ?? '未命名附件'}
-                                        </span>
-                                        {attachment.file_url && (
-                                            <a
-                                                className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
-                                                href={attachment.file_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                <FileText className="h-4 w-4" /> 檢視檔案
-                                            </a>
-                                        )}
-                                        {attachment.external_url && (
-                                            <a
-                                                className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
-                                                href={attachment.external_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                <Link2 className="h-4 w-4" /> {attachment.external_url}
-                                            </a>
-                                        )}
+                            {post.attachments.map((attachment) => {
+                                const displayName = attachment.title ?? attachment.filename ?? `#${attachment.id}`;
+                                const sizeLabel = formatAttachmentSize(attachment.size);
+                                return (
+                                    <div
+                                        key={attachment.id}
+                                        className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <div className="space-y-1">
+                                            <span className="text-sm font-semibold text-[#151f54]">
+                                                {displayName}
+                                            </span>
+                                            {(attachment.mime_type || sizeLabel) && (
+                                                <span className="text-xs text-slate-500">
+                                                    {attachment.mime_type ?? '—'}
+                                                    {sizeLabel ? ` · ${sizeLabel}` : ''}
+                                                </span>
+                                            )}
+                                            {attachment.download_url && (
+                                                <a
+                                                    className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
+                                                    href={attachment.download_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    <FileText className="h-4 w-4" /> 檢視檔案
+                                                </a>
+                                            )}
+                                            {attachment.external_url && (
+                                                <a
+                                                    className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
+                                                    href={attachment.external_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    <Link2 className="h-4 w-4" /> {attachment.external_url}
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </CardContent>
                     </Card>
                 )}

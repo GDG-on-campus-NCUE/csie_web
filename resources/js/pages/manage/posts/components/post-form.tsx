@@ -22,10 +22,24 @@ interface AttachmentSummary {
     id: number;
     type: 'image' | 'document' | 'link';
     title: string | null;
-    file_url: string | null;
+    filename: string | null;
+    download_url: string | null;
     external_url: string | null;
     mime_type: string | null;
+    size: number | null;
 }
+
+const formatAttachmentSize = (bytes: number | null) => {
+    if (!bytes || bytes <= 0) return '';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let index = 0;
+    while (value >= 1024 && index < units.length - 1) {
+        value /= 1024;
+        index += 1;
+    }
+    return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[index]}`;
+};
 
 export interface PostResource {
     id?: number;
@@ -463,6 +477,8 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                             <div className="space-y-2">
                                 {existingAttachments.map((attachment) => {
                                     const removeChecked = data.attachments.remove.includes(attachment.id);
+                                    const displayName = attachment.title ?? attachment.filename ?? `#${attachment.id}`;
+                                    const sizeLabel = formatAttachmentSize(attachment.size);
                                     return (
                                         <label
                                             key={attachment.id}
@@ -474,11 +490,17 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                             )}
                                         >
                                             <div className="flex flex-col gap-1">
-                                                <span className="font-medium">{attachment.title ?? '未命名附件'}</span>
-                                                {attachment.file_url && (
+                                                <span className="font-medium">{displayName}</span>
+                                                {(attachment.mime_type || sizeLabel) && (
+                                                    <span className="text-xs text-neutral-500">
+                                                        {attachment.mime_type ?? '—'}
+                                                        {sizeLabel ? ` · ${sizeLabel}` : ''}
+                                                    </span>
+                                                )}
+                                                {attachment.download_url && (
                                                     <a
                                                         className="text-xs text-[#151f54] underline-offset-4 hover:underline"
-                                                        href={attachment.file_url}
+                                                        href={attachment.download_url}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                     >

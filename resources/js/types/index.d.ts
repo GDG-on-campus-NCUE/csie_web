@@ -66,7 +66,11 @@ export interface AdminDashboardAttachmentSummary {
     id: number;
     title: string | null;
     type: 'image' | 'document' | 'link';
-    file_size: number | null;
+    size: number | null;
+    filename?: string | null;
+    disk_path?: string | null;
+    download_url?: string | null;
+    external_url?: string | null;
     created_at: string;
     attachable?: {
         type: string | null;

@@ -8,10 +8,11 @@ interface BulletinAttachment {
     id: number;
     type: 'image' | 'document' | 'link';
     title?: string | null;
-    file_url?: string | null;
+    filename?: string | null;
+    download_url?: string | null;
     external_url?: string | null;
     mime_type?: string | null;
-    file_size?: number | null;
+    size?: number | null;
 }
 
 interface BulletinPost {
@@ -171,15 +172,14 @@ export default function BulletinShow({ post }: BulletinShowProps) {
                                 <ul className="mt-4 space-y-3 text-sm text-neutral-600">
                                     {attachments.map((attachment) => {
                                         const isLink = attachment.type === 'link';
-                                        const href = isLink
-                                            ? attachment.external_url ?? '#'
-                                            : attachment.file_url ?? attachment.external_url ?? '#';
+                                        const href = attachment.download_url ?? attachment.external_url ?? '#';
                                         const icon =
                                             attachment.type === 'image'
                                                 ? <ImageIcon className="size-4" />
                                                 : attachment.type === 'document'
                                                 ? <FileText className="size-4" />
                                                 : <LinkIcon className="size-4" />;
+                                        const displayName = attachment.title ?? attachment.filename ?? (isZh ? '下載檔案' : 'Download attachment');
                                         return (
                                             <li key={attachment.id}>
                                                 <a
@@ -190,12 +190,10 @@ export default function BulletinShow({ post }: BulletinShowProps) {
                                                 >
                                                     <span className="flex items-center gap-3">
                                                         <span className="rounded-full bg-primary/10 p-2 text-primary">{icon}</span>
-                                                        <span className="font-medium">
-                                                            {attachment.title ?? (isZh ? '下載檔案' : 'Download attachment')}
-                                                        </span>
+                                                        <span className="font-medium">{displayName}</span>
                                                     </span>
                                                     <span className="text-xs text-neutral-400">
-                                                        {formatFileSize(attachment.file_size)}
+                                                        {formatFileSize(attachment.size)}
                                                     </span>
                                                 </a>
                                             </li>

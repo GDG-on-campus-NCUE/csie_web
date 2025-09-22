@@ -13,9 +13,12 @@ class UserPolicy
      * Perform pre-authorization checks.
      * Admin has full access except for certain restricted actions.
      */
-    public function before(User $user): bool|null
+    public function before(User $user, string $ability): bool|null
     {
-        // Admin has access to most actions, but we'll override specific ones
+        if ($user->role === 'admin') {
+            return true;
+        }
+
         return null;
     }
 
@@ -78,9 +81,9 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Admin can delete non-admin users, but not themselves
+        // 管理員可刪除除自己外的帳號，具體限制由控制器判斷
         if ($user->role === 'admin') {
-            return $model->role !== 'admin' && $user->id !== $model->id;
+            return $user->id !== $model->id;
         }
 
         // Teacher and regular users cannot delete users
@@ -100,7 +103,7 @@ class UserPolicy
      */
     public function forceDelete(User $user, User $model): bool
     {
-        // Admin can force delete users, but not themselves
+        // 管理員可永久刪除除自己外的帳號
         return $user->role === 'admin' && $user->id !== $model->id;
     }
 

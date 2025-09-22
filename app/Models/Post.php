@@ -64,7 +64,7 @@ class Post extends Model
 
     public function attachments()
     {
-        return $this->morphMany(Attachment::class, 'attachable');
+        return $this->morphMany(Attachment::class, 'attachedTo', 'attached_to_type', 'attached_to_id');
     }
 
     /**

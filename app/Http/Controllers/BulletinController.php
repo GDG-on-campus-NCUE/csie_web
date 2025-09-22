@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Attachment;
 use App\Models\PostCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,13 +54,41 @@ class BulletinController extends Controller
     public function show(string $slug)
     {
         // 依據 slug 取得公告內容
-        $post = Post::with(['category', 'attachments'])
+        $post = Post::with(['category:id,name,name_en,slug', 'attachments' => fn ($query) => $query->orderBy('sort_order')])
             ->where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();
 
         return Inertia::render('bulletins/show', [
-            'post' => $post,
+            'post' => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'title_en' => $post->title_en,
+                'summary' => $post->summary,
+                'summary_en' => $post->summary_en,
+                'content' => $post->content,
+                'content_en' => $post->content_en,
+                'publish_at' => optional($post->publish_at)?->toIso8601String(),
+                'cover_image_url' => $post->cover_image_url,
+                'source_type' => $post->source_type,
+                'source_url' => $post->source_url,
+                'category' => $post->category ? [
+                    'name' => $post->category->name,
+                    'name_en' => $post->category->name_en,
+                    'slug' => $post->category->slug,
+                ] : null,
+                'attachments' => $post->attachments->map(fn (Attachment $attachment) => [
+                    'id' => $attachment->id,
+                    'type' => $attachment->type,
+                    'title' => $attachment->title,
+                    'filename' => $attachment->filename,
+                    'download_url' => route('public.attachments.download', $attachment),
+                    'external_url' => $attachment->external_url,
+                    'mime_type' => $attachment->mime_type,
+                    'size' => $attachment->size,
+                ]),
+            ],
         ]);
     }
 }
