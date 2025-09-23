@@ -264,6 +264,14 @@ class Teacher extends Model
     }
 
     /**
+     * Relationship: Teacher belongs to many labs
+     */
+    public function labs()
+    {
+        return $this->belongsToMany(Lab::class, 'lab_teachers');
+    }
+
+    /**
      * Scope: Get visible teachers
      */
     public function scopeVisible($query)

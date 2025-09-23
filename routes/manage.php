@@ -38,6 +38,13 @@ Route::middleware(['auth', 'role:admin|teacher'])
         Route::get('users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 
+        // 教師專用路由 (適用於所有角色，但內容會依角色調整)
+        Route::prefix('teacher')->name('teacher.')->group(function () {
+            Route::get('posts', [PostController::class, 'index'])->name('posts');
+            Route::get('labs', [AdminLabController::class, 'index'])->name('labs');
+            Route::get('courses', [AdminCourseController::class, 'index'])->name('courses');
+        });
+
         // 師資與職員管理
         Route::resource('staff', AdminStaffController::class);
         Route::patch('staff/{staff}/restore', [AdminStaffController::class, 'restore'])

@@ -92,7 +92,7 @@ export const StaffTable: React.FC<StaffTableProps> = ({
         return locale === 'zh-TW' ? staffMember.bio : staffMember.bio_en;
     };
 
-    if (staff.length === 0) {
+    if (!staff || staff.length === 0) {
         return (
             <div className="text-center py-8 text-gray-500">
                 <p>目前沒有員工資料</p>

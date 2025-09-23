@@ -14,8 +14,8 @@ import { Plus, Search, Filter } from 'lucide-react';
 interface Props {
     initialTab: string;
     staff: {
-        data: Staff[];
-        meta: any;
+        active: Staff[];
+        trashed: Staff[];
     };
     teachers: {
         data: Teacher[];
@@ -222,25 +222,11 @@ export default function Index({
                                     </div>
 
                                     <StaffTable
-                                        staff={staff.data}
+                                        staff={staff.active}
                                         onEdit={handleStaffEdit}
                                         onDelete={handleStaffDelete}
                                     />
 
-                                    {staff.meta && (
-                                        <Pagination
-                                            meta={staff.meta}
-                                            onPerPageChange={(perPage) =>
-                                                router.get('/manage/staff', {
-                                                    ...filters,
-                                                    per_page: perPage,
-                                                    tab: activeTab
-                                                })
-                                            }
-                                            perPageOptions={perPageOptions}
-                                            className="mt-6"
-                                        />
-                                    )}
                                 </div>
                             </TabsContent>
 
