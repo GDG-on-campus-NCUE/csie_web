@@ -53,13 +53,17 @@ export default function CreatePost({ categories, statusOptions }: CreatePostProp
             <Head title="新增公告" />
 
             <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-[#151f54]">新增公告</h1>
+                            <h1 className="text-3xl font-semibold text-slate-900">新增公告</h1>
                             <p className="text-sm text-slate-600">撰寫公告內容並設定排程與附件。</p>
                         </div>
-                        <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
+                        <Button
+                            asChild
+                            variant="outline"
+                            className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        >
                             <Link href="/manage/posts">
                                 <ArrowLeft className="mr-2 h-4 w-4" /> 返回列表
                             </Link>

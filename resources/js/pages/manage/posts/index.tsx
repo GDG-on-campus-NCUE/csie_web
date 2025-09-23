@@ -275,7 +275,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                     </CardContent>
                 </Card>
 
-                <Card className="border border-slate-200 shadow-sm">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="border-b border-slate-100 pb-4">
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                             <Filter className="h-5 w-5" /> 篩選條件
@@ -411,7 +411,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                     </CardContent>
                 </Card>
 
-                <Card className="border border-slate-200 shadow-sm">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <CardTitle className="text-lg font-semibold text-slate-900">公告列表</CardTitle>
