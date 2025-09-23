@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import PostForm, { PostFormSubmitHandler, PostResource } from './components/post-form';
 import type { BreadcrumbItem, SharedData } from '@/types';
+import { useTranslator } from '@/hooks/use-translator';
 
 interface CategoryOption {
     id: number;
@@ -23,12 +24,17 @@ export default function CreatePost({ categories, statusOptions }: CreatePostProp
     const userRole = auth?.user?.role ?? 'user';
     const layoutRole: 'admin' | 'teacher' | 'user' =
         userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
+    const { t } = useTranslator('manage');
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: '管理首頁', href: '/manage/dashboard' },
-        { title: '公告管理', href: '/manage/posts' },
-        { title: '新增公告', href: '/manage/posts/create' },
+        { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.posts', '公告管理'), href: '/manage/posts' },
+        { title: t('layout.breadcrumbs.posts_create', '新增公告'), href: '/manage/posts/create' },
     ];
+
+    const pageTitle = t('posts.form.header.create.title', '建立公告');
+    const pageDescription = t('posts.form.header.create.description', '撰寫公告內容並設定排程與附件。');
+    const backToIndex = t('posts.form.header.back_to_index', '返回公告列表');
 
     const handleSubmit: PostFormSubmitHandler = (form) => {
         form.post('/manage/posts', {
@@ -50,22 +56,23 @@ export default function CreatePost({ categories, statusOptions }: CreatePostProp
 
     return (
         <ManageLayout role={layoutRole} breadcrumbs={breadcrumbs}>
-            <Head title="新增公告" />
+            <Head title={pageTitle} />
 
             <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-slate-900">新增公告</h1>
-                            <p className="text-sm text-slate-600">撰寫公告內容並設定排程與附件。</p>
+                            <h1 className="text-3xl font-semibold text-slate-900">{pageTitle}</h1>
+                            <p className="text-sm text-slate-600">{pageDescription}</p>
                         </div>
                         <Button
                             asChild
                             variant="outline"
-                            className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            className="rounded-full"
                         >
-                            <Link href="/manage/posts">
-                                <ArrowLeft className="mr-2 h-4 w-4" /> 返回列表
+                            <Link href="/manage/posts" aria-label={backToIndex} className="inline-flex items-center gap-2">
+                                <ArrowLeft className="h-4 w-4" />
+                                {backToIndex}
                             </Link>
                         </Button>
                     </CardContent>

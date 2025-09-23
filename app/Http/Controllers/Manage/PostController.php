@@ -114,7 +114,11 @@ class PostController extends Controller
 
         return Inertia::render('manage/posts/index', [
             'posts' => $posts,
-            'categories' => PostCategory::query()->select('id', 'name', 'name_en', 'slug')->orderBy('name')->get(),
+            'categories' => PostCategory::query()
+                ->select('id', 'name', 'name_en', 'slug', 'sort_order')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
             'authors' => $authors,
             'filters' => $request->only(['search', 'category', 'status', 'author', 'date_from', 'date_to', 'per_page']),
             'statusOptions' => ['draft', 'published', 'scheduled'],
@@ -131,7 +135,11 @@ class PostController extends Controller
         $statusOptions = $this->statusOptions($request->user());
 
         return Inertia::render('manage/posts/create', [
-            'categories' => PostCategory::query()->select('id', 'name', 'name_en', 'slug')->orderBy('name')->get(),
+            'categories' => PostCategory::query()
+                ->select('id', 'name', 'name_en', 'slug', 'sort_order')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
             'statusOptions' => $statusOptions,
         ]);
     }
@@ -258,7 +266,11 @@ class PostController extends Controller
                     'mime_type' => $attachment->mime_type,
                 ]),
             ],
-            'categories' => PostCategory::query()->select('id', 'name', 'name_en', 'slug')->orderBy('name')->get(),
+            'categories' => PostCategory::query()
+                ->select('id', 'name', 'name_en', 'slug', 'sort_order')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
             'statusOptions' => $statusOptions,
         ]);
     }

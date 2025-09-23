@@ -264,6 +264,7 @@ return [
             'draft' => 'Draft',
             'published' => 'Published',
             'archived' => 'Archived',
+            'scheduled' => 'Scheduled',
         ],
         'source_type' => [
             'manual' => 'Manual input',
@@ -280,9 +281,12 @@ return [
                 'keyword_placeholder' => 'Search by title',
                 'category' => 'Category',
                 'status' => 'Status',
+                'author' => 'Author',
                 'pinned' => 'Pinned',
                 'pinned_only' => 'Pinned only',
                 'pinned_exclude' => 'Exclude pinned',
+                'date_from' => 'Start date',
+                'date_to' => 'End date',
                 'per_page' => 'Per page',
                 'all' => 'All',
                 'apply' => 'Apply',
@@ -294,8 +298,10 @@ return [
                 'columns' => [
                     'title' => 'Title',
                     'category' => 'Category',
+                    'author' => 'Author',
                     'status' => 'Status',
                     'published_at' => 'Published at',
+                    'views' => 'Views',
                     'attachments' => 'Attachments',
                     'actions' => 'Actions',
                 ],
@@ -304,8 +310,16 @@ return [
                 'attachments_count' => ':count attachment(s)',
                 'manage_attachments' => 'Manage attachments',
                 'page' => 'Page :current of :last',
+                'prev' => 'Previous',
+                'next' => 'Next',
             ],
             'actions' => [
+                'bulk_publish' => 'Publish selected',
+                'bulk_publish_aria' => 'Publish the selected announcements',
+                'bulk_unpublish' => 'Mark as draft',
+                'bulk_unpublish_aria' => 'Mark the selected announcements as draft',
+                'bulk_delete' => 'Delete selected',
+                'bulk_delete_aria' => 'Delete the selected announcements',
                 'view_label' => 'View details',
                 'view_aria' => 'View announcement',
                 'edit_label' => 'Edit this bulletin',
@@ -326,11 +340,16 @@ return [
                     'description' => 'Adjust bulletin details and attachment settings.',
                 ],
                 'back_to_index' => 'Back to announcements',
+                'back_to_detail' => 'Back to bulletin detail',
             ],
             'sections' => [
                 'metadata' => [
                     'title' => 'Metadata',
                     'description' => 'Configure category, status, and publication schedule.',
+                ],
+                'schedule' => [
+                    'title' => 'Publishing',
+                    'description' => 'Control publication status, scheduling, and visibility.',
                 ],
                 'content' => [
                     'title' => 'Announcement content',
@@ -356,6 +375,12 @@ return [
                     'helper' => 'Leave blank to mirror the Chinese title.',
                     'placeholder' => 'Enter English title',
                 ],
+                'slug' => [
+                    'label' => 'Slug',
+                    'helper' => 'Use lowercase letters, numbers, and hyphens for the URL path.',
+                    'placeholder' => 'custom-slug',
+                    'generate' => 'Generate from title',
+                ],
                 'sync_title' => 'Auto-sync English title',
                 'content_zh' => [
                     'label' => 'Chinese content',
@@ -368,9 +393,18 @@ return [
                     'placeholder' => 'Enter English content',
                 ],
                 'sync_content' => 'Auto-sync English content',
+                'excerpt' => [
+                    'label' => 'Excerpt',
+                    'placeholder' => 'Short summary for list views',
+                ],
                 'status' => [
                     'label' => 'Status',
                     'placeholder' => 'Select status',
+                ],
+                'tags' => [
+                    'label' => 'Tags',
+                    'placeholder' => 'Separate with commas, e.g. Department, Event',
+                    'helper' => 'Use commas to separate multiple tags.',
                 ],
                 'pinned' => [
                     'label' => 'Pin announcement',
@@ -389,8 +423,21 @@ return [
                     'placeholder' => 'https://example.com/post',
                 ],
             ],
+            'status_description' => [
+                'draft' => 'Save as draft. Only visible to you.',
+                'published' => 'Publish immediately and show in the announcements list.',
+                'scheduled' => 'Automatically publish at the scheduled time.',
+            ],
             'attachments' => [
+                'featured' => [
+                    'label' => 'Featured image',
+                    'helper' => 'Use a 16:9 image to highlight the announcement.',
+                    'current' => 'Current featured image',
+                    'remove' => 'Remove featured image',
+                    'restore' => 'Keep featured image',
+                ],
                 'upload_button' => 'Upload files',
+                'upload_helper' => 'Multiple files supported (20MB per file).',
                 'add_link' => 'Add link',
                 'links_title' => 'External links',
                 'links_empty' => 'No external links added yet.',
@@ -402,6 +449,7 @@ return [
                 'existing_title' => 'Existing attachments',
                 'empty' => 'No attachments added yet.',
                 'pending_files' => 'Pending files (:count)',
+                'unnamed' => 'Untitled attachment',
                 'actions' => [
                     'preview' => 'View file',
                     'download' => 'Download file',
@@ -431,6 +479,7 @@ return [
         'show' => [
             'title' => 'Bulletin detail',
             'overview' => 'Overview',
+            'slug' => 'Slug',
             'category' => 'Category',
             'english_title' => 'English title',
             'source_type' => 'Source type',
@@ -438,6 +487,7 @@ return [
             'creator' => 'Author',
             'created_at' => 'Created at',
             'updated_at' => 'Last updated',
+            'views' => 'Views',
             'content' => 'Chinese content',
             'content_en' => 'English content',
             'content_section' => 'Announcement content',
