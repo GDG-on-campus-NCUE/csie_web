@@ -102,14 +102,15 @@
     --border: #d3daf3;
     --ring: #3a4cc2;
 
-    --sidebar: #101736;
-    --sidebar-foreground: #f8fafc;
+    /* 側欄配色加深背景並提高文字亮度，改善可讀性 */
+    --sidebar: #060d2c;
+    --sidebar-foreground: #ffffff;
     --sidebar-primary: #ffb401;
     --sidebar-primary-foreground: #141414;
-    --sidebar-accent: rgba(255, 255, 255, 0.08);
-    --sidebar-accent-foreground: #f8fafc;
-    --sidebar-border: rgba(255, 255, 255, 0.12);
-    --sidebar-ring: rgba(255, 255, 255, 0.32);
+    --sidebar-accent: rgba(255, 255, 255, 0.12);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.18);
+    --sidebar-ring: rgba(255, 255, 255, 0.36);
 
     --gradient-hero-start: rgba(16, 35, 120, 0.88);
     --gradient-hero-end: rgba(18, 57, 159, 0.45);
