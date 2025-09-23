@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
 import { Calendar, FileText, Image as ImageIcon, Link2, Loader2, Paperclip, Plus, Trash2 } from 'lucide-react';
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { useTranslator } from '@/hooks/use-translator';
 
 interface CategoryOption {
     id: number;
@@ -76,10 +77,16 @@ interface PostFormForm {
     };
 }
 
-const statusLabels: Record<'draft' | 'published' | 'scheduled', { zh: string; en: string }> = {
+const statusFallbackLabels: Record<'draft' | 'published' | 'scheduled', { zh: string; en: string }> = {
     draft: { zh: '草稿', en: 'Draft' },
     published: { zh: '已發布', en: 'Published' },
     scheduled: { zh: '排程中', en: 'Scheduled' },
+};
+
+const statusDescriptionFallback: Record<'draft' | 'published' | 'scheduled', { zh: string; en: string }> = {
+    draft: { zh: '儲存為草稿，僅供後台檢視。', en: 'Save as draft. Only visible to you.' },
+    published: { zh: '立即公開並顯示於公告列表。', en: 'Publish immediately and show in the announcement list.' },
+    scheduled: { zh: '設定時間後自動發布。', en: 'Automatically publish at the scheduled time.' },
 };
 
 const slugify = (value: string) =>
@@ -108,6 +115,8 @@ const formatDateTime = (value: string | null | undefined) => {
 const createLinkId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 
 export default function PostForm({ mode, cancelUrl, categories, statusOptions, post, onSubmit }: PostFormProps) {
+    const { t, localeKey } = useTranslator('manage');
+    const fallbackLanguage: 'zh' | 'en' = localeKey === 'zh-TW' ? 'zh' : 'en';
     const initialStatus = useMemo(() => {
         if (post?.status && statusOptions.includes(post.status)) {
             return post.status;
@@ -194,66 +203,81 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
         });
     };
 
-    const statusDescription = (status: 'draft' | 'published' | 'scheduled') => {
-        switch (status) {
-            case 'published':
-                return '立即公開並顯示於公告列表。';
-            case 'scheduled':
-                return '設定時間後自動發布。';
-            default:
-                return '保存為草稿，僅供後台檢視。';
-        }
-    };
+    const statusDescription = (status: 'draft' | 'published' | 'scheduled') =>
+        t(
+            `posts.form.status_description.${status}`,
+            statusDescriptionFallback[status][fallbackLanguage]
+        );
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-slate-900">公告基本資料</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">
+                        {t('posts.form.sections.metadata.title', '公告基本資料')}
+                    </CardTitle>
+                    <p className="text-sm text-slate-500">
+                        {t(
+                            'posts.form.sections.metadata.description',
+                            '設定公告分類、狀態與排程時間。'
+                        )}
+                    </p>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div className="space-y-2">
-                        <Label htmlFor="post-title">公告標題 *</Label>
+                        <Label htmlFor="post-title">
+                            {t('posts.form.fields.title_zh.label', '公告標題')}
+                            <span className="text-rose-500"> *</span>
+                        </Label>
                         <Input
                             id="post-title"
                             value={data.title}
                             onChange={(event) => setData('title', event.target.value)}
-                            placeholder="輸入公告標題"
+                            placeholder={t('posts.form.fields.title_zh.placeholder', '請輸入中文標題')}
                         />
                         <InputError message={errors.title} />
                     </div>
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="post-slug">網址 Slug</Label>
-                            <button
+                            <Label htmlFor="post-slug">{t('posts.form.fields.slug.label', '網址 Slug')}</Label>
+                            <Button
                                 type="button"
-                                className="text-sm text-slate-600 underline-offset-4 hover:text-slate-900 hover:underline"
+                                variant="link"
+                                size="sm"
+                                className="h-auto p-0 text-sm text-slate-600 hover:text-slate-900"
                                 onClick={() => setData('slug', slugify(data.title))}
                             >
-                                以標題產生
-                            </button>
+                                {t('posts.form.fields.slug.generate', '以標題產生')}
+                            </Button>
                         </div>
                         <Input
                             id="post-slug"
                             value={data.slug}
                             onChange={(event) => setData('slug', event.target.value)}
-                            placeholder="custom-slug"
+                            placeholder={t('posts.form.fields.slug.placeholder', 'custom-slug')}
                         />
                         <InputError message={errors.slug} />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="post-category">公告分類 *</Label>
+                        <Label htmlFor="post-category">
+                            {t('posts.form.fields.category.label', '公告分類')}
+                            <span className="text-rose-500"> *</span>
+                        </Label>
                         <Select
                             id="post-category"
                             value={data.category_id}
                             onChange={(event) => setData('category_id', event.target.value)}
                         >
-                            <option value="">請選擇分類</option>
+                            <option value="">
+                                {t('posts.form.fields.category.placeholder', '選擇分類')}
+                            </option>
                             {categories.map((category) => (
                                 <option key={category.id} value={category.id}>
-                                    {category.name}
+                                    {localeKey === 'zh-TW'
+                                        ? category.name
+                                        : category.name_en || category.name}
                                 </option>
                             ))}
                         </Select>
@@ -261,37 +285,48 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="post-tags">標籤</Label>
+                        <Label htmlFor="post-tags">{t('posts.form.fields.tags.label', '標籤')}</Label>
                         <Input
                             id="post-tags"
                             value={data.tags}
                             onChange={(event) => setData('tags', event.target.value)}
-                            placeholder="以逗號分隔，如：系所公告, 活動"
+                            placeholder={t(
+                                'posts.form.fields.tags.placeholder',
+                                '以逗號分隔，如：系所公告, 活動'
+                            )}
                         />
-                        <p className="text-xs text-slate-500">使用逗號分隔多個標籤。</p>
+                        <p className="text-xs text-slate-500">
+                            {t('posts.form.fields.tags.helper', '使用逗號分隔多個標籤。')}
+                        </p>
                         <InputError message={errors.tags as string | undefined} />
                     </div>
 
                     <div className="lg:col-span-2 space-y-2">
-                        <Label htmlFor="post-excerpt">摘要</Label>
+                        <Label htmlFor="post-excerpt">{t('posts.form.fields.excerpt.label', '摘要')}</Label>
                         <Textarea
                             id="post-excerpt"
                             value={data.excerpt}
                             onChange={(event) => setData('excerpt', event.target.value)}
                             rows={3}
-                            placeholder="簡短摘要，方便在列表顯示"
+                            placeholder={t('posts.form.fields.excerpt.placeholder', '簡短摘要，方便在列表顯示')}
                         />
                         <InputError message={errors.excerpt} />
                     </div>
 
                     <div className="lg:col-span-2 space-y-2">
-                        <Label htmlFor="post-content">公告內容 *</Label>
+                        <Label htmlFor="post-content">
+                            {t('posts.form.fields.content_zh.label', '公告內容')}
+                            <span className="text-rose-500"> *</span>
+                        </Label>
                         <Textarea
                             id="post-content"
                             value={data.content}
                             onChange={(event) => setData('content', event.target.value)}
                             rows={12}
-                            placeholder="支援 HTML 片段，將自動進行安全清理"
+                            placeholder={t(
+                                'posts.form.fields.content_zh.placeholder',
+                                '支援 HTML 片段，將自動進行安全清理'
+                            )}
                         />
                         <InputError message={errors.content} />
                     </div>
@@ -300,11 +335,22 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
             <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-slate-900">發布設定</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">
+                        {t('posts.form.sections.schedule.title', '發布設定')}
+                    </CardTitle>
+                    <p className="text-sm text-slate-500">
+                        {t(
+                            'posts.form.sections.schedule.description',
+                            '調整公告狀態與排程時間，掌握發佈節奏。'
+                        )}
+                    </p>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                        <Label htmlFor="post-status">發布狀態 *</Label>
+                        <Label htmlFor="post-status">
+                            {t('posts.form.fields.status.label', '發布狀態')}
+                            <span className="text-rose-500"> *</span>
+                        </Label>
                         <Select
                             id="post-status"
                             value={data.status}
@@ -312,7 +358,10 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                         >
                             {statusOptions.map((status) => (
                                 <option key={status} value={status}>
-                                    {statusLabels[status].zh}
+                                    {t(
+                                        `posts.status.${status}`,
+                                        statusFallbackLabels[status][fallbackLanguage]
+                                    )}
                                 </option>
                             ))}
                         </Select>
@@ -324,7 +373,9 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="post-publish-at">排程時間</Label>
+                        <Label htmlFor="post-publish-at">
+                            {t('posts.form.fields.publish_at.label', '預定發布時間')}
+                        </Label>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                             <Input
@@ -336,7 +387,10 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                             />
                         </div>
                         <p className="text-xs text-slate-500">
-                            排程狀態需設定未來時間，未填則以立即發布時間為準。
+                            {t(
+                                'posts.form.fields.publish_at.helper',
+                                '可選擇排程時間（系統時區）。'
+                            )}
                         </p>
                         <InputError message={errors.publish_at} />
                     </div>
@@ -345,18 +399,31 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
             <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-slate-900">主圖與附件</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">
+                        {t('posts.form.sections.attachments.title', '主圖與附件')}
+                    </CardTitle>
+                    <p className="text-sm text-slate-500">
+                        {t(
+                            'posts.form.sections.attachments.description',
+                            '上傳檔案或新增外部連結，供公告使用。'
+                        )}
+                    </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="space-y-2">
-                            <Label htmlFor="post-featured-image">主視覺</Label>
+                            <Label htmlFor="post-featured-image">
+                                {t('posts.form.attachments.featured.label', '主視覺')}
+                            </Label>
                             <Input
                                 id="post-featured-image"
                                 type="file"
                                 accept="image/*"
                                 onChange={handleFeaturedChange}
                             />
+                            <p className="text-xs text-slate-500">
+                                {t('posts.form.attachments.featured.helper', '建議使用 16:9 圖片作為公告主圖。')}
+                            </p>
                             <InputError message={errors.featured_image} />
                             {post?.featured_image_url && (
                                 <div className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm">
@@ -364,33 +431,44 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                         <ImageIcon className="h-4 w-4 text-slate-600" />
                                         <a
                                             className="text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
-                                                href={post.featured_image_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                            目前主圖
+                                            href={post.featured_image_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            {t('posts.form.attachments.featured.current', '目前主圖')}
                                         </a>
                                     </div>
-                                    <button
+                                    <Button
                                         type="button"
-                                        className="text-xs text-rose-600 hover:underline"
+                                        variant="link"
+                                        size="sm"
+                                        className="h-auto p-0 text-xs text-rose-600 hover:text-rose-700"
                                         onClick={() => setData('remove_featured_image', !data.remove_featured_image)}
                                     >
-                                        {data.remove_featured_image ? '保留主圖' : '移除主圖'}
-                                    </button>
+                                        {data.remove_featured_image
+                                            ? t('posts.form.attachments.featured.restore', '保留主圖')
+                                            : t('posts.form.attachments.featured.remove', '移除主圖')}
+                                    </Button>
                                 </div>
                             )}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="post-attachments">上傳附件</Label>
+                            <Label htmlFor="post-attachments">
+                                {t('posts.form.attachments.upload_button', '上傳附件')}
+                            </Label>
                             <Input
                                 id="post-attachments"
                                 type="file"
                                 multiple
                                 onChange={handleFileChange}
                             />
-                            <p className="text-xs text-slate-500">支援多檔案（單檔 20MB 以內）。</p>
+                            <p className="text-xs text-slate-500">
+                                {t(
+                                    'posts.form.attachments.upload_helper',
+                                    '支援多檔案（單檔 20MB 以內）。'
+                                )}
+                            </p>
                             <InputError message={errors['attachments.files'] as string | undefined} />
                         </div>
                     </div>
@@ -399,7 +477,11 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                             <p className="mb-2 flex items-center gap-2 font-medium text-slate-800">
                                 <Paperclip className="h-4 w-4" />
-                                即將上傳的檔案
+                                {t(
+                                    'posts.form.attachments.pending_files',
+                                    '即將上傳的檔案（:count）',
+                                    { count: data.attachments.files.length }
+                                )}
                             </p>
                             <ul className="space-y-1">
                                 {data.attachments.files.map((file) => (
@@ -412,16 +494,17 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                                <Link2 className="h-4 w-4" /> 連結附件
+                                <Link2 className="h-4 w-4" /> {t('posts.form.attachments.links_title', '外部連結')}
                             </h3>
                             <Button type="button" variant="outline" size="sm" onClick={addLinkInput}>
-                                <Plus className="mr-1 h-4 w-4" /> 新增連結
+                                <Plus className="mr-1 h-4 w-4" />
+                                {t('posts.form.attachments.add_link', '新增連結')}
                             </Button>
                         </div>
 
                         {linkInputs.length === 0 && (
                             <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500">
-                                尚未新增連結附件。
+                                {t('posts.form.attachments.links_empty', '尚未新增連結附件。')}
                             </p>
                         )}
 
@@ -432,12 +515,12 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                     className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr,1fr,auto]"
                                 >
                                     <Input
-                                        placeholder="顯示文字"
+                                        placeholder={t('posts.form.attachments.link_title_placeholder', '連結標題')}
                                         value={link.title}
                                         onChange={(event) => handleLinkInputChange(link.id, 'title', event.target.value)}
                                     />
                                     <Input
-                                        placeholder="https://example.com"
+                                        placeholder={t('posts.form.attachments.link_url_placeholder', 'https://example.com')}
                                         value={link.url}
                                         onChange={(event) => handleLinkInputChange(link.id, 'url', event.target.value)}
                                     />
@@ -458,7 +541,8 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                     {existingAttachments.length > 0 && (
                         <div className="space-y-3">
                             <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                                <Paperclip className="h-4 w-4" /> 既有附件
+                                <Paperclip className="h-4 w-4" />
+                                {t('posts.form.attachments.existing_title', '既有附件')}
                             </h3>
                             <div className="space-y-2">
                                 {existingAttachments.map((attachment) => {
@@ -474,7 +558,9 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                             )}
                                         >
                                             <div className="flex flex-col gap-1">
-                                                <span className="font-medium">{attachment.title ?? '未命名附件'}</span>
+                                                <span className="font-medium">
+                                                    {attachment.title ?? t('posts.form.attachments.unnamed', '未命名附件')}
+                                                </span>
                                                 {attachment.file_url && (
                                                     <a
                                                         className="text-xs text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
@@ -482,7 +568,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                                         target="_blank"
                                                         rel="noreferrer"
                                                     >
-                                                        檢視檔案
+                                                        {t('posts.form.attachments.actions.preview', '預覽檔案')}
                                                     </a>
                                                 )}
                                                 {attachment.external_url && (
@@ -498,6 +584,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                             </div>
                                             <Checkbox
                                                 checked={removeChecked}
+                                                aria-label={t('posts.form.attachments.actions.remove', '移除')}
                                                 onCheckedChange={() => toggleRemoveAttachment(attachment.id)}
                                             />
                                         </label>
@@ -511,7 +598,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button asChild variant="ghost" className="text-slate-500 hover:text-slate-700">
-                    <Link href={cancelUrl}>取消</Link>
+                    <Link href={cancelUrl}>{t('posts.form.actions.cancel', '取消')}</Link>
                 </Button>
                 <Button
                     type="submit"
@@ -521,12 +608,16 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                     {processing ? (
                         <span className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            處理中…
+                            {t(
+                                `posts.form.actions.${mode === 'create' ? 'submit_create_processing' : 'submit_update_processing'}`,
+                                mode === 'create' ? '建立中…' : '更新中…'
+                            )}
                         </span>
-                    ) : mode === 'create' ? (
-                        '建立公告'
                     ) : (
-                        '更新公告'
+                        t(
+                            `posts.form.actions.${mode === 'create' ? 'submit_create' : 'submit_update'}`,
+                            mode === 'create' ? '建立公告' : '更新公告'
+                        )
                     )}
                 </Button>
             </div>

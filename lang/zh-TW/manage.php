@@ -264,6 +264,7 @@ return [
             'draft' => '草稿',
             'published' => '發布',
             'archived' => '封存',
+            'scheduled' => '排程中',
         ],
         'source_type' => [
             'manual' => '手動輸入',
@@ -280,9 +281,12 @@ return [
                 'keyword_placeholder' => '輸入標題關鍵字',
                 'category' => '分類',
                 'status' => '狀態',
+                'author' => '作者',
                 'pinned' => '置頂',
                 'pinned_only' => '僅顯示置頂',
                 'pinned_exclude' => '排除置頂',
+                'date_from' => '起始日期',
+                'date_to' => '結束日期',
                 'per_page' => '每頁數量',
                 'all' => '全部',
                 'apply' => '套用',
@@ -294,8 +298,10 @@ return [
                 'columns' => [
                     'title' => '標題',
                     'category' => '分類',
+                    'author' => '作者',
                     'status' => '狀態',
                     'published_at' => '發布時間',
+                    'views' => '瀏覽數',
                     'attachments' => '附件',
                     'actions' => '操作',
                 ],
@@ -304,8 +310,16 @@ return [
                 'attachments_count' => '共 :count 筆附件',
                 'manage_attachments' => '管理附件',
                 'page' => '第 :current / :last 頁',
+                'prev' => '上一頁',
+                'next' => '下一頁',
             ],
             'actions' => [
+                'bulk_publish' => '批次發布',
+                'bulk_publish_aria' => '批次將選取公告設為發布',
+                'bulk_unpublish' => '設為草稿',
+                'bulk_unpublish_aria' => '批次將選取公告改為草稿',
+                'bulk_delete' => '刪除選取',
+                'bulk_delete_aria' => '刪除選取公告',
                 'view_label' => '檢視公告內容',
                 'view_aria' => '檢視公告',
                 'edit_label' => '編輯公告內容',
@@ -326,11 +340,16 @@ return [
                     'description' => '調整公告內容與附件設定。',
                 ],
                 'back_to_index' => '返回公告列表',
+                'back_to_detail' => '返回公告詳情',
             ],
             'sections' => [
                 'metadata' => [
                     'title' => '基本資訊',
                     'description' => '設定公告分類、狀態與排程時間。',
+                ],
+                'schedule' => [
+                    'title' => '發布設定',
+                    'description' => '調整公告狀態與排程時間，掌握發佈節奏。',
                 ],
                 'content' => [
                     'title' => '公告內容',
@@ -356,6 +375,12 @@ return [
                     'helper' => '留空將自動沿用中文標題。',
                     'placeholder' => '請輸入英文標題',
                 ],
+                'slug' => [
+                    'label' => '網址 Slug',
+                    'helper' => '使用英數字與連字號組成，將顯示於公告網址。',
+                    'placeholder' => 'custom-slug',
+                    'generate' => '以標題產生',
+                ],
                 'sync_title' => '自動同步英文標題',
                 'content_zh' => [
                     'label' => '中文內容',
@@ -368,9 +393,18 @@ return [
                     'placeholder' => '請輸入英文內容',
                 ],
                 'sync_content' => '自動同步英文內容',
+                'excerpt' => [
+                    'label' => '摘要',
+                    'placeholder' => '簡短摘要，方便在列表顯示',
+                ],
                 'status' => [
                     'label' => '發布狀態',
                     'placeholder' => '選擇狀態',
+                ],
+                'tags' => [
+                    'label' => '標籤',
+                    'placeholder' => '以逗號分隔，如：系所公告, 活動',
+                    'helper' => '使用逗號分隔多個標籤。',
                 ],
                 'pinned' => [
                     'label' => '是否置頂',
@@ -389,8 +423,21 @@ return [
                     'placeholder' => 'https://example.com/post',
                 ],
             ],
+            'status_description' => [
+                'draft' => '儲存為草稿，僅自己可見。',
+                'published' => '立即公開並顯示於公告列表。',
+                'scheduled' => '系統會在設定時間自動發布。',
+            ],
             'attachments' => [
+                'featured' => [
+                    'label' => '主視覺',
+                    'helper' => '建議使用 16:9 圖片作為公告主圖。',
+                    'current' => '目前主圖',
+                    'remove' => '移除主圖',
+                    'restore' => '保留主圖',
+                ],
                 'upload_button' => '上傳附件',
+                'upload_helper' => '支援多檔案（單檔 20MB 以內）。',
                 'add_link' => '新增連結',
                 'links_title' => '外部連結',
                 'links_empty' => '暫無外部連結。',
@@ -401,7 +448,8 @@ return [
                 'link_url_placeholder' => 'https://example.com',
                 'existing_title' => '既有附件',
                 'empty' => '尚未新增附件。',
-                'pending_files' => '待上傳檔案（:count）',
+                'pending_files' => '即將上傳的檔案（:count）',
+                'unnamed' => '未命名附件',
                 'actions' => [
                     'preview' => '預覽檔案',
                     'download' => '下載附件',
@@ -431,6 +479,7 @@ return [
         'show' => [
             'title' => '公告詳情',
             'overview' => '基本資訊',
+            'slug' => '網址 Slug',
             'category' => '公告分類',
             'english_title' => '英文標題',
             'source_type' => '來源類型',
@@ -438,6 +487,7 @@ return [
             'creator' => '建立者',
             'created_at' => '建立時間',
             'updated_at' => '最後更新',
+            'views' => '瀏覽數',
             'content' => '中文內容',
             'content_en' => '英文內容',
             'content_section' => '公告內容',

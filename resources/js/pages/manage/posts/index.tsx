@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Calendar, ChevronLeft, ChevronRight, Eye, FileText, Filter, Pen, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem, SharedData } from '@/types';
+import { useTranslator } from '@/hooks/use-translator';
 
 interface CategoryOption {
     id: number;
@@ -24,11 +25,13 @@ interface AuthorOption {
     name: string;
 }
 
+type PostStatus = 'draft' | 'published' | 'scheduled';
+
 interface PostItem {
     id: number;
     title: string;
     slug: string;
-    status: 'draft' | 'published' | 'scheduled';
+    status: PostStatus;
     publish_at: string | null;
     category: CategoryOption | null;
     author: { id: number; name: string; email: string } | null;
@@ -60,7 +63,7 @@ interface PostsIndexProps {
     categories: CategoryOption[];
     authors: AuthorOption[];
     filters: Partial<Record<'search' | 'category' | 'status' | 'author' | 'date_from' | 'date_to' | 'per_page', string>>;
-    statusOptions: Array<'draft' | 'published' | 'scheduled'>;
+    statusOptions: Array<PostStatus>;
     perPageOptions: number[];
     can: {
         create: boolean;
@@ -78,15 +81,27 @@ type FilterState = {
     per_page: string;
 };
 
-const statusBadgeMap: Record<'draft' | 'published' | 'scheduled', { label: string; variant: 'secondary' | 'outline' | 'default' }> = {
-    draft: { label: '草稿', variant: 'secondary' },
-    published: { label: '已發布', variant: 'default' },
-    scheduled: { label: '排程中', variant: 'outline' },
+const statusVariantMap: Record<PostStatus, 'secondary' | 'outline' | 'default'> = {
+    draft: 'secondary',
+    published: 'default',
+    scheduled: 'outline',
 };
 
-const formatDateTime = (value: string | null) => {
-    if (!value) return '—';
-    return new Date(value).toLocaleString('zh-TW', {
+const statusFallbackLabels: Record<PostStatus, { zh: string; en: string }> = {
+    draft: { zh: '草稿', en: 'Draft' },
+    published: { zh: '已發布', en: 'Published' },
+    scheduled: { zh: '排程中', en: 'Scheduled' },
+};
+
+const formatDateTime = (value: string | null, locale: 'zh-TW' | 'en') => {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return date.toLocaleString(locale === 'zh-TW' ? 'zh-TW' : 'en-US', {
         dateStyle: 'medium',
         timeStyle: 'short',
     });
@@ -97,6 +112,10 @@ export default function PostsIndex({ posts, categories, authors, filters, status
     const userRole = auth?.user?.role ?? 'user';
     const layoutRole: 'admin' | 'teacher' | 'user' =
         userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
+    const { t, localeKey } = useTranslator('manage');
+    const fallbackLanguage: 'zh' | 'en' = localeKey === 'zh-TW' ? 'zh' : 'en';
+    const localeForDate: 'zh-TW' | 'en' = localeKey === 'zh-TW' ? 'zh-TW' : 'en';
+    const iconActionClass = cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'h-9 w-9 p-0');
     const [selected, setSelected] = useState<number[]>([]);
     const defaultPerPage = perPageOptions[0] ?? 20;
 
@@ -127,13 +146,10 @@ export default function PostsIndex({ posts, categories, authors, filters, status
         ids: [] as number[],
     });
 
-    const breadcrumbs: BreadcrumbItem[] = useMemo(
-        () => [
-            { title: '管理首頁', href: '/manage/dashboard' },
-            { title: '公告管理', href: '/manage/posts' },
-        ],
-        []
-    );
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },
+        { title: t('layout.breadcrumbs.posts', '公告管理'), href: '/manage/posts' },
+    ];
 
     const applyFilters = (event?: React.FormEvent) => {
         event?.preventDefault();
@@ -253,23 +269,26 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
     return (
         <ManageLayout role={layoutRole} breadcrumbs={breadcrumbs}>
-            <Head title="公告管理" />
+            <Head title={t('posts.index.title', '公告管理')} />
 
             <section className="space-y-6">
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-2">
                             <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                <Filter className="h-4 w-4" /> 公告總覽
+                                <Filter className="h-4 w-4" /> {t('posts.index.badge', '公告總覽')}
                             </span>
-                            <h1 className="text-3xl font-semibold text-slate-900">公告管理</h1>
+                            <h1 className="text-3xl font-semibold text-slate-900">{t('posts.index.title', '公告管理')}</h1>
                             <p className="text-sm text-slate-600">
-                                管理公告分類、排程發布及附件檔案，確保資訊即時且一致。
+                                {t(
+                                    'posts.index.description',
+                                    '管理公告分類、排程發布及附件檔案，確保資訊即時且一致。'
+                                )}
                             </p>
                         </div>
                         {can.create && (
                             <Button asChild className="rounded-full px-6">
-                                <Link href="/manage/posts/create">新增公告</Link>
+                                <Link href="/manage/posts/create">{t('posts.index.create', '新增公告')}</Link>
                             </Button>
                         )}
                     </CardContent>
@@ -278,7 +297,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="border-b border-slate-100 pb-4">
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                            <Filter className="h-5 w-5" /> 篩選條件
+                            <Filter className="h-5 w-5" /> {t('posts.index.filters_title', '篩選條件')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -288,26 +307,26 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                         >
                             <div className="xl:col-span-2 space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-search">
-                                    關鍵字
+                                    {t('posts.index.filters.keyword', '關鍵字')}
                                 </label>
                                 <Input
                                     id="filter-search"
                                     value={filterState.search}
                                     onChange={(event) => setFilterState((prev) => ({ ...prev, search: event.target.value }))}
-                                    placeholder="搜尋標題或內容"
+                                    placeholder={t('posts.index.filters.keyword_placeholder', '搜尋標題或內容')}
                                 />
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-category">
-                                    分類
+                                    {t('posts.index.filters.category', '分類')}
                                 </label>
                                 <Select
                                     id="filter-category"
                                     value={filterState.category}
                                     onChange={(event) => setFilterState((prev) => ({ ...prev, category: event.target.value }))}
                                 >
-                                    <option value="">全部</option>
+                                    <option value="">{t('posts.index.filters.all', '全部')}</option>
                                     {categories.map((category) => (
                                         <option key={category.id} value={category.id}>
                                             {category.name}
@@ -318,17 +337,20 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-status">
-                                    狀態
+                                    {t('posts.index.filters.status', '狀態')}
                                 </label>
                                 <Select
                                     id="filter-status"
                                     value={filterState.status}
                                     onChange={(event) => setFilterState((prev) => ({ ...prev, status: event.target.value }))}
                                 >
-                                    <option value="">全部</option>
+                                    <option value="">{t('posts.index.filters.all', '全部')}</option>
                                     {statusOptions.map((status) => (
                                         <option key={status} value={status}>
-                                            {statusBadgeMap[status].label}
+                                            {t(
+                                                `posts.status.${status}`,
+                                                statusFallbackLabels[status][fallbackLanguage]
+                                            )}
                                         </option>
                                     ))}
                                 </Select>
@@ -336,14 +358,14 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-author">
-                                    作者
+                                    {t('posts.index.filters.author', '作者')}
                                 </label>
                                 <Select
                                     id="filter-author"
                                     value={filterState.author}
                                     onChange={(event) => setFilterState((prev) => ({ ...prev, author: event.target.value }))}
                                 >
-                                    <option value="">全部</option>
+                                    <option value="">{t('posts.index.filters.all', '全部')}</option>
                                     {authors.map((author) => (
                                         <option key={author.id} value={author.id}>
                                             {author.name}
@@ -354,7 +376,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-date-from">
-                                    起始日期
+                                    {t('posts.index.filters.date_from', '起始日期')}
                                 </label>
                                 <Input
                                     id="filter-date-from"
@@ -366,7 +388,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-date-to">
-                                    結束日期
+                                    {t('posts.index.filters.date_to', '結束日期')}
                                 </label>
                                 <Input
                                     id="filter-date-to"
@@ -378,7 +400,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-slate-700" htmlFor="filter-per-page">
-                                    每頁數量
+                                    {t('posts.index.filters.per_page', '每頁數量')}
                                 </label>
                                 <Select
                                     id="filter-per-page"
@@ -395,7 +417,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
 
                             <div className="flex items-end gap-2">
                                 <Button type="submit" className="w-full rounded-full">
-                                    套用
+                                    {t('posts.index.filters.apply', '套用')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -404,7 +426,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     className="w-full rounded-full"
                                     onClick={resetFilters}
                                 >
-                                    重設
+                                    {t('posts.index.filters.reset', '重設')}
                                 </Button>
                             </div>
                         </form>
@@ -414,8 +436,14 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <CardTitle className="text-lg font-semibold text-slate-900">公告列表</CardTitle>
-                            <p className="text-sm text-slate-600">共 {pagination.total} 筆資料</p>
+                            <CardTitle className="text-lg font-semibold text-slate-900">
+                                {t('posts.index.table.title', '公告列表')}
+                            </CardTitle>
+                            <p className="text-sm text-slate-600">
+                                {t('posts.index.table.records_total', '共 :total 筆資料', {
+                                    total: pagination.total,
+                                })}
+                            </p>
                         </div>
                         {can.bulk && (
                             <div className="flex flex-wrap items-center gap-2">
@@ -425,7 +453,8 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     disabled={selected.length === 0 || bulkForm.processing}
                                     onClick={() => performBulkAction('publish')}
                                 >
-                                    <FileText className="mr-2 h-4 w-4" /> 批次發布
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    {t('posts.index.actions.bulk_publish', '批次發布')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -433,7 +462,8 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     disabled={selected.length === 0 || bulkForm.processing}
                                     onClick={() => performBulkAction('unpublish')}
                                 >
-                                    <Calendar className="mr-2 h-4 w-4" /> 設為草稿
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {t('posts.index.actions.bulk_unpublish', '設為草稿')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -441,7 +471,8 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     disabled={selected.length === 0 || bulkForm.processing}
                                     onClick={() => performBulkAction('delete')}
                                 >
-                                    <Trash2 className="mr-2 h-4 w-4" /> 批次刪除
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    {t('posts.index.actions.bulk_delete', '刪除選取')}
                                 </Button>
                             </div>
                         )}
@@ -459,27 +490,56 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                 />
                                             </th>
                                         )}
-                                        <th className="px-4 py-3">標題</th>
-                                        <th className="px-4 py-3">分類</th>
-                                        <th className="px-4 py-3">作者</th>
-                                        <th className="px-4 py-3">狀態</th>
-                                        <th className="px-4 py-3">發布時間</th>
-                                        <th className="px-4 py-3">瀏覽</th>
-                                        <th className="px-4 py-3">附件</th>
-                                        <th className="px-4 py-3 text-right">操作</th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.title', '標題')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.category', '分類')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.author', '作者')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.status', '狀態')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.published_at', '發布時間')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.views', '瀏覽數')}
+                                        </th>
+                                        <th className="px-4 py-3">
+                                            {t('posts.index.table.columns.attachments', '附件')}
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            {t('posts.index.table.columns.actions', '操作')}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {postData.length === 0 && (
                                         <tr>
                                             <td colSpan={can.bulk ? 9 : 8} className="px-4 py-12 text-center text-sm text-slate-500">
-                                                尚無符合條件的公告
+                                                {t('posts.index.table.empty', '尚無符合條件的公告。')}
                                             </td>
                                         </tr>
                                     )}
                                     {postData.map((post) => {
-                                        const statusInfo = statusBadgeMap[post.status];
+                                        const statusVariant = statusVariantMap[post.status];
+                                        const statusLabel = t(
+                                            `posts.status.${post.status}`,
+                                            statusFallbackLabels[post.status][fallbackLanguage]
+                                        );
                                         const isSelected = selected.includes(post.id);
+                                        const categoryLabel = post.category
+                                            ? localeKey === 'zh-TW'
+                                                ? post.category.name
+                                                : post.category.name_en ?? post.category.name
+                                            : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                        const authorLabel = post.author
+                                            ? post.author.name
+                                            : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                        const publishDate = formatDateTime(post.publish_at, localeForDate);
 
                                         return (
                                             <tr key={post.id} className="bg-white hover:bg-slate-50">
@@ -499,19 +559,23 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                         >
                                                             {post.title}
                                                         </Link>
-                                                        <span className="text-xs text-slate-500">Slug：{post.slug}</span>
+                                                        <span className="text-xs text-slate-500">
+                                                            {`${t('posts.show.slug', '網址 Slug')}：${post.slug}`}
+                                                        </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-slate-600">
-                                                    {post.category ? post.category.name : '—'}
-                                                </td>
-                                                <td className="px-4 py-3 text-slate-600">
-                                                    {post.author ? post.author.name : '—'}
-                                                </td>
+                                                <td className="px-4 py-3 text-slate-600">{categoryLabel}</td>
+                                                <td className="px-4 py-3 text-slate-600">{authorLabel}</td>
                                                 <td className="px-4 py-3">
-                                                    <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                                                    <Badge variant={statusVariant}>{statusLabel}</Badge>
                                                 </td>
-                                                <td className="px-4 py-3 text-slate-600">{formatDateTime(post.publish_at)}</td>
+                                                <td className="px-4 py-3 text-slate-600">
+                                                    {publishDate ??
+                                                        t(
+                                                            'posts.index.table.not_scheduled',
+                                                            fallbackLanguage === 'zh' ? '未排程' : 'Not scheduled'
+                                                        )}
+                                                </td>
                                                 <td className="px-4 py-3 text-slate-600">{post.views}</td>
                                                 <td className="px-4 py-3 text-slate-600">{post.attachments_count}</td>
                                                 <td className="px-4 py-3">
@@ -520,23 +584,41 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                                             <TooltipTrigger asChild>
                                                                 <Link
                                                                     href={`/manage/posts/${post.id}`}
-                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                                                                    className={iconActionClass}
+                                                                    aria-label={t(
+                                                                        'posts.index.actions.view_aria',
+                                                                        fallbackLanguage === 'zh' ? '檢視公告' : 'View announcement'
+                                                                    )}
                                                                 >
                                                                     <Eye className="h-4 w-4" />
                                                                 </Link>
                                                             </TooltipTrigger>
-                                                            <TooltipContent>檢視</TooltipContent>
+                                                            <TooltipContent>
+                                                                {t(
+                                                                    'posts.index.actions.view_label',
+                                                                    fallbackLanguage === 'zh' ? '檢視公告內容' : 'View details'
+                                                                )}
+                                                            </TooltipContent>
                                                         </Tooltip>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Link
                                                                     href={`/manage/posts/${post.id}/edit`}
-                                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                                                                    className={iconActionClass}
+                                                                    aria-label={t(
+                                                                        'posts.index.actions.edit_aria',
+                                                                        fallbackLanguage === 'zh' ? '編輯公告' : 'Edit announcement'
+                                                                    )}
                                                                 >
                                                                     <Pen className="h-4 w-4" />
                                                                 </Link>
                                                             </TooltipTrigger>
-                                                            <TooltipContent>編輯</TooltipContent>
+                                                            <TooltipContent>
+                                                                {t(
+                                                                    'posts.index.actions.edit_label',
+                                                                    fallbackLanguage === 'zh' ? '編輯公告內容' : 'Edit this bulletin'
+                                                                )}
+                                                            </TooltipContent>
                                                         </Tooltip>
                                                     </div>
                                                 </td>
@@ -550,22 +632,27 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                         {paginationLinks.length > 0 && (
                             <div className="flex flex-col gap-4 border-t border-slate-100 pt-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
                                 <p>
-                                    第 {pagination.current_page} / {pagination.last_page} 頁，共 {pagination.total} 筆
+                                    {t('posts.index.table.page', '第 :current / :last 頁', {
+                                        current: pagination.current_page,
+                                        last: pagination.last_page,
+                                    })}
+                                    ，
+                                    {t('posts.index.table.records_total', '共 :total 筆資料', {
+                                        total: pagination.total,
+                                    })}
                                 </p>
                                 <div className="flex items-center gap-2">
-                                    <button
+                                    <Button
                                         type="button"
-                                        className={cn(
-                                            'inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm transition',
-                                            pagination.current_page <= 1
-                                                ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-                                                : 'border-transparent bg-slate-900 text-white hover:bg-slate-800'
-                                        )}
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-9 w-9"
                                         onClick={() => changePage(pagination.current_page - 1)}
                                         disabled={pagination.current_page <= 1}
+                                        aria-label={t('posts.index.table.prev', '上一頁')}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                     {paginationLinks.map((link, index) => {
                                         if (!link.url) {
                                             return null;
@@ -577,34 +664,29 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                         const pageNumber = pageParam ? Number(pageParam) : 1;
 
                                         return (
-                                            <button
+                                            <Button
                                                 type="button"
                                                 key={`${link.label}-${index}`}
-                                                className={cn(
-                                                    'inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm transition',
-                                                    link.active
-                                                        ? 'border-slate-900/30 bg-slate-900 text-white'
-                                                        : 'border-transparent bg-white text-slate-600 hover:bg-slate-50'
-                                                )}
+                                                variant={link.active ? 'default' : 'outline'}
+                                                size="sm"
+                                                className="min-w-9"
                                                 onClick={() => changePage(pageNumber)}
                                             >
                                                 {label || pageNumber}
-                                            </button>
+                                            </Button>
                                         );
                                     })}
-                                    <button
+                                    <Button
                                         type="button"
-                                        className={cn(
-                                            'inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm transition',
-                                            pagination.current_page >= pagination.last_page
-                                                ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-                                                : 'border-transparent bg-slate-900 text-white hover:bg-slate-800'
-                                        )}
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-9 w-9"
                                         onClick={() => changePage(pagination.current_page + 1)}
                                         disabled={pagination.current_page >= pagination.last_page}
+                                        aria-label={t('posts.index.table.next', '下一頁')}
                                     >
                                         <ChevronRight className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}

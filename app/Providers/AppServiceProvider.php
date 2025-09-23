@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Post;
 use App\Models\Teacher;
 use App\Models\Lab;
@@ -12,6 +13,8 @@ use App\Models\Publication;
 use App\Models\Program;
 use App\Models\Course;
 use App\Models\Staff;
+use App\Models\PostCategory;
+use Database\Seeders\PostCategorySeeder;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,5 +41,23 @@ class AppServiceProvider extends ServiceProvider
             'Course' => Course::class,
             'Staff' => Staff::class,
         ]);
+
+        $this->ensureDefaultPostCategories();
+    }
+
+    /**
+     * 確保預設公告分類存在，以免後台分類下拉選單為空。
+     */
+    protected function ensureDefaultPostCategories(): void
+    {
+        if (! Schema::hasTable('post_categories')) {
+            return;
+        }
+
+        if (PostCategory::withTrashed()->count() > 0) {
+            return;
+        }
+
+        app(PostCategorySeeder::class)->run();
     }
 }

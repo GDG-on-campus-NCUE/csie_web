@@ -24,7 +24,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained('post_categories')->cascadeOnDelete();
             $table->string('slug')->unique();
-            $table->enum('status', ['draft','published','archived'])->default('draft')->index();
+            $table->enum('status', ['draft','scheduled','published','archived'])->default('draft')->index();
             $table->enum('source_type', ['manual', 'link'])
                 ->default('manual')
                 ->index();
