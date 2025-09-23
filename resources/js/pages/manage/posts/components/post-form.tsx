@@ -207,9 +207,9 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <Card className="border-0 shadow-sm ring-1 ring-black/5">
+            <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-[#151f54]">公告基本資料</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">公告基本資料</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div className="space-y-2">
@@ -228,7 +228,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                             <Label htmlFor="post-slug">網址 Slug</Label>
                             <button
                                 type="button"
-                                className="text-sm text-[#151f54] underline-offset-4 hover:underline"
+                                className="text-sm text-slate-600 underline-offset-4 hover:text-slate-900 hover:underline"
                                 onClick={() => setData('slug', slugify(data.title))}
                             >
                                 以標題產生
@@ -298,9 +298,9 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                 </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm ring-1 ring-black/5">
+            <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-[#151f54]">發布設定</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">發布設定</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
@@ -343,9 +343,9 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                 </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm ring-1 ring-black/5">
+            <Card className="border border-slate-200 bg-white shadow-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
-                    <CardTitle className="text-xl font-semibold text-[#151f54]">主圖與附件</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-slate-900">主圖與附件</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -361,13 +361,13 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                             {post?.featured_image_url && (
                                 <div className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm">
                                     <div className="flex items-center gap-2">
-                                        <ImageIcon className="h-4 w-4 text-[#151f54]" />
+                                        <ImageIcon className="h-4 w-4 text-slate-600" />
                                         <a
-                                            className="text-[#151f54] underline-offset-4 hover:underline"
-                                            href={post.featured_image_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
+                                            className="text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+                                                href={post.featured_image_url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
                                             目前主圖
                                         </a>
                                     </div>
@@ -397,7 +397,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
                     {data.attachments.files.length > 0 && (
                         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                            <p className="mb-2 flex items-center gap-2 font-medium text-[#151f54]">
+                            <p className="mb-2 flex items-center gap-2 font-medium text-slate-800">
                                 <Paperclip className="h-4 w-4" />
                                 即將上傳的檔案
                             </p>
@@ -411,7 +411,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="flex items-center gap-2 text-sm font-semibold text-[#151f54]">
+                            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                                 <Link2 className="h-4 w-4" /> 連結附件
                             </h3>
                             <Button type="button" variant="outline" size="sm" onClick={addLinkInput}>
@@ -457,7 +457,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
 
                     {existingAttachments.length > 0 && (
                         <div className="space-y-3">
-                            <h3 className="flex items-center gap-2 text-sm font-semibold text-[#151f54]">
+                            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                                 <Paperclip className="h-4 w-4" /> 既有附件
                             </h3>
                             <div className="space-y-2">
@@ -477,7 +477,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                                 <span className="font-medium">{attachment.title ?? '未命名附件'}</span>
                                                 {attachment.file_url && (
                                                     <a
-                                                        className="text-xs text-[#151f54] underline-offset-4 hover:underline"
+                                                        className="text-xs text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
                                                         href={attachment.file_url}
                                                         target="_blank"
                                                         rel="noreferrer"
@@ -487,7 +487,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                                                 )}
                                                 {attachment.external_url && (
                                                     <a
-                                                        className="text-xs text-[#151f54] underline-offset-4 hover:underline"
+                                                        className="text-xs text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
                                                         href={attachment.external_url}
                                                         target="_blank"
                                                         rel="noreferrer"
@@ -515,7 +515,7 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                 </Button>
                 <Button
                     type="submit"
-                    className="bg-[#151f54] px-6 text-white hover:bg-[#1f2a6d]"
+                    className="rounded-full bg-slate-900 px-6 text-white hover:bg-slate-800"
                     disabled={processing}
                 >
                     {processing ? (

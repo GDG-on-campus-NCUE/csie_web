@@ -42,13 +42,17 @@ export default function EditPost({ post, categories, statusOptions }: EditPostPr
             <Head title={`編輯公告 - ${post.title ?? ''}`} />
 
             <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-[#151f54]">編輯公告</h1>
+                            <h1 className="text-3xl font-semibold text-slate-900">編輯公告</h1>
                             <p className="text-sm text-slate-600">更新公告內容、附件與排程設定。</p>
                         </div>
-                        <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
+                        <Button
+                            asChild
+                            variant="outline"
+                            className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        >
                             <Link href={`/manage/posts/${post.id}`}>
                                 <ArrowLeft className="mr-2 h-4 w-4" /> 返回詳情
                             </Link>

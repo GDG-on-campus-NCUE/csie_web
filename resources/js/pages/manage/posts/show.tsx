@@ -75,14 +75,14 @@ export default function ShowPost({ post }: ShowPostProps) {
             <Head title={`公告詳情 - ${post.title}`} />
 
             <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-                <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="flex flex-col gap-3 border-b border-slate-100 p-6 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2">
                             <div className="flex flex-wrap items-center gap-3">
                                 <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                                 <span className="text-sm text-slate-500">Slug：{post.slug}</span>
                             </div>
-                            <CardTitle className="text-3xl font-semibold text-[#151f54]">{post.title}</CardTitle>
+                            <CardTitle className="text-3xl font-semibold text-slate-900">{post.title}</CardTitle>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                                 <span className="inline-flex items-center gap-1">
                                     <Calendar className="h-4 w-4" /> 發布時間：{formatDateTime(post.publish_at)}
@@ -103,12 +103,19 @@ export default function ShowPost({ post }: ShowPostProps) {
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <Button asChild variant="outline" className="rounded-full border-[#151f54]/30">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            >
                                 <Link href="/manage/posts">
                                     <ArrowLeft className="mr-2 h-4 w-4" /> 返回列表
                                 </Link>
                             </Button>
-                            <Button asChild className="rounded-full bg-[#151f54] text-white hover:bg-[#1f2a6d]">
+                            <Button
+                                asChild
+                                className="rounded-full bg-slate-900 text-white hover:bg-slate-800"
+                            >
                                 <Link href={`/manage/posts/${post.id}/edit`}>編輯公告</Link>
                             </Button>
                         </div>
@@ -127,7 +134,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                         {post.tags.length > 0 && (
                             <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
                                 {post.tags.map((tag) => (
-                                    <span key={tag} className="rounded-full bg-[#151f54]/10 px-3 py-1 text-[#151f54]">
+                                    <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">
                                         #{tag}
                                     </span>
                                 ))}
@@ -135,17 +142,20 @@ export default function ShowPost({ post }: ShowPostProps) {
                         )}
 
                         {post.excerpt && (
-                            <div className="rounded-2xl bg-[#f5f7ff] p-4 text-slate-600">{post.excerpt}</div>
+                            <div className="rounded-2xl bg-slate-50 p-4 text-slate-600">{post.excerpt}</div>
                         )}
 
-                        <article className="prose max-w-none prose-headings:text-[#151f54] prose-a:text-[#151f54]" dangerouslySetInnerHTML={{ __html: post.content }} />
+                        <article
+                            className="prose max-w-none prose-headings:text-slate-900 prose-a:text-slate-900"
+                            dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
                     </CardContent>
                 </Card>
 
                 {post.attachments.length > 0 && (
-                    <Card className="border-0 bg-white shadow-sm ring-1 ring-black/5">
+                    <Card className="border border-slate-200 bg-white shadow-sm">
                         <CardHeader className="border-b border-slate-100 p-6">
-                            <CardTitle className="text-lg font-semibold text-[#151f54]">附件與連結</CardTitle>
+                            <CardTitle className="text-lg font-semibold text-slate-900">附件與連結</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 p-6">
                             {post.attachments.map((attachment) => (
@@ -154,12 +164,12 @@ export default function ShowPost({ post }: ShowPostProps) {
                                     className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
                                 >
                                     <div className="space-y-1">
-                                        <span className="text-sm font-semibold text-[#151f54]">
+                                        <span className="text-sm font-semibold text-slate-800">
                                             {attachment.title ?? '未命名附件'}
                                         </span>
                                         {attachment.file_url && (
                                             <a
-                                                className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
+                                                className="inline-flex items-center gap-1 text-sm text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
                                                 href={attachment.file_url}
                                                 target="_blank"
                                                 rel="noreferrer"
@@ -169,7 +179,7 @@ export default function ShowPost({ post }: ShowPostProps) {
                                         )}
                                         {attachment.external_url && (
                                             <a
-                                                className="inline-flex items-center gap-1 text-sm text-[#151f54] underline-offset-4 hover:underline"
+                                                className="inline-flex items-center gap-1 text-sm text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
                                                 href={attachment.external_url}
                                                 target="_blank"
                                                 rel="noreferrer"
