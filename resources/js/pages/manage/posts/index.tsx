@@ -10,10 +10,10 @@ import ManageLayout from '@/layouts/manage/manage-layout';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslator } from '@/hooks/use-translator';
 
-import BulkImportDialog from '@/components/manage/post/bulk-import-dialog';
 import { PostFilterForm } from '@/components/manage/post/post-filter-form';
 import { PostFlashAlerts } from '@/components/manage/post/post-flash-alerts';
 import { PostTable } from '@/components/manage/post/post-table';
+import { PostImportUploader } from '@/components/manage/post/post-import-uploader';
 import type {
     AuthorOption,
     CategoryOption,
@@ -278,8 +278,15 @@ export default function PostsIndex({ posts, categories, authors, filters, status
      * 開始匯入時的提示，讓使用者了解背景流程
      */
     const handleImportStart = useCallback(
-        (message: string) => {
-            showInfo(t('posts.index.import.start_title', fallbackLanguage === 'zh' ? '開始匯入' : 'Import started'), message);
+        (message?: string) => {
+            // 以預設提示確保沒有訊息時仍能顯示友善文字
+            const fallbackMessage =
+                fallbackLanguage === 'zh' ? '開始匯入公告，請稍候…' : 'Import started, please wait…';
+
+            showInfo(
+                t('posts.index.import.start_title', fallbackLanguage === 'zh' ? '開始匯入' : 'Import started'),
+                message ?? fallbackMessage,
+            );
         },
         [showInfo, t, fallbackLanguage],
     );
@@ -288,12 +295,16 @@ export default function PostsIndex({ posts, categories, authors, filters, status
      * 匯入成功時顯示提示並重新整理列表
      */
     const handleImportSuccess = useCallback(
-        (message: string) => {
+        (message?: string) => {
             skipFlashToastRef.current = true;
-            showSuccess(t('posts.index.flash.success_title', '操作成功'), message);
+            // 若後端未提供提示訊息，套用預設文字以維持一致體驗
+            const fallbackMessage =
+                fallbackLanguage === 'zh' ? '公告匯入已送出' : 'Import request submitted';
+
+            showSuccess(t('posts.index.flash.success_title', '操作成功'), message ?? fallbackMessage);
             router.reload({ only: ['posts'] });
         },
-        [showSuccess],
+        [showSuccess, t, fallbackLanguage],
     );
 
     /**
@@ -374,7 +385,7 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                     actions={
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             {can.bulk && (
-                                <BulkImportDialog
+                                <PostImportUploader
                                     t={t}
                                     fallbackLanguage={fallbackLanguage}
                                     trigger={

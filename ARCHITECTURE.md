@@ -132,6 +132,7 @@
     - pages/ (Inertia pages)
     - components/ui/ (最小化、可重用)
     - components/page/ (組成頁面的複合元件)
+    - components/manage/post/ (公告後台的共用元件，例如列表、篩選、批次匯入按鈕)
 
 - 資料流
     - 後端 Controller 查詢資料 -> 轉換為 Resource / DTO -> Inertia::render('Page', $props)
@@ -140,8 +141,22 @@
 - 渲染細節
     - Page 組件只做資料分發與小量邏輯，UI 元件純 display
     - 所有表單使用 unobtrusive validation（後端再次驗證）
+    - 後台頁面若需要檔案匯入，請使用 `PostImportUploader`（位於 `components/manage/post/post-import-uploader.tsx`），
+      並透過 props 注入 onStart/onSuccess/onError 以觸發 Toast 提示，避免在 Page 層重新實作匯入流程
 
 ---
+
+### 管理後台公告頁面規範
+
+- Page 位置：`resources/js/pages/manage/posts/index.tsx`
+    - 維持頁面僅處理資料狀態（篩選、分頁、勾選項目），不在此直接寫複雜 UI
+    - 批次匯入、篩選表單、列表等 UI 元件應集中放在 `components/manage/post/`
+    - 任何成功或失敗、錯誤情境都必須透過共用的 Toast 介面顯示
+- 新增/共用元件時，需於本文件補充目的、檔案路徑與基本使用說明，確保後續維護者清楚責任範疇
+- 若新增批次處理流程，需確保：
+    1. 送出前進行前端基本驗證，錯誤時即時顯示 Toast
+    2. 送出後若後端無訊息回傳，需在頁面端補上預設提示文字
+    3. 匯入成功或失敗後必須復原 UI 狀態（清除勾選、還原輸入框）
 
 ## 測試規範
 
