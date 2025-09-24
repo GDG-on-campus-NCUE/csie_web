@@ -17,7 +17,7 @@ interface UsersIndexProps {
     users: {
         data: UserRow[];
         meta: PaginationMeta;
-        links: PaginationLink[];
+        links?: PaginationLink[] | Record<string, unknown> | null;
     };
     filters: Partial<Record<'q' | 'role' | 'status' | 'created_from' | 'created_to' | 'sort' | 'per_page', string>>;
     roleOptions: OptionItem[];
@@ -59,6 +59,12 @@ export default function UsersIndex({
 }: UsersIndexProps) {
     const defaultSort = sortOptions[0]?.value ?? '-created_at';
     const defaultPerPage = String(perPageOptions[0] ?? 15);
+
+    const paginationLinks = Array.isArray(users.links)
+        ? users.links
+        : Array.isArray(users.meta.links)
+            ? users.meta.links
+            : [];
 
     const [filterState, setFilterState] = useState<FilterState>({
         q: filters.q ?? '',
@@ -415,7 +421,7 @@ export default function UsersIndex({
             <UserTable
                 data={users.data}
                 meta={users.meta}
-                links={users.links}
+                links={paginationLinks}
                 selected={selected}
                 onSelect={handleSelect}
                 onSelectAll={handleSelectAll}
