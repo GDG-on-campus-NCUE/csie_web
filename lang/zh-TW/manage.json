@@ -49,7 +49,56 @@
     "remove_specialty": "移除專長",
     "add_education": "新增學歷",
     "remove_education": "移除學歷",
-    "upload_avatar": "上傳大頭照",
-    "change_avatar": "更換大頭照",
-    "remove_avatar": "移除大頭照"
+    "upload_avatar": "上傳頭像",
+    "change_avatar": "更換頭像",
+    "remove_avatar": "移除頭像",
+    "posts": {
+        "index": {
+            "title": "公告管理",
+            "description": "管理公告分類、排程發布及附件檔案，確保資訊即時且一致。",
+            "badge": "公告總覽",
+            "create": "新增公告",
+            "actions": {
+                "import_csv": "批次匯入"
+            },
+            "bulk": {
+                "delete_confirm": "確定要刪除選取的 {{count}} 筆公告嗎？此操作無法復原。",
+                "publish_success": "已發布選取的公告",
+                "unpublish_success": "已取消發布選取的公告",
+                "delete_success": "已刪除選取的公告",
+                "error_fallback": "批次操作失敗，請重新嘗試"
+            },
+            "flash": {
+                "success_title": "操作成功",
+                "error_title": "操作失敗"
+            },
+            "import": {
+                "start_title": "開始匯入",
+                "error_title": "匯入失敗"
+            }
+        },
+        "bulk_import": {
+            "dialog": {
+                "title": "批次匯入公告",
+                "description": "透過 CSV 檔案批次新增多筆公告資料"
+            },
+            "validation": {
+                "no_files": "請選擇至少一個檔案",
+                "invalid_type": "檔案格式不正確，請使用 CSV 檔案",
+                "size_too_large": "檔案大小超過 5MB 限制",
+                "failed": "請修正檔案問題後重試"
+            },
+            "start_message": "開始處理批次匯入...",
+            "success_message": "批次匯入處理完成",
+            "error": {
+                "unknown": "匯入失敗，請檢查檔案內容"
+            }
+        }
+    },
+    "layout": {
+        "breadcrumbs": {
+            "dashboard": "管理首頁",
+            "posts": "公告管理"
+        }
+    }
 }

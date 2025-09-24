@@ -51,5 +51,54 @@
     "remove_education": "Remove Education",
     "upload_avatar": "Upload Avatar",
     "change_avatar": "Change Avatar",
-    "remove_avatar": "Remove Avatar"
+    "remove_avatar": "Remove Avatar",
+    "posts": {
+        "index": {
+            "title": "Post Management",
+            "description": "Manage post categories, scheduled publishing, and attachment files to ensure timely and consistent information.",
+            "badge": "Posts Overview",
+            "create": "Create Post",
+            "actions": {
+                "import_csv": "Bulk Import"
+            },
+            "bulk": {
+                "delete_confirm": "Are you sure you want to delete the selected {{count}} posts? This action cannot be undone.",
+                "publish_success": "Selected posts have been published",
+                "unpublish_success": "Selected posts have been unpublished",
+                "delete_success": "Selected posts have been deleted",
+                "error_fallback": "Bulk operation failed, please try again"
+            },
+            "flash": {
+                "success_title": "Operation Successful",
+                "error_title": "Operation Failed"
+            },
+            "import": {
+                "start_title": "Import Started",
+                "error_title": "Import Failed"
+            }
+        },
+        "bulk_import": {
+            "dialog": {
+                "title": "Bulk Import Posts",
+                "description": "Add multiple posts at once using CSV files"
+            },
+            "validation": {
+                "no_files": "Please select at least one file",
+                "invalid_type": "Invalid file format, please use CSV files",
+                "size_too_large": "File size exceeds 5MB limit",
+                "failed": "Please fix file issues and try again"
+            },
+            "start_message": "Starting bulk import...",
+            "success_message": "Bulk import completed successfully",
+            "error": {
+                "unknown": "Import failed, please check file content"
+            }
+        }
+    },
+    "layout": {
+        "breadcrumbs": {
+            "dashboard": "Dashboard",
+            "posts": "Post Management"
+        }
+    }
 }

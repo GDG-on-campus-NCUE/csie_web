@@ -449,50 +449,73 @@ class PostController extends Controller
 
     protected function importPostsFromCsv(Request $request, array $files): RedirectResponse
     {
-        $totalCreated = 0;
-        $totalSkipped = 0;
-        $allErrors = [];
-        $processed = 0;
+        try {
+            // 使用專門的批次匯入服務
+            $importService = new \App\Services\PostBulkImportService();
+            $result = $importService->importFromFiles($request, $files);
 
-        foreach ($files as $file) {
-            if (! $file instanceof UploadedFile) {
-                continue;
+            $totalCreated = $result['created'];
+            $totalSkipped = $result['skipped'];
+            $allErrors = $result['errors'];
+
+            // 檢查是否有任何檔案被處理
+            if (empty($files)) {
+                return redirect()
+                    ->route('manage.posts.index')
+                    ->with('error', '請選擇要上傳的 CSV 檔案')
+                    ->with('importErrors', ['未選擇任何檔案']);
             }
 
-            $processed++;
-
-            $result = $this->processCsvImportFile($request, $file);
-
-            $totalCreated += $result['created'];
-            $totalSkipped += $result['skipped'];
-            if (! empty($result['errors'])) {
-                $allErrors = array_merge($allErrors, $result['errors']);
+            // 檢查是否成功匯入任何資料
+            if ($totalCreated === 0 && $totalSkipped === 0) {
+                return redirect()
+                    ->route('manage.posts.index')
+                    ->with('error', '未找到可匯入的資料，請檢查 CSV 檔案格式')
+                    ->with('importErrors', $allErrors);
             }
-        }
 
-        if ($processed === 0) {
+            // 檢查是否完全失敗
+            if ($totalCreated === 0 && $totalSkipped > 0) {
+                return redirect()
+                    ->route('manage.posts.index')
+                    ->with('error', "所有 {$totalSkipped} 筆資料匯入失敗，請檢查 CSV 檔案內容")
+                    ->with('importErrors', $allErrors);
+            }
+
+            // 建構成功訊息
+            $message = "成功匯入 {$totalCreated} 筆公告";
+            if ($totalSkipped > 0) {
+                $message .= "，略過 {$totalSkipped} 筆有問題的資料";
+            }
+
+            // 根據錯誤數量決定回應類型
+            if (empty($allErrors)) {
+                // 完全成功
+                return redirect()
+                    ->route('manage.posts.index')
+                    ->with('success', $message);
+            } else {
+                // 部分成功，但有錯誤
+                return redirect()
+                    ->route('manage.posts.index')
+                    ->with('success', $message)
+                    ->with('warning', '部分資料匯入時發生問題，詳細錯誤請見下方列表')
+                    ->with('importErrors', $allErrors);
+            }
+
+        } catch (\Throwable $e) {
+            // 記錄系統錯誤
+            \Illuminate\Support\Facades\Log::error('批次匯入系統錯誤', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $request->user()->id,
+            ]);
+
             return redirect()
                 ->route('manage.posts.index')
-                ->with('error', '請選擇要上傳的 CSV 檔案')
-                ->with('importErrors', $allErrors);
+                ->with('error', '批次匯入過程中發生系統錯誤，請聯繫管理員')
+                ->with('importErrors', ['系統錯誤：' . $e->getMessage()]);
         }
-
-        if ($totalCreated === 0) {
-            return redirect()
-                ->route('manage.posts.index')
-                ->with('error', '未成功匯入任何公告，請檢查 CSV 檔案')
-                ->with('importErrors', $allErrors);
-        }
-
-        $message = "成功匯入 {$totalCreated} 筆公告";
-        if ($totalSkipped > 0) {
-            $message .= "，另外略過 {$totalSkipped} 筆未成功的資料";
-        }
-
-        return redirect()
-            ->route('manage.posts.index')
-            ->with('success', $message)
-            ->with('importErrors', $allErrors);
     }
 
     private function processCsvImportFile(Request $request, UploadedFile $file): array
