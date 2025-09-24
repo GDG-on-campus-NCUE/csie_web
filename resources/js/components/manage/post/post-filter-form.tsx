@@ -35,37 +35,44 @@ export function PostFilterForm({
     t,
     fallbackLanguage,
 }: PostFilterFormProps) {
+    // 依語系提供對應預設文案，避免英文介面顯示中文字。
+    const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
+
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
             <CardHeader className="border-b border-slate-100 pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                    <Filter className="h-5 w-5" /> {t('posts.index.filters_title', '篩選條件')}
+                    <Filter className="h-5 w-5" />
+                    {t('posts.index.filters_title', fallbackText('篩選條件', 'Filters'))}
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
                     <div className="xl:col-span-2 space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-search">
-                            {t('posts.index.filters.keyword', '關鍵字')}
+                            {t('posts.index.filters.keyword', fallbackText('關鍵字', 'Keyword'))}
                         </label>
                         <Input
                             id="filter-search"
                             value={filterState.search}
                             onChange={(event) => onChange('search', event.target.value)}
-                            placeholder={t('posts.index.filters.keyword_placeholder', '搜尋標題或內容')}
+                            placeholder={t(
+                                'posts.index.filters.keyword_placeholder',
+                                fallbackText('搜尋標題或內容', 'Search title or content')
+                            )}
                         />
                     </div>
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-category">
-                            {t('posts.index.filters.category', '分類')}
+                            {t('posts.index.filters.category', fallbackText('分類', 'Category'))}
                         </label>
                         <Select
                             id="filter-category"
                             value={filterState.category}
                             onChange={(event) => onChange('category', event.target.value)}
                         >
-                            <option value="">{t('posts.index.filters.all', '全部')}</option>
+                            <option value="">{t('posts.index.filters.all', fallbackText('全部', 'All'))}</option>
                             {categories.map((category) => (
                                 <option key={category.id} value={category.id}>
                                     {category.name}
@@ -76,14 +83,14 @@ export function PostFilterForm({
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-status">
-                            {t('posts.index.filters.status', '狀態')}
+                            {t('posts.index.filters.status', fallbackText('狀態', 'Status'))}
                         </label>
                         <Select
                             id="filter-status"
                             value={filterState.status}
                             onChange={(event) => onChange('status', event.target.value)}
                         >
-                            <option value="">{t('posts.index.filters.all', '全部')}</option>
+                            <option value="">{t('posts.index.filters.all', fallbackText('全部', 'All'))}</option>
                             {statusOptions.map((status) => (
                                 <option key={status} value={status}>
                                     {t(`posts.status.${status}`, statusFallbackLabels[status][fallbackLanguage])}
@@ -94,14 +101,14 @@ export function PostFilterForm({
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-author">
-                            {t('posts.index.filters.author', '作者')}
+                            {t('posts.index.filters.author', fallbackText('作者', 'Author'))}
                         </label>
                         <Select
                             id="filter-author"
                             value={filterState.author}
                             onChange={(event) => onChange('author', event.target.value)}
                         >
-                            <option value="">{t('posts.index.filters.all', '全部')}</option>
+                            <option value="">{t('posts.index.filters.all', fallbackText('全部', 'All'))}</option>
                             {authors.map((author) => (
                                 <option key={author.id} value={author.id}>
                                     {author.name}
@@ -112,7 +119,7 @@ export function PostFilterForm({
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-date-from">
-                            {t('posts.index.filters.date_from', '起始日期')}
+                            {t('posts.index.filters.date_from', fallbackText('起始日期', 'Start date'))}
                         </label>
                         <Input
                             id="filter-date-from"
@@ -124,7 +131,7 @@ export function PostFilterForm({
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-date-to">
-                            {t('posts.index.filters.date_to', '結束日期')}
+                            {t('posts.index.filters.date_to', fallbackText('結束日期', 'End date'))}
                         </label>
                         <Input
                             id="filter-date-to"
@@ -136,7 +143,7 @@ export function PostFilterForm({
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-700" htmlFor="filter-per-page">
-                            {t('posts.index.filters.per_page', '每頁數量')}
+                            {t('posts.index.filters.per_page', fallbackText('每頁數量', 'Per page'))}
                         </label>
                         <Select
                             id="filter-per-page"
@@ -153,7 +160,7 @@ export function PostFilterForm({
 
                     <div className="flex items-end gap-2">
                         <Button type="submit" className="w-full rounded-full">
-                            {t('posts.index.filters.apply', '套用')}
+                            {t('posts.index.filters.apply', fallbackText('套用', 'Apply'))}
                         </Button>
                         <Button
                             type="button"
@@ -162,7 +169,7 @@ export function PostFilterForm({
                             className="w-full rounded-full"
                             onClick={onReset}
                         >
-                            {t('posts.index.filters.reset', '重設')}
+                            {t('posts.index.filters.reset', fallbackText('重設', 'Reset'))}
                         </Button>
                     </div>
                 </form>

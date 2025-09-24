@@ -19,7 +19,7 @@ import {
 } from '@/components/manage/post/post-types';
 import { PostFilterForm } from '@/components/manage/post/post-filter-form';
 import { PostTable } from '@/components/manage/post/post-table';
-import { PostImportDialog } from '@/components/manage/post/post-import-dialog';
+import { PostImportUploader } from '@/components/manage/post/post-import-uploader';
 import { PostFlashAlerts } from '@/components/manage/post/post-flash-alerts';
 import { PostToastContainer, usePostToast } from '@/components/manage/post/post-toast';
 
@@ -222,6 +222,17 @@ export default function PostsIndex({ posts, categories, authors, filters, status
         [filterState],
     );
 
+    const handleImportStart = useCallback(
+        (message: string) => {
+            showToast({
+                type: 'info',
+                title: t('posts.index.import.start_title', fallbackLanguage === 'zh' ? '開始匯入' : 'Import started'),
+                description: message,
+            });
+        },
+        [showToast, t, fallbackLanguage],
+    );
+
     const handleImportSuccess = useCallback(
         (message?: string) => {
             skipFlashToastRef.current = true;
@@ -324,14 +335,16 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                     actions={
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             {can.bulk && (
-                                <PostImportDialog
+                                <PostImportUploader
                                     t={t}
+                                    fallbackLanguage={fallbackLanguage}
                                     trigger={
                                         <Button variant="outline" className="rounded-full px-6">
                                             <Upload className="mr-2 h-4 w-4" />
-                                            {t('posts.index.actions.import_csv', '批次發布')}
+                                            {t('posts.index.actions.import_csv', fallbackLanguage === 'zh' ? '批次發布' : 'Bulk import')}
                                         </Button>
                                     }
+                                    onStart={handleImportStart}
                                     onSuccess={handleImportSuccess}
                                     onError={handleImportError}
                                     onClientError={handleImportClientError}
