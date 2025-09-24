@@ -8,14 +8,18 @@ use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class PostController extends Controller
 {
@@ -379,11 +383,27 @@ class PostController extends Controller
     {
         $this->authorize('bulkOperations', Post::class);
 
-        $validated = $request->validate([
-            'action' => ['required', Rule::in(['publish', 'unpublish', 'delete'])],
-            'ids' => ['required', 'array'],
-            'ids.*' => ['integer', 'exists:posts,id'],
-        ]);
+        $action = $request->input('action');
+
+        $rules = [
+            'action' => ['required', Rule::in(['publish', 'unpublish', 'delete', 'import'])],
+        ];
+
+        if ($action === 'import') {
+            $rules['file'] = ['required', 'file', 'mimes:csv,txt', 'max:5120'];
+        } else {
+            $rules['ids'] = ['required', 'array'];
+            $rules['ids.*'] = ['integer', 'exists:posts,id'];
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($validated['action'] === 'import') {
+            /** @var UploadedFile $file */
+            $file = $validated['file'];
+
+            return $this->importPostsFromCsv($request, $file);
+        }
 
         $posts = Post::whereIn('id', $validated['ids'])->get();
 
@@ -418,6 +438,181 @@ class PostController extends Controller
         }
 
         return redirect()->route('manage.posts.index')->with('success', '已將所選公告設為草稿');
+    }
+
+    protected function importPostsFromCsv(Request $request, UploadedFile $file): RedirectResponse
+    {
+        $realPath = $file->getRealPath();
+
+        if (! $realPath || ! is_readable($realPath)) {
+            return back()->withErrors(['file' => 'CSV 檔案無法讀取，請重新上傳。']);
+        }
+
+        $handle = fopen($realPath, 'rb');
+        if ($handle === false) {
+            return back()->withErrors(['file' => 'CSV 檔案開啟失敗，請稍後再試。']);
+        }
+
+        $lineNumber = 1;
+        $created = 0;
+        $skipped = 0;
+        $errors = [];
+
+        try {
+            $header = fgetcsv($handle);
+            if ($header === false) {
+                return back()->withErrors(['file' => 'CSV 檔案沒有資料，請確認後再試。']);
+            }
+
+            $normalizedHeader = [];
+            foreach ($header as $index => $column) {
+                $normalized = Str::snake(str_replace(['-', ' '], '_', strtolower(trim((string) $column))));
+                if ($normalized !== '') {
+                    $normalizedHeader[$normalized] = $index;
+                }
+            }
+
+            $categoryColumn = $normalizedHeader['category_slug'] ?? $normalizedHeader['category_id'] ?? null;
+            if ($categoryColumn === null || ! array_key_exists('title', $normalizedHeader) || ! array_key_exists('content', $normalizedHeader)) {
+                return back()->withErrors([
+                    'file' => 'CSV 檔案缺少必要欄位，請至少包含「title」、「content」及「category_slug」或「category_id」。',
+                ]);
+            }
+
+            while (($row = fgetcsv($handle)) !== false) {
+                $lineNumber++;
+
+                if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
+                    continue;
+                }
+
+                try {
+                    $title = trim((string) ($row[$normalizedHeader['title']] ?? ''));
+                    if ($title === '') {
+                        throw new \RuntimeException('標題不得為空');
+                    }
+
+                    $categoryIdentifier = trim((string) ($row[$categoryColumn] ?? ''));
+                    if ($categoryIdentifier === '') {
+                        throw new \RuntimeException('缺少分類資訊');
+                    }
+
+                    $category = PostCategory::query()
+                        ->when(is_numeric($categoryIdentifier), fn ($query) => $query->where('id', (int) $categoryIdentifier))
+                        ->when(! is_numeric($categoryIdentifier), function ($query) use ($categoryIdentifier) {
+                            $query->where('slug', $categoryIdentifier)
+                                ->orWhere('name', $categoryIdentifier)
+                                ->orWhere('name_en', $categoryIdentifier);
+                        })
+                        ->first();
+
+                    if (! $category) {
+                        throw new \RuntimeException('找不到對應的分類');
+                    }
+
+                    $rawContent = trim((string) ($row[$normalizedHeader['content']] ?? ''));
+                    if ($rawContent === '') {
+                        throw new \RuntimeException('內容不得為空');
+                    }
+
+                    $normalizedContent = str_replace(["\r\n", "\r"], "\n", $rawContent);
+                    $content = $this->sanitizeRichText(nl2br($normalizedContent));
+                    if ($content === null) {
+                        throw new \RuntimeException('內容格式不正確');
+                    }
+
+                    $slugInput = isset($normalizedHeader['slug']) ? trim((string) ($row[$normalizedHeader['slug']] ?? '')) : '';
+                    $summaryInput = isset($normalizedHeader['summary'])
+                        ? $this->sanitizePlainText($row[$normalizedHeader['summary']] ?? null)
+                        : null;
+                    if ($summaryInput === null && isset($normalizedHeader['excerpt'])) {
+                        $summaryInput = $this->sanitizePlainText($row[$normalizedHeader['excerpt']] ?? null);
+                    }
+
+                    $statusInput = isset($normalizedHeader['status'])
+                        ? strtolower(trim((string) ($row[$normalizedHeader['status']] ?? '')))
+                        : 'published';
+                    if (! in_array($statusInput, ['draft', 'published', 'scheduled'], true)) {
+                        $statusInput = 'published';
+                    }
+
+                    $publishAtInput = isset($normalizedHeader['publish_at'])
+                        ? trim((string) ($row[$normalizedHeader['publish_at']] ?? ''))
+                        : null;
+                    [$resolvedStatus, $publishAt] = $this->resolvePublishState($statusInput, $publishAtInput !== '' ? $publishAtInput : null);
+
+                    $tagsInput = $normalizedHeader['tags'] ?? null;
+                    $tags = $tagsInput !== null ? $this->prepareTags($row[$tagsInput] ?? []) : [];
+
+                    $titleEn = isset($normalizedHeader['title_en'])
+                        ? trim((string) ($row[$normalizedHeader['title_en']] ?? ''))
+                        : '';
+                    $contentEnRaw = isset($normalizedHeader['content_en'])
+                        ? trim((string) ($row[$normalizedHeader['content_en']] ?? ''))
+                        : '';
+                    $contentEn = $contentEnRaw !== ''
+                        ? $this->sanitizeRichText(nl2br(str_replace(["\r\n", "\r"], "\n", $contentEnRaw)))
+                        : null;
+
+                    $summaryEn = isset($normalizedHeader['summary_en'])
+                        ? $this->sanitizePlainText($row[$normalizedHeader['summary_en']] ?? null)
+                        : null;
+
+                    $sourceUrl = isset($normalizedHeader['source_url'])
+                        ? trim((string) ($row[$normalizedHeader['source_url']] ?? ''))
+                        : null;
+                    if ($sourceUrl === '') {
+                        $sourceUrl = null;
+                    }
+
+                    DB::transaction(function () use ($request, $category, $title, $slugInput, $summaryInput, $summaryEn, $content, $contentEn, $resolvedStatus, $publishAt, $tags, $sourceUrl, $titleEn) {
+                        $post = new Post([
+                            'category_id' => $category->id,
+                            'title' => $title,
+                            'title_en' => $titleEn !== '' ? $titleEn : $title,
+                            'slug' => $this->prepareSlug($slugInput, $title),
+                            'summary' => $summaryInput,
+                            'summary_en' => $summaryEn ?? $summaryInput,
+                            'content' => $content,
+                            'content_en' => $contentEn ?? $content,
+                            'status' => $resolvedStatus,
+                            'publish_at' => $publishAt,
+                            'expire_at' => null,
+                            'pinned' => false,
+                            'tags' => $tags,
+                            'source_type' => 'import',
+                            'source_url' => $sourceUrl,
+                            'views' => 0,
+                            'created_by' => $request->user()->id,
+                            'updated_by' => $request->user()->id,
+                        ]);
+
+                        $post->save();
+                    });
+
+                    $created++;
+                } catch (Throwable $exception) {
+                    $skipped++;
+                    $errors[] = "第 {$lineNumber} 行：{$exception->getMessage()}";
+                    Log::warning('批次匯入公告失敗', [
+                        'line' => $lineNumber,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        $message = "成功匯入 {$created} 筆公告";
+        if ($skipped > 0) {
+            $message .= "，另外略過 {$skipped} 筆未成功的資料";
+        }
+
+        return redirect()
+            ->route('manage.posts.index')
+            ->with('success', $message)
+            ->with('importErrors', $errors);
     }
 
     private function statusOptions(?\Illuminate\Contracts\Auth\Authenticatable $user, ?Post $post = null): array

@@ -433,21 +433,15 @@ export default function AttachmentsIndex({
             <Head title={t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')} />
 
             <section className="space-y-6">
-                <Card className="border border-slate-200 bg-white shadow-sm">
-                    <CardContent className="flex flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-slate-900">
-                                {t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')}
-                            </h1>
-                            <p className="text-sm text-slate-600">
-                                {t(
-                                    'attachments.index.description',
-                                    isZh
-                                        ? '檢視與維護公告、頁面所使用的檔案與連結資源。'
-                                        : 'Review and curate files and links referenced across the site.',
-                                )}
-                            </p>
-                        </div>
+                <ManagePageHeader
+                    title={t('attachments.index.title', isZh ? '附件管理' : 'Attachment management')}
+                    description={t(
+                        'attachments.index.description',
+                        isZh
+                            ? '檢視與維護公告、頁面所使用的檔案與連結資源。'
+                            : 'Review and curate files and links referenced across the site.',
+                    )}
+                    actions={
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <Button
                                 type="button"
@@ -475,8 +469,8 @@ export default function AttachmentsIndex({
                                 </Link>
                             </Button>
                         </div>
-                    </CardContent>
-                </Card>
+                    }
+                />
 
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="pb-4">

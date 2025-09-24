@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import { LocalizedContent, Staff, Teacher } from '@/types/staff';
 import StaffTable from '@/components/manage/staff/StaffTable';
 import TeacherTable from '@/components/manage/staff/TeacherTable';
 import Pagination from '@/components/ui/pagination';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -125,59 +127,59 @@ export default function Index({
     };
 
     return (
-        <ManageLayout>
+        <ManageLayout role="admin">
             <Head title="職員與教師管理" />
 
-            <div className="bg-white">
-                <div className="px-4 py-6 sm:px-6 lg:px-8">
-                    <div className="sm:flex sm:items-center sm:justify-between">
-                        <div className="sm:flex-auto">
-                            <h1 className="text-2xl font-semibold leading-6 text-gray-900">
-                                職員與教師管理
-                            </h1>
-                            <p className="mt-2 text-sm text-gray-700">
-                                管理系所職員和教師資料
-                            </p>
-                        </div>
-                    </div>
+            <section className="space-y-6">
+                <ManagePageHeader
+                    title="職員與教師管理"
+                    description="集中管理職員與教師的基本資料、聯絡方式與顯示狀態"
+                    actions={
+                        <Button
+                            className="rounded-full"
+                            onClick={() =>
+                                activeTab === 'staff'
+                                    ? router.visit('/manage/staff/create')
+                                    : router.visit('/manage/teachers/create')
+                            }
+                        >
+                            <Plus className="mr-2 h-4 w-4" />
+                            {activeTab === 'staff' ? '新增職員' : '新增教師'}
+                        </Button>
+                    }
+                />
 
-                    <div className="mt-6">
+                <Card className="border border-slate-200 bg-white shadow-sm">
+                    <CardContent className="space-y-6">
                         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                            <div className="flex items-center justify-between mb-6">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <TabsList className="grid w-full max-w-md grid-cols-2">
                                     <TabsTrigger value="staff">職員管理</TabsTrigger>
                                     <TabsTrigger value="teachers">教師管理</TabsTrigger>
                                 </TabsList>
 
-                                <div className="flex space-x-2">
-                                    {activeTab === 'staff' && (
-                                        <Button onClick={() => router.visit('/manage/staff/create')}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            新增職員
-                                        </Button>
-                                    )}
-                                    {activeTab === 'teachers' && (
-                                        <Button onClick={() => router.visit('/manage/teachers/create')}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            新增教師
-                                        </Button>
-                                    )}
-                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                    onClick={() => handleSearch(search)}
+                                >
+                                    <Search className="h-4 w-4" />
+                                    搜尋
+                                </Button>
                             </div>
 
-                            {/* 搜索和篩選控制項 */}
-                            <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    {/* 搜索欄 */}
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                                     <div className="md:col-span-2">
                                         <div className="relative">
-                                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                                             <Input
                                                 placeholder={`搜尋${activeTab === 'staff' ? '職員' : '教師'}...`}
                                                 value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                onKeyPress={(e) => {
-                                                    if (e.key === 'Enter') {
+                                                onChange={(event) => setSearch(event.target.value)}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === 'Enter') {
                                                         handleSearch(search);
                                                     }
                                                 }}
@@ -186,11 +188,10 @@ export default function Index({
                                         </div>
                                     </div>
 
-                                    {/* 顯示狀態篩選 */}
                                     <div>
                                         <Select
                                             value={visibleFilter === null || visibleFilter === undefined ? 'all' : visibleFilter.toString()}
-                                            onChange={(e) => handleVisibilityFilter(e.target.value)}
+                                            onChange={(event) => handleVisibilityFilter(event.target.value)}
                                         >
                                             <option value="all">全部</option>
                                             <option value="true">顯示中</option>
@@ -198,12 +199,8 @@ export default function Index({
                                         </Select>
                                     </div>
 
-                                    {/* 每頁顯示數量 */}
                                     <div>
-                                        <Select
-                                            value={perPage.toString()}
-                                            onChange={(e) => handlePerPageChange(e.target.value)}
-                                        >
+                                        <Select value={perPage.toString()} onChange={(event) => handlePerPageChange(event.target.value)}>
                                             {perPageOptions.map((option) => (
                                                 <option key={option} value={option.toString()}>
                                                     每頁 {option} 筆
@@ -212,28 +209,14 @@ export default function Index({
                                         </Select>
                                     </div>
                                 </div>
-
-                                {/* 搜索按鈕 */}
-                                <div className="mt-4 flex justify-end">
-                                    <Button
-                                        onClick={() => handleSearch(search)}
-                                        variant="outline"
-                                        size="sm"
-                                    >
-                                        <Search className="mr-2 h-4 w-4" />
-                                        搜尋
-                                    </Button>
-                                </div>
                             </div>
 
                             <TabsContent value="staff" className="mt-6">
                                 <div className="space-y-4">
                                     <div>
-                                        <h2 className="text-lg font-medium text-gray-900">
-                                            職員列表
-                                        </h2>
-                                        <p className="text-sm text-gray-600">
-                                            管理系所職員資料，包含姓名、職位、聯絡方式等資訊
+                                        <h2 className="text-lg font-semibold text-slate-900">職員列表</h2>
+                                        <p className="text-sm text-slate-600">
+                                            管理系所職員資料，包含姓名、職稱與聯絡方式
                                         </p>
                                     </div>
 
@@ -242,17 +225,14 @@ export default function Index({
                                         onEdit={handleStaffEdit}
                                         onDelete={handleStaffDelete}
                                     />
-
                                 </div>
                             </TabsContent>
 
                             <TabsContent value="teachers" className="mt-6">
                                 <div className="space-y-4">
                                     <div>
-                                        <h2 className="text-lg font-medium text-gray-900">
-                                            教師列表
-                                        </h2>
-                                        <p className="text-sm text-gray-600">
+                                        <h2 className="text-lg font-semibold text-slate-900">教師列表</h2>
+                                        <p className="text-sm text-slate-600">
                                             管理系所教師資料，包含基本資訊、專長領域、聯絡方式等
                                         </p>
                                     </div>
@@ -266,11 +246,11 @@ export default function Index({
                                     {teachers.meta && (
                                         <Pagination
                                             meta={teachers.meta}
-                                            onPerPageChange={(perPage) =>
+                                            onPerPageChange={(perPageValue) =>
                                                 router.get('/manage/staff', {
                                                     ...filters,
-                                                    per_page: perPage,
-                                                    tab: activeTab
+                                                    per_page: perPageValue,
+                                                    tab: activeTab,
                                                 })
                                             }
                                             perPageOptions={perPageOptions}
@@ -280,9 +260,9 @@ export default function Index({
                                 </div>
                             </TabsContent>
                         </Tabs>
-                    </div>
-                </div>
-            </div>
+                    </CardContent>
+                </Card>
+            </section>
         </ManageLayout>
     );
 }

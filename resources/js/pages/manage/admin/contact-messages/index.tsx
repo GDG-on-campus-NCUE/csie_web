@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -471,7 +472,7 @@ export default function ContactMessagesIndex({
             <Pagination
                 meta={paginationMeta}
                 perPageOptions={resolvedPerPageOptions}
-                onPerPageChange={(value) => handlePerPageChange(value)}
+                onPerPageChange={handlePerPageChange}
                 className="rounded-xl bg-white px-6 py-4 shadow-sm ring-1 ring-black/5"
             />
         </ManageLayout>

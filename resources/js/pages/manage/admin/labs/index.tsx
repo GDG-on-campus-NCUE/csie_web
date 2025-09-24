@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -199,21 +200,19 @@ export default function LabsIndex({
         <ManageLayout breadcrumbs={breadcrumbs} role="admin">
             <Head title="實驗室管理" />
 
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-                <div className="border-b border-gray-200 px-6 py-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h1 className="text-2xl font-semibold text-gray-900">實驗室管理</h1>
-                            <p className="mt-1 text-sm text-gray-600">維護前台實驗室列表、顯示狀態與基本資訊</p>
-                        </div>
-                        <Button onClick={() => router.visit('/manage/labs/create')}>
+            <section className="space-y-6">
+                <ManagePageHeader
+                    title="實驗室管理"
+                    description="維護前台實驗室列表、顯示狀態與基本資訊"
+                    actions={
+                        <Button className="rounded-full" onClick={() => router.visit('/manage/labs/create')}>
                             <Plus className="mr-2 h-4 w-4" />
                             新增實驗室
                         </Button>
-                    </div>
-                </div>
+                    }
+                />
 
-                <div className="space-y-6 px-6 py-6">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                         <div className="lg:col-span-4">
                             <div className="relative">
@@ -393,7 +392,7 @@ export default function LabsIndex({
                         }
                     />
                 </div>
-            </div>
+            </section>
         </ManageLayout>
     );
 }

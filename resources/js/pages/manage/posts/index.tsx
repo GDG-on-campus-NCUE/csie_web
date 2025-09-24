@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -7,8 +8,25 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, ChevronLeft, ChevronRight, Eye, FileText, Filter, Pen, Trash2 } from 'lucide-react';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
+import {
+    AlertCircle,
+    Calendar,
+    CheckCircle2,
+    ChevronLeft,
+    ChevronRight,
+    Eye,
+    FileText,
+    Filter,
+    Loader2,
+    Pen,
+    Trash2,
+    Upload,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
@@ -107,8 +125,19 @@ const formatDateTime = (value: string | null, locale: 'zh-TW' | 'en') => {
     });
 };
 
+interface PostFlashMessages {
+    success?: string;
+    error?: string;
+    info?: string;
+    importErrors?: string[];
+}
+
+interface PostsPageProps extends SharedData {
+    flash?: PostFlashMessages;
+}
+
 export default function PostsIndex({ posts, categories, authors, filters, statusOptions, perPageOptions, can }: PostsIndexProps) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, flash } = usePage<PostsPageProps>().props;
     const userRole = auth?.user?.role ?? 'user';
     const layoutRole: 'admin' | 'teacher' | 'user' =
         userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
@@ -117,7 +146,54 @@ export default function PostsIndex({ posts, categories, authors, filters, status
     const localeForDate: 'zh-TW' | 'en' = localeKey === 'zh-TW' ? 'zh-TW' : 'en';
     const iconActionClass = cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'h-9 w-9 p-0');
     const [selected, setSelected] = useState<number[]>([]);
+    const [importDialogOpen, setImportDialogOpen] = useState(false);
+    const [fileInputKey, setFileInputKey] = useState(0);
     const defaultPerPage = perPageOptions[0] ?? 20;
+
+    const flashMessages: PostFlashMessages = flash ?? {};
+    const importForm = useForm<{ action: 'import'; file: File | null }>({
+        action: 'import',
+        file: null,
+    });
+
+    const resetImportForm = () => {
+        importForm.reset();
+        setFileInputKey((previous) => previous + 1);
+        importForm.clearErrors();
+    };
+
+    const handleDialogChange = (open: boolean) => {
+        setImportDialogOpen(open);
+        if (!open) {
+            resetImportForm();
+        }
+    };
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        importForm.setData('file', file);
+        if (file) {
+            importForm.clearErrors('file');
+        }
+    };
+
+    const handleImportSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!importForm.data.file) {
+            importForm.setError('file', '請選擇要上傳的 CSV 檔案');
+            return;
+        }
+
+        importForm.post('/manage/posts/bulk', {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                resetImportForm();
+                setImportDialogOpen(false);
+            },
+        });
+    };
 
     const initialFilters: FilterState = {
         search: filters.search ?? '',
@@ -272,27 +348,116 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             <Head title={t('posts.index.title', '公告管理')} />
 
             <section className="space-y-6">
-                <Card className="border border-slate-200 bg-white shadow-sm">
-                    <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
-                        <div className="space-y-2">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                <Filter className="h-4 w-4" /> {t('posts.index.badge', '公告總覽')}
-                            </span>
-                            <h1 className="text-3xl font-semibold text-slate-900">{t('posts.index.title', '公告管理')}</h1>
-                            <p className="text-sm text-slate-600">
-                                {t(
-                                    'posts.index.description',
-                                    '管理公告分類、排程發布及附件檔案，確保資訊即時且一致。'
-                                )}
-                            </p>
-                        </div>
-                        {can.create && (
-                            <Button asChild className="rounded-full px-6">
-                                <Link href="/manage/posts/create">{t('posts.index.create', '新增公告')}</Link>
-                            </Button>
+                {flashMessages.success && (
+                    <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <AlertTitle>{t('posts.index.flash.success_title', '操作成功')}</AlertTitle>
+                        <AlertDescription>{flashMessages.success}</AlertDescription>
+                    </Alert>
+                )}
+
+                {flashMessages.error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-5 w-5" />
+                        <AlertTitle>{t('posts.index.flash.error_title', '操作失敗')}</AlertTitle>
+                        <AlertDescription>{flashMessages.error}</AlertDescription>
+                    </Alert>
+                )}
+
+                {flashMessages.importErrors && flashMessages.importErrors.length > 0 && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-5 w-5" />
+                        <AlertTitle>{t('posts.index.import.error_title', '部分資料未匯入')}</AlertTitle>
+                        <AlertDescription>
+                            <ul className="list-disc space-y-1 pl-4">
+                                {flashMessages.importErrors.map((message, index) => (
+                                    <li key={`import-error-${index}`}>{message}</li>
+                                ))}
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <Dialog open={importDialogOpen} onOpenChange={handleDialogChange}>
+                    <ManagePageHeader
+                        badge={{ icon: <Filter className="h-4 w-4" />, label: t('posts.index.badge', '公告總覽') }}
+                        title={t('posts.index.title', '公告管理')}
+                        description={t(
+                            'posts.index.description',
+                            '管理公告分類、排程發布及附件檔案，確保資訊即時且一致。'
                         )}
-                    </CardContent>
-                </Card>
+                        actions={
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                {can.bulk && (
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="rounded-full px-6">
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            {t('posts.index.actions.import_csv', '批次發布')}
+                                        </Button>
+                                    </DialogTrigger>
+                                )}
+                                {can.create && (
+                                    <Button asChild className="rounded-full px-6">
+                                        <Link href="/manage/posts/create">{t('posts.index.create', '新增公告')}</Link>
+                                    </Button>
+                                )}
+                            </div>
+                        }
+                    />
+
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>{t('posts.index.import.title', '上傳公告 CSV')}</DialogTitle>
+                            <DialogDescription>
+                                {t('posts.index.import.description', '一次匯入多筆公告，支援自訂發布時間與狀態。')}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <form onSubmit={handleImportSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="posts-import-file">{t('posts.index.import.file_label', '選擇 CSV 檔案')}</Label>
+                                <Input
+                                    key={fileInputKey}
+                                    id="posts-import-file"
+                                    type="file"
+                                    accept=".csv"
+                                    onChange={handleFileChange}
+                                    required
+                                />
+                                {importForm.errors.file && (
+                                    <p className="text-sm text-red-600">{importForm.errors.file}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+                                <p>{t('posts.index.import.hint_required', '必要欄位：title、content、category_slug 或 category_id。')}</p>
+                                <p>
+                                    {t(
+                                        'posts.index.import.hint_optional',
+                                        '可選欄位：slug、status、publish_at、summary、summary_en、title_en、content_en、tags、source_url。'
+                                    )}
+                                </p>
+                                <p>
+                                    {t(
+                                        'posts.index.import.hint_datetime',
+                                        '建議使用 YYYY-MM-DD HH:MM 格式，若狀態為 scheduled 需搭配 publish_at。'
+                                    )}
+                                </p>
+                                <p>{t('posts.index.import.hint_sample', '專案內的 .test_file/post.csv 可作為測試檔案。')}</p>
+                            </div>
+
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => handleDialogChange(false)}>
+                                    {t('posts.index.import.cancel', '取消')}
+                                </Button>
+                                <Button type="submit" className="gap-2" disabled={importForm.processing}>
+                                    {importForm.processing && <Loader2 className="h-4 w-4 animate-spin" />}
+                                    {t('posts.index.import.submit', '開始匯入')}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
 
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="border-b border-slate-100 pb-4">
@@ -477,8 +642,8 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                             </div>
                         )}
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="overflow-x-auto">
+                    <CardContent className="space-y-6">
+                        <div className="hidden md:block">
                             <table className="min-w-full divide-y divide-slate-200 text-sm">
                                 <thead className="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                                     <tr>
@@ -627,6 +792,125 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div className="grid gap-3 md:hidden">
+                            {postData.length === 0 ? (
+                                <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                                    {t('posts.index.table.empty', '尚無符合條件的公告。')}
+                                </div>
+                            ) : (
+                                postData.map((post) => {
+                                    const statusVariant = statusVariantMap[post.status];
+                                    const statusLabel = t(
+                                        `posts.status.${post.status}`,
+                                        statusFallbackLabels[post.status][fallbackLanguage]
+                                    );
+                                    const isSelected = selected.includes(post.id);
+                                    const categoryLabel = post.category
+                                        ? localeKey === 'zh-TW'
+                                            ? post.category.name
+                                            : post.category.name_en ?? post.category.name
+                                        : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                    const authorLabel = post.author
+                                        ? post.author.name
+                                        : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                    const publishDate = formatDateTime(post.publish_at, localeForDate);
+
+                                    return (
+                                        <div
+                                            key={`mobile-post-${post.id}`}
+                                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                                        >
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                                        <Link
+                                                            href={`/manage/posts/${post.id}`}
+                                                            className="text-base font-semibold text-slate-900"
+                                                        >
+                                                            {post.title}
+                                                        </Link>
+                                                        <Badge variant={statusVariant}>{statusLabel}</Badge>
+                                                    </div>
+                                                    <span className="text-xs text-slate-500">
+                                                        {`${t('posts.show.slug', '網址 Slug')}：${post.slug}`}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid gap-2 text-sm text-slate-600">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-slate-700">
+                                                            {t('posts.index.table.columns.category', '分類')}
+                                                        </span>
+                                                        <span className="text-right">{categoryLabel}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-slate-700">
+                                                            {t('posts.index.table.columns.author', '作者')}
+                                                        </span>
+                                                        <span className="text-right">{authorLabel}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-slate-700">
+                                                            {t('posts.index.table.columns.published_at', '發布時間')}
+                                                        </span>
+                                                        <span className="text-right">
+                                                            {publishDate ??
+                                                                t(
+                                                                    'posts.index.table.not_scheduled',
+                                                                    fallbackLanguage === 'zh' ? '未排程' : 'Not scheduled'
+                                                                )}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-slate-700">
+                                                            {t('posts.index.table.columns.views', '瀏覽數')}
+                                                        </span>
+                                                        <span className="text-right">{post.views}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-slate-700">
+                                                            {t('posts.index.table.columns.attachments', '附件')}
+                                                        </span>
+                                                        <span className="text-right">{post.attachments_count}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                                    {can.bulk && (
+                                                        <div className="flex items-center gap-2">
+                                                            <Checkbox
+                                                                checked={isSelected}
+                                                                onCheckedChange={() => toggleSelection(post.id)}
+                                                            />
+                                                            <span className="text-xs text-slate-600">
+                                                                {isSelected
+                                                                    ? t('posts.index.mobile.selected', '已選取')
+                                                                    : t('posts.index.mobile.select', '選取')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-1 justify-end gap-2">
+                                                        <Button asChild variant="outline" size="sm">
+                                                            <Link href={`/manage/posts/${post.id}`}>
+                                                                <Eye className="mr-1 h-4 w-4" />
+                                                                {t('posts.index.actions.view_label', '檢視公告內容')}
+                                                            </Link>
+                                                        </Button>
+                                                        <Button asChild variant="outline" size="sm">
+                                                            <Link href={`/manage/posts/${post.id}/edit`}>
+                                                                <Pen className="mr-1 h-4 w-4" />
+                                                                {t('posts.index.actions.edit_label', '編輯公告內容')}
+                                                            </Link>
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
 
                         {paginationLinks.length > 0 && (

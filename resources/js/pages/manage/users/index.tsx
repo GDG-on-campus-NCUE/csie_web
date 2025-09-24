@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -235,28 +236,26 @@ export default function UsersIndex({
         <ManageLayout breadcrumbs={breadcrumbs}>
             <Head title="使用者管理" />
 
-            <section className="flex flex-col gap-2">
-                <h1 className="text-2xl font-semibold text-neutral-900">使用者管理</h1>
-                <p className="text-sm text-neutral-500">
-                    檢視、搜尋與管理平台帳號，支援角色分配、狀態切換與批次操作。
-                </p>
-            </section>
+            <ManagePageHeader
+                title="使用者管理"
+                description="檢視、搜尋與管理平台帳號，支援角色分配、狀態切換與批次操作。"
+                actions={
+                    can.create ? (
+                        <Button asChild className="rounded-full px-4 py-2">
+                            <Link href="/manage/users/create">新增使用者</Link>
+                        </Button>
+                    ) : null
+                }
+            />
 
-            <section className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm text-neutral-600">
-                    <span>
-                        共有 <span className="font-semibold text-neutral-900">{users.meta.total}</span> 位使用者
+            <section className="flex flex-wrap items-center gap-3 text-sm text-neutral-600">
+                <span>
+                    共有 <span className="font-semibold text-neutral-900">{users.meta.total}</span> 位使用者
+                </span>
+                {selected.length > 0 && (
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-600">
+                        已選取 {selected.length} 筆
                     </span>
-                    {selected.length > 0 && (
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-600">
-                            已選取 {selected.length} 筆
-                        </span>
-                    )}
-                </div>
-                {can.create && (
-                    <Button asChild className="rounded-full px-4 py-2">
-                        <Link href="/manage/users/create">新增使用者</Link>
-                    </Button>
                 )}
             </section>
 
