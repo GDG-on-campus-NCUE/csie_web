@@ -3,7 +3,7 @@ import ManageLayout from '@/layouts/manage/manage-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import PostForm, { PostFormSubmitHandler, PostResource } from './components/post-form';
+import PostForm, { PostFormSubmitHandler, PostResource } from '@/components/manage/post/post-form';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
 import { useMemo } from 'react';
