@@ -5,6 +5,7 @@ namespace Tests\Feature\Manage;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -24,6 +25,23 @@ class TagManagementTest extends TestCase
             $page->component('manage/admin/tags/index')
                 ->has('tags', 2)
                 ->has('contextOptions')
+                ->where('tableReady', true)
+        );
+    }
+
+    public function test_tag_index_handles_missing_table_gracefully(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Schema::dropIfExists('tags');
+
+        $response = $this->actingAs($admin)->get(route('manage.tags.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) =>
+            $page->component('manage/admin/tags/index')
+                ->where('tableReady', false)
+                ->where('tags', [])
         );
     }
 

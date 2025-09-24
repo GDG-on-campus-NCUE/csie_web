@@ -20,30 +20,37 @@ class TagController extends Controller
 
     public function index(): Response
     {
-        $tags = Tag::query()
-            ->orderBy('context')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get()
-            ->map(function (Tag $tag) {
-                return [
-                    'id' => $tag->id,
-                    'context' => $tag->context,
-                    'context_label' => Tag::CONTEXTS[$tag->context] ?? $tag->context,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
-                    'description' => $tag->description,
-                    'sort_order' => $tag->sort_order,
-                    'created_at' => optional($tag->created_at)?->toIso8601String(),
-                    'updated_at' => optional($tag->updated_at)?->toIso8601String(),
-                ];
-            });
+        $tableReady = Tag::tableExists();
+
+        $tags = $tableReady
+            ? Tag::query()
+                ->orderBy('context')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(function (Tag $tag) {
+                    return [
+                        'id' => $tag->id,
+                        'context' => $tag->context,
+                        'context_label' => Tag::CONTEXTS[$tag->context] ?? $tag->context,
+                        'name' => $tag->name,
+                        'slug' => $tag->slug,
+                        'description' => $tag->description,
+                        'sort_order' => $tag->sort_order,
+                        'created_at' => optional($tag->created_at)?->toIso8601String(),
+                        'updated_at' => optional($tag->updated_at)?->toIso8601String(),
+                    ];
+                })
+                ->values()
+                ->all()
+            : [];
 
         return Inertia::render('manage/admin/tags/index', [
             'contextOptions' => collect(Tag::CONTEXTS)
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
             'tags' => $tags,
+            'tableReady' => $tableReady,
         ]);
     }
 
@@ -53,11 +60,16 @@ class TagController extends Controller
             'contextOptions' => collect(Tag::CONTEXTS)
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
+            'tableReady' => Tag::tableExists(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        if (! Tag::tableExists()) {
+            return redirect()->route('manage.tags.index')->with('error', '標籤資料表尚未建立，請執行資料庫遷移後再試。');
+        }
+
         $validated = $request->validate([
             'context' => ['required', Rule::in(array_keys(Tag::CONTEXTS))],
             'name' => ['required', 'string', 'max:255'],

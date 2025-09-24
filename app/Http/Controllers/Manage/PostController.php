@@ -142,18 +142,7 @@ class PostController extends Controller
                 ->orderBy('name')
                 ->get(),
             'statusOptions' => $statusOptions,
-            'availableTags' => Tag::forContext('posts')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Tag $tag) => [[
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
-                    'description' => $tag->description,
-                ]])
-                ->values()
-                ->all(),
+            'availableTags' => $this->availableTagsForPosts(),
         ]);
     }
 
@@ -285,19 +274,31 @@ class PostController extends Controller
                 ->orderBy('name')
                 ->get(),
             'statusOptions' => $statusOptions,
-            'availableTags' => Tag::forContext('posts')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Tag $tag) => [[
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
-                    'description' => $tag->description,
-                ]])
-                ->values()
-                ->all(),
+            'availableTags' => $this->availableTagsForPosts(),
         ]);
+    }
+
+    /**
+     * 取得公告表單可用的標籤列表，若資料表不存在則回傳空陣列。
+     */
+    private function availableTagsForPosts(): array
+    {
+        if (! Tag::tableExists()) {
+            return [];
+        }
+
+        return Tag::forContext('posts')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Tag $tag) => [[
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'slug' => $tag->slug,
+                'description' => $tag->description,
+            ]])
+            ->values()
+            ->all();
     }
 
     public function update(Request $request, Post $post)
