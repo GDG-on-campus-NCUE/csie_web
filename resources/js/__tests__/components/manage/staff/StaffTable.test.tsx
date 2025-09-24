@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import userEvent from '@testing-library/user-event';
 import { StaffTable } from '@/components/manage/staff/StaffTable';
 
@@ -73,27 +73,33 @@ describe('StaffTable Component', () => {
     const mockStaffList = [
         {
             id: 1,
-            name: { 'zh-TW': '張三', 'en': 'Zhang San' },
-            position: { 'zh-TW': '系辦職員', 'en': 'Department Staff' },
+            name: '張三',
+            name_en: 'Zhang San',
+            position: '系辦職員',
+            position_en: 'Department Staff',
             email: 'zhang.san@example.com',
             phone: '02-1234-5678',
             office: 'A101',
-            bio: { 'zh-TW': '負責行政工作', 'en': 'Administrative work' },
+            bio: '負責行政工作',
+            bio_en: 'Administrative work',
             visible: true,
             sort_order: 1,
-            avatar: undefined
+            photo_url: '/images/staff/zhang-san.jpg'
         },
         {
             id: 2,
-            name: { 'zh-TW': '李四', 'en': 'Li Si' },
-            position: { 'zh-TW': '助教', 'en': 'Teaching Assistant' },
+            name: '李四',
+            name_en: 'Li Si',
+            position: '助教',
+            position_en: 'Teaching Assistant',
             email: 'li.si@example.com',
             phone: '02-9876-5432',
             office: 'B202',
-            bio: { 'zh-TW': '協助教學', 'en': 'Teaching assistance' },
+            bio: '協助教學',
+            bio_en: 'Teaching assistance',
             visible: false,
             sort_order: 2,
-            avatar: undefined
+            photo_url: ''
         }
     ];
 
@@ -106,8 +112,18 @@ describe('StaffTable Component', () => {
         to: 2
     };
 
+    const handleEdit = jest.fn((staffMember: any) => {
+        mockVisit(route('manage.staff.edit', staffMember.id));
+    });
+
+    const handleDeleteAction = jest.fn((staffMember: any) => {
+        mockDelete(route('manage.staff.destroy', staffMember.id));
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
+        handleEdit.mockClear();
+        handleDeleteAction.mockClear();
     });
 
     // T021: 測試表格渲染和資料顯示
@@ -115,9 +131,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -140,9 +156,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={mockOnSort}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -166,9 +182,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -183,9 +199,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -205,9 +221,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -233,9 +249,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -264,9 +280,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -296,9 +312,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -320,9 +336,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={[]}
-                pagination={{ ...mockPagination, total: 0 }}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -336,8 +352,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortField="name"
                 sortDirection="desc"
             />
@@ -353,9 +370,9 @@ describe('StaffTable Component', () => {
         const { container } = render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -369,9 +386,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -390,9 +407,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
             />
         );
@@ -406,9 +423,9 @@ describe('StaffTable Component', () => {
         render(
             <StaffTable
                 staff={mockStaffList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
-                sortField=""
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortDirection="asc"
                 locale="en"
             />

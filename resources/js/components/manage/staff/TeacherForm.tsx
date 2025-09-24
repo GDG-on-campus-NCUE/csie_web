@@ -6,6 +6,87 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalizedContent, Teacher } from '@/types/staff';
+
+type LocalizedList = {
+    'zh-TW'?: string[] | string | null;
+    en?: string[] | string | null;
+};
+
+type TeacherFormTeacher = Omit<Teacher, 'education' | 'specialties' | 'bio' | 'avatar'> & {
+    education?: LocalizedContent[] | LocalizedList | null;
+    specialties?: LocalizedContent[] | LocalizedList | null;
+    expertise?: LocalizedContent[] | LocalizedList | null;
+    bio?: LocalizedContent | null;
+    avatar?: string | null;
+    photo_url?: string | null;
+    job_title?: string | null;
+};
+
+const getLocalizedValue = (
+    value: string | LocalizedContent | null | undefined,
+    locale: 'zh-TW' | 'en'
+): string => {
+    if (!value) {
+        return '';
+    }
+
+    if (typeof value === 'string') {
+        return locale === 'zh-TW' ? value : '';
+    }
+
+    if (locale === 'en') {
+        return value.en ?? '';
+    }
+
+    return value['zh-TW'] ?? value.en ?? '';
+};
+
+const formatLocalizedList = (
+    value: LocalizedContent[] | LocalizedList | string[] | string | null | undefined,
+    locale: 'zh-TW' | 'en'
+): string => {
+    if (!value) {
+        return '';
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === 'string' ? item : getLocalizedValue(item, locale)))
+            .filter((item) => item.length > 0)
+            .join(',');
+    }
+
+    const localeValue = value[locale];
+
+    if (Array.isArray(localeValue)) {
+        return localeValue
+            .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+            .join(',');
+    }
+
+    if (typeof localeValue === 'string') {
+        return localeValue;
+    }
+
+    return '';
+};
+
+const resolveAvatarUrl = (value: string | null | undefined): string | null => {
+    if (!value) {
+        return null;
+    }
+
+    if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) {
+        return value;
+    }
+
+    return `/storage/${value}`;
+};
 
 interface TeacherFormData {
     name: string;
@@ -29,11 +110,14 @@ interface TeacherFormData {
 }
 
 interface TeacherFormProps {
-    teacher?: any;
-    onSubmit: (data: TeacherFormData) => void;
+    teacher?: TeacherFormTeacher | null;
+    onSubmit?: (data: TeacherFormData) => void;
     submitLabel?: string;
     isSubmitting?: boolean;
     users?: Array<{ id: number; name: string; email: string }>;
+    onCancel?: () => void;
+    errors?: Record<string, string | string[]>;
+    processing?: boolean;
 }
 
 export default function TeacherForm({
@@ -41,31 +125,57 @@ export default function TeacherForm({
     onSubmit,
     submitLabel = '儲存',
     isSubmitting = false,
-    users = []
+    users = [],
+    onCancel,
+    errors: externalErrors,
+    processing: externalProcessing
 }: TeacherFormProps) {
-    const { data, setData, processing, errors } = useForm<TeacherFormData>({
-        name: teacher?.name || '',
-        name_en: teacher?.name_en || '',
-        title: teacher?.title || '',
-        title_en: teacher?.title_en || '',
+    const specialtiesSource = teacher?.specialties ?? teacher?.expertise ?? null;
+    const educationSource = teacher?.education ?? null;
+
+    const { data, setData, processing: formProcessing, errors: formErrors } = useForm<TeacherFormData>({
+        name: getLocalizedValue(teacher?.name, 'zh-TW'),
+        name_en: getLocalizedValue(teacher?.name, 'en'),
+        title: getLocalizedValue(teacher?.title, 'zh-TW'),
+        title_en: getLocalizedValue(teacher?.title, 'en'),
         email: teacher?.email || '',
         phone: teacher?.phone || '',
         office: teacher?.office || '',
         job_title: teacher?.job_title || '',
-        bio: teacher?.bio || '',
-        bio_en: teacher?.bio_en || '',
-        expertise: teacher?.expertise || '',
-        expertise_en: teacher?.expertise_en || '',
-        education: teacher?.education || '',
-        education_en: teacher?.education_en || '',
-        sort_order: teacher?.sort_order || 0,
+        bio: getLocalizedValue(teacher?.bio ?? null, 'zh-TW'),
+        bio_en: getLocalizedValue(teacher?.bio ?? null, 'en'),
+        expertise: formatLocalizedList(specialtiesSource, 'zh-TW'),
+        expertise_en: formatLocalizedList(specialtiesSource, 'en'),
+        education: formatLocalizedList(educationSource, 'zh-TW'),
+        education_en: formatLocalizedList(educationSource, 'en'),
+        sort_order: teacher?.sort_order ?? 0,
         visible: teacher?.visible ?? true,
-        user_id: teacher?.user_id,
+        user_id: teacher?.user_id ?? undefined,
     });
+
+    const avatarUrl = resolveAvatarUrl(teacher?.photo_url ?? teacher?.avatar ?? null);
+    const teacherNameZh = getLocalizedValue(teacher?.name, 'zh-TW');
+
+    const processing = externalProcessing ?? formProcessing;
+
+    const errors = React.useMemo(() => {
+        const source = externalErrors ?? formErrors ?? {};
+        const normalized: Record<string, string> = {};
+
+        Object.entries(source).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+                normalized[key] = value.join('\n');
+            } else if (value) {
+                normalized[key] = value;
+            }
+        });
+
+        return normalized;
+    }, [externalErrors, formErrors]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(data);
+        onSubmit?.(data);
     };
 
     return (
@@ -81,6 +191,7 @@ export default function TeacherForm({
                             <Label htmlFor="name">姓名 (中文) *</Label>
                             <Input
                                 id="name"
+                                name="name"
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
@@ -95,6 +206,7 @@ export default function TeacherForm({
                             <Label htmlFor="name_en">姓名 (英文) *</Label>
                             <Input
                                 id="name_en"
+                                name="name_en"
                                 type="text"
                                 value={data.name_en}
                                 onChange={(e) => setData('name_en', e.target.value)}
@@ -109,6 +221,7 @@ export default function TeacherForm({
                             <Label htmlFor="title">職稱 (中文) *</Label>
                             <Input
                                 id="title"
+                                name="title"
                                 type="text"
                                 value={data.title}
                                 onChange={(e) => setData('title', e.target.value)}
@@ -123,6 +236,7 @@ export default function TeacherForm({
                             <Label htmlFor="title_en">職稱 (英文) *</Label>
                             <Input
                                 id="title_en"
+                                name="title_en"
                                 type="text"
                                 value={data.title_en}
                                 onChange={(e) => setData('title_en', e.target.value)}
@@ -137,6 +251,7 @@ export default function TeacherForm({
                             <Label htmlFor="email">電子郵件</Label>
                             <Input
                                 id="email"
+                                name="email"
                                 type="email"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
@@ -150,6 +265,7 @@ export default function TeacherForm({
                             <Label htmlFor="phone">電話</Label>
                             <Input
                                 id="phone"
+                                name="phone"
                                 type="tel"
                                 value={data.phone}
                                 onChange={(e) => setData('phone', e.target.value)}
@@ -163,6 +279,7 @@ export default function TeacherForm({
                             <Label htmlFor="office">辦公室</Label>
                             <Input
                                 id="office"
+                                name="office"
                                 type="text"
                                 value={data.office}
                                 onChange={(e) => setData('office', e.target.value)}
@@ -176,6 +293,7 @@ export default function TeacherForm({
                             <Label htmlFor="job_title">職務</Label>
                             <Input
                                 id="job_title"
+                                name="job_title"
                                 type="text"
                                 value={data.job_title}
                                 onChange={(e) => setData('job_title', e.target.value)}
@@ -212,17 +330,18 @@ export default function TeacherForm({
                     {/* 照片上傳 */}
                     <div className="space-y-2">
                         <Label htmlFor="photo">照片</Label>
-                        {teacher?.photo_url && (
+                        {avatarUrl && (
                             <div className="mb-2">
                                 <img
-                                    src={`/storage/${teacher.photo_url}`}
-                                    alt={teacher.name}
+                                    src={avatarUrl}
+                                    alt={teacherNameZh || '教師頭像'}
                                     className="h-20 w-20 rounded-full object-cover"
                                 />
                             </div>
                         )}
                         <Input
                             id="photo"
+                            name="photo"
                             type="file"
                             accept="image/*"
                             onChange={(e) => setData('photo', e.target.files?.[0])}
@@ -238,6 +357,7 @@ export default function TeacherForm({
                             <Label htmlFor="bio">簡介 (中文)</Label>
                             <Textarea
                                 id="bio"
+                                name="bio"
                                 value={data.bio}
                                 onChange={(e) => setData('bio', e.target.value)}
                                 rows={4}
@@ -251,6 +371,7 @@ export default function TeacherForm({
                             <Label htmlFor="bio_en">簡介 (英文)</Label>
                             <Textarea
                                 id="bio_en"
+                                name="bio_en"
                                 value={data.bio_en}
                                 onChange={(e) => setData('bio_en', e.target.value)}
                                 rows={4}
@@ -264,6 +385,7 @@ export default function TeacherForm({
                             <Label htmlFor="expertise">專長 (中文)</Label>
                             <Textarea
                                 id="expertise"
+                                name="expertise"
                                 value={data.expertise}
                                 onChange={(e) => setData('expertise', e.target.value)}
                                 rows={3}
@@ -277,6 +399,7 @@ export default function TeacherForm({
                             <Label htmlFor="expertise_en">專長 (英文)</Label>
                             <Textarea
                                 id="expertise_en"
+                                name="expertise_en"
                                 value={data.expertise_en}
                                 onChange={(e) => setData('expertise_en', e.target.value)}
                                 rows={3}
@@ -290,6 +413,7 @@ export default function TeacherForm({
                             <Label htmlFor="education">學歷 (中文)</Label>
                             <Textarea
                                 id="education"
+                                name="education"
                                 value={data.education}
                                 onChange={(e) => setData('education', e.target.value)}
                                 rows={3}
@@ -303,6 +427,7 @@ export default function TeacherForm({
                             <Label htmlFor="education_en">學歷 (英文)</Label>
                             <Textarea
                                 id="education_en"
+                                name="education_en"
                                 value={data.education_en}
                                 onChange={(e) => setData('education_en', e.target.value)}
                                 rows={3}
@@ -319,6 +444,7 @@ export default function TeacherForm({
                             <Label htmlFor="sort_order">排序</Label>
                             <Input
                                 id="sort_order"
+                                name="sort_order"
                                 type="number"
                                 min="0"
                                 value={data.sort_order}
@@ -344,7 +470,13 @@ export default function TeacherForm({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => window.history.back()}
+                            onClick={() => {
+                                if (onCancel) {
+                                    onCancel();
+                                } else {
+                                    window.history.back();
+                                }
+                            }}
                         >
                             取消
                         </Button>

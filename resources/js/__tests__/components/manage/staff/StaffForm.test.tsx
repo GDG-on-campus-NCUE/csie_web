@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import userEvent from '@testing-library/user-event';
 import { StaffForm } from '@/components/manage/staff/StaffForm';
 
@@ -108,15 +108,17 @@ jest.mock('@/components/ui/Switch', () => ({
 describe('StaffForm Component', () => {
     const mockStaff = {
         id: 1,
-        name: { 'zh-TW': '測試職員', 'en': 'Test Staff' },
-        position: { 'zh-TW': '測試職位', 'en': 'Test Position' },
+        name: '測試職員',
+        name_en: 'Test Staff',
+        position: '測試職位',
+        position_en: 'Test Position',
         email: 'test@example.com',
         phone: '02-1234-5678',
         office: 'A101',
-        bio: { 'zh-TW': '測試簡介', 'en': 'Test Bio' },
+        bio: '測試簡介',
+        bio_en: 'Test Bio',
         visible: true,
         sort_order: 1,
-        avatar: undefined
     };
 
     const mockOnSubmit = jest.fn();

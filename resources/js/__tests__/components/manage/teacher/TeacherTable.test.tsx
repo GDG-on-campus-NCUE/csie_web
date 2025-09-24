@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import userEvent from '@testing-library/user-event';
 import { TeacherTable } from '@/components/manage/teacher/TeacherTable';
 
@@ -100,7 +100,7 @@ describe('TeacherTable Component', () => {
             visible: true,
             sort_order: 1,
             avatar: undefined,
-            user: { id: 1, name: '張教授', email: 'prof.zhang@example.com' },
+            user: { id: 1, name: '張教授', email: 'prof.zhang@example.com', role: 'teacher' as const },
             lab: { id: 1, name: { 'zh-TW': 'AI 實驗室', 'en': 'AI Lab' } }
         },
         {
@@ -118,8 +118,8 @@ describe('TeacherTable Component', () => {
                 { 'zh-TW': '清大資工博士', 'en': 'Ph.D. in CS, NTHU' }
             ],
             website: undefined,
-            user_id: null,
-            lab_id: null,
+            user_id: undefined,
+            lab_id: undefined,
             visible: false,
             sort_order: 2,
             avatar: undefined,
@@ -137,8 +137,18 @@ describe('TeacherTable Component', () => {
         to: 2
     };
 
+    const handleEdit = jest.fn((teacher: any) => {
+        mockVisit(`/manage.teachers.edit/${teacher.id}`);
+    });
+
+    const handleDeleteAction = jest.fn((teacher: any) => {
+        mockDelete(`/manage.teachers.destroy/${teacher.id}`);
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
+        handleEdit.mockClear();
+        handleDeleteAction.mockClear();
     });
 
     // T021: 測試表格渲染和資料顯示
@@ -146,8 +156,9 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortField={undefined}
                 sortDirection="asc"
             />
@@ -171,8 +182,9 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={mockOnSort}
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortField={undefined}
                 sortDirection="asc"
             />
@@ -197,8 +209,9 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortField={undefined}
                 sortDirection="asc"
             />
@@ -221,8 +234,9 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
+                onEdit={handleEdit}
+                onDelete={handleDeleteAction}
                 sortField={undefined}
                 sortDirection="asc"
             />
@@ -241,7 +255,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -259,7 +272,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -287,7 +299,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -318,7 +329,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -350,7 +360,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -374,7 +383,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={[]}
-                pagination={{ ...mockPagination, total: 0 }}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -390,7 +398,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField="name"
                 sortDirection="desc"
@@ -407,7 +414,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -424,7 +430,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -441,7 +446,6 @@ describe('TeacherTable Component', () => {
         const { container } = render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -457,7 +461,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -473,7 +476,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"
@@ -493,7 +495,6 @@ describe('TeacherTable Component', () => {
         render(
             <TeacherTable
                 teachers={mockTeacherList}
-                pagination={mockPagination}
                 onSort={jest.fn()}
                 sortField={undefined}
                 sortDirection="asc"

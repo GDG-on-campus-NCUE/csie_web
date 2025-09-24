@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import { Staff } from '@/types/staff';
+import { LocalizedContent, Staff } from '@/types/staff';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,18 +11,35 @@ interface Props {
     staff: Staff;
 }
 
+const resolveLocalizedText = (
+    value: string | LocalizedContent | undefined,
+    locale: 'zh-TW' | 'en' = 'zh-TW'
+): string => {
+    if (!value) {
+        return '';
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    return value[locale] ?? value['zh-TW'] ?? '';
+};
+
 export default function Show({ staff: staffData }: Props) {
     const getDisplayName = (locale: 'zh-TW' | 'en' = 'zh-TW') => {
-        return locale === 'zh-TW' ? staffData.name : staffData.name_en;
+        return resolveLocalizedText(staffData.name, locale);
     };
 
     const getDisplayPosition = (locale: 'zh-TW' | 'en' = 'zh-TW') => {
-        return locale === 'zh-TW' ? staffData.position : staffData.position_en;
+        return resolveLocalizedText(staffData.position, locale);
     };
 
     const getDisplayBio = (locale: 'zh-TW' | 'en' = 'zh-TW') => {
-        return locale === 'zh-TW' ? staffData.bio : staffData.bio_en;
+        return resolveLocalizedText(staffData.bio, locale);
     };
+
+    const isVisible = staffData.visible ?? true;
 
     return (
         <ManageLayout>
@@ -107,14 +124,14 @@ export default function Show({ staff: staffData }: Props) {
                                             <div>
                                                 <dt className="text-sm font-medium text-gray-500">排序</dt>
                                                 <dd className="mt-1">
-                                                    <Badge variant="outline">{staffData.sort_order}</Badge>
+                                                    <Badge variant="outline">{staffData.sort_order ?? '-'}</Badge>
                                                 </dd>
                                             </div>
                                             <div>
                                                 <dt className="text-sm font-medium text-gray-500">狀態</dt>
                                                 <dd className="mt-1">
-                                                    <Badge variant={staffData.visible ? "default" : "secondary"}>
-                                                        {staffData.visible ? '顯示' : '隱藏'}
+                                                    <Badge variant={isVisible ? "default" : "secondary"}>
+                                                        {isVisible ? '顯示' : '隱藏'}
                                                     </Badge>
                                                 </dd>
                                             </div>

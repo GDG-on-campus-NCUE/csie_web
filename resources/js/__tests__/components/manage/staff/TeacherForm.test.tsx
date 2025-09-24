@@ -1,37 +1,32 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import TeacherForm from '@/components/manage/staff/TeacherForm';
 
 // Mock Inertia.js
-const mockPost = vi.fn();
-const mockPut = vi.fn();
+const mockPost = jest.fn();
+const mockPut = jest.fn();
+const mockSetData = jest.fn();
+const mockClearErrors = jest.fn();
+const mockSetError = jest.fn();
+const mockReset = jest.fn();
 
-vi.mock('@inertiajs/react', async () => {
-    const actual = await vi.importActual('@inertiajs/react');
-    return {
-        ...actual,
-        router: {
-            post: mockPost,
-            put: mockPut,
-        },
-        useForm: (initialData: any) => ({
-            data: initialData,
-            setData: vi.fn(),
-            post: mockPost,
-            put: mockPut,
-            processing: false,
-            errors: {},
-            clearErrors: vi.fn(),
-            setError: vi.fn(),
-            reset: vi.fn(),
-        }),
-    };
-});
+jest.mock('@inertiajs/react', () => ({
+    useForm: (initialData: any) => ({
+        data: initialData,
+        setData: mockSetData,
+        post: mockPost,
+        put: mockPut,
+        processing: false,
+        errors: {},
+        clearErrors: mockClearErrors,
+        setError: mockSetError,
+        reset: mockReset,
+    }),
+}));
 
 // Mock UI components
-vi.mock('@/components/ui/form', () => ({
+jest.mock('@/components/ui/form', () => ({
     Form: ({ children }: any) => <form data-testid="teacher-form">{children}</form>,
     FormItem: ({ children }: any) => <div data-testid="form-item">{children}</div>,
     FormLabel: ({ children }: any) => <label data-testid="form-label">{children}</label>,
@@ -40,7 +35,7 @@ vi.mock('@/components/ui/form', () => ({
     FormDescription: ({ children }: any) => <p data-testid="form-description">{children}</p>,
 }));
 
-vi.mock('@/components/ui/input', () => ({
+jest.mock('@/components/ui/input', () => ({
     Input: ({ name, placeholder, type, ...props }: any) => (
         <input
             data-testid={`input-${name}`}
@@ -52,7 +47,7 @@ vi.mock('@/components/ui/input', () => ({
     ),
 }));
 
-vi.mock('@/components/ui/textarea', () => ({
+jest.mock('@/components/ui/textarea', () => ({
     Textarea: ({ name, placeholder, ...props }: any) => (
         <textarea
             data-testid={`textarea-${name}`}
@@ -63,7 +58,7 @@ vi.mock('@/components/ui/textarea', () => ({
     ),
 }));
 
-vi.mock('@/components/ui/select', () => ({
+jest.mock('@/components/ui/select', () => ({
     Select: ({ value, onValueChange, children }: any) => (
         <select data-testid="select" value={value} onChange={(e) => onValueChange(e.target.value)}>
             {children}
@@ -75,7 +70,7 @@ vi.mock('@/components/ui/select', () => ({
     SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
 }));
 
-vi.mock('@/components/ui/button', () => ({
+jest.mock('@/components/ui/button', () => ({
     Button: ({ children, onClick, type, disabled, ...props }: any) => (
         <button
             data-testid="button"
@@ -89,7 +84,7 @@ vi.mock('@/components/ui/button', () => ({
     ),
 }));
 
-vi.mock('@/components/ui/switch', () => ({
+jest.mock('@/components/ui/switch', () => ({
     Switch: ({ checked, onCheckedChange, ...props }: any) => (
         <input
             data-testid="switch-visible"
@@ -101,14 +96,14 @@ vi.mock('@/components/ui/switch', () => ({
     ),
 }));
 
-vi.mock('@/components/ui/card', () => ({
+jest.mock('@/components/ui/card', () => ({
     Card: ({ children }: any) => <div data-testid="card">{children}</div>,
     CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
     CardTitle: ({ children }: any) => <h3 data-testid="card-title">{children}</h3>,
     CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
 }));
 
-vi.mock('@/components/ui/tabs', () => ({
+jest.mock('@/components/ui/tabs', () => ({
     Tabs: ({ value, onValueChange, children }: any) => (
         <div data-testid="tabs" data-value={value}>
             {children}
@@ -126,7 +121,7 @@ vi.mock('@/components/ui/tabs', () => ({
 }));
 
 // Mock translation hook
-vi.mock('@/hooks/useTranslation', () => ({
+jest.mock('@/hooks/useTranslation', () => ({
     useTranslation: () => ({
         t: (key: string) => {
             const translations: Record<string, string> = {
@@ -166,32 +161,32 @@ describe('TeacherForm Component', () => {
     const mockTeacherData = {
         id: 1,
         user_id: 1,
-        name: '陳教授',
-        name_en: 'Prof. Chen',
-        title: '副教授',
-        title_en: 'Associate Professor',
-        specialization: '資料庫系統,機器學習',
-        specialization_en: 'Database Systems, Machine Learning',
+        name: { 'zh-TW': '陳教授', en: 'Prof. Chen' },
+        title: { 'zh-TW': '副教授', en: 'Associate Professor' },
         email: 'prof.chen@example.com',
         phone: '02-12345678',
-        extension: '5678',
         office: 'E301',
-        bio: '專精於資料庫系統研究',
-        bio_en: 'Specializes in database systems research',
-        education: '台灣大學資訊工程博士',
-        education_en: 'Ph.D. in Computer Science, National Taiwan University',
+        job_title: '系主任',
+        bio: { 'zh-TW': '專精於資料庫系統研究', en: 'Specializes in database systems research' },
+        specialties: [
+            { 'zh-TW': '資料庫系統', en: 'Database Systems' },
+            { 'zh-TW': '機器學習', en: 'Machine Learning' }
+        ],
+        education: [
+            { 'zh-TW': '台灣大學資訊工程博士', en: 'Ph.D. in Computer Science, National Taiwan University' }
+        ],
         sort_order: 10,
         visible: true,
-        photo_url: null,
+        photo_url: 'teachers/chen.jpg',
     };
 
     const mockUsers = [
-        { id: 1, name: '陳教授', email: 'prof.chen@example.com' },
-        { id: 2, name: '李教授', email: 'prof.li@example.com' },
+        { id: 1, name: '陳教授', email: 'prof.chen@example.com', role: 'teacher' as const },
+        { id: 2, name: '李教授', email: 'prof.li@example.com', role: 'teacher' as const },
     ];
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        jest.clearAllMocks();
     });
 
     /**
@@ -205,8 +200,8 @@ describe('TeacherForm Component', () => {
         expect(screen.getByTestId('input-name_en')).toBeInTheDocument();
         expect(screen.getByTestId('input-title')).toBeInTheDocument();
         expect(screen.getByTestId('input-title_en')).toBeInTheDocument();
-        expect(screen.getByTestId('input-specialization')).toBeInTheDocument();
-        expect(screen.getByTestId('input-specialization_en')).toBeInTheDocument();
+        expect(screen.getByTestId('textarea-expertise')).toBeInTheDocument();
+        expect(screen.getByTestId('textarea-expertise_en')).toBeInTheDocument();
         expect(screen.getByTestId('input-email')).toBeInTheDocument();
         expect(screen.getByTestId('input-phone')).toBeInTheDocument();
         expect(screen.getByTestId('input-office')).toBeInTheDocument();
@@ -305,7 +300,7 @@ describe('TeacherForm Component', () => {
         const user = userEvent.setup();
         render(<TeacherForm teacher={mockTeacherData} users={mockUsers} />);
 
-        const specializationInput = screen.getByTestId('input-specialization');
+        const specializationInput = screen.getByTestId('textarea-expertise');
 
         // Should display comma-separated specializations
         expect(specializationInput).toHaveValue('資料庫系統,機器學習');
@@ -398,7 +393,7 @@ describe('TeacherForm Component', () => {
      */
     it('handles cancel action correctly', async () => {
         const user = userEvent.setup();
-        const mockOnCancel = vi.fn();
+        const mockOnCancel = jest.fn();
         render(<TeacherForm teacher={mockTeacherData} users={mockUsers} onCancel={mockOnCancel} />);
 
         const cancelButton = screen.getByText('取消');

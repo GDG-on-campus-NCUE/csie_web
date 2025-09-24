@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import userEvent from '@testing-library/user-event';
 import { TeacherForm } from '@/components/manage/teacher/TeacherForm';
 
@@ -150,8 +150,8 @@ describe('TeacherForm Component', () => {
     };
 
     const mockUsers = [
-        { id: 1, name: '張教授', email: 'prof.zhang@example.com' },
-        { id: 2, name: '李教授', email: 'prof.li@example.com' }
+        { id: 1, name: '張教授', email: 'prof.zhang@example.com', role: 'teacher' as const },
+        { id: 2, name: '李教授', email: 'prof.li@example.com', role: 'teacher' as const }
     ];
 
     const mockLabs = [

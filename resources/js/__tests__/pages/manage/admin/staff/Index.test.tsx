@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import Index from '@/pages/manage/admin/staff/index';
 import { createInertiaApp } from '@inertiajs/react';
@@ -134,7 +134,10 @@ describe('Staff Index Page', () => {
                 name: '王五',
                 name_en: 'Wang Wu',
                 position: '前職員',
+                position_en: 'Former Staff',
                 email: 'wang.wu@example.com',
+                visible: false,
+                sort_order: 30,
                 deleted_at: '2024-01-01T00:00:00.000000Z',
             },
         ],
@@ -144,10 +147,8 @@ describe('Staff Index Page', () => {
         data: [
             {
                 id: 1,
-                name: '陳教授',
-                name_en: 'Prof. Chen',
-                title: '副教授',
-                title_en: 'Associate Professor',
+                name: { 'zh-TW': '陳教授', en: 'Prof. Chen' },
+                title: { 'zh-TW': '副教授', en: 'Associate Professor' },
                 email: 'prof.chen@example.com',
                 phone: '02-12345678',
                 office: 'E301',
@@ -157,14 +158,12 @@ describe('Staff Index Page', () => {
                     id: 1,
                     name: '陳教授',
                     email: 'prof.chen@example.com',
+                    role: 'teacher' as const,
                 },
-                labs: [
-                    {
-                        id: 1,
-                        name: '資料庫實驗室',
-                        name_en: 'Database Lab',
-                    },
-                ],
+                lab: {
+                    id: 1,
+                    name: { 'zh-TW': '資料庫實驗室', en: 'Database Lab' },
+                },
             },
         ],
         links: {},

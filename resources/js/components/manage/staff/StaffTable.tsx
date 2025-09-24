@@ -19,7 +19,27 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { MoreHorizontal, Eye, Edit, Trash2, ArrowUpDown } from 'lucide-react';
-import { Staff } from '@/types/staff';
+import { LocalizedContent, Staff } from '@/types/staff';
+
+const resolveLocalizedField = (
+    value: string | LocalizedContent | undefined,
+    locale: 'zh-TW' | 'en',
+    fallback?: string
+): string => {
+    if (!value) {
+        return fallback ?? '';
+    }
+
+    if (typeof value === 'string') {
+        return locale === 'zh-TW' ? value : fallback ?? '';
+    }
+
+    if (locale === 'en') {
+        return value.en ?? fallback ?? value['zh-TW'] ?? '';
+    }
+
+    return value['zh-TW'] ?? fallback ?? '';
+};
 
 interface StaffTableProps {
     staff: Staff[];
@@ -80,16 +100,21 @@ export const StaffTable: React.FC<StaffTableProps> = ({
     };
 
     const getDisplayName = (staffMember: Staff) => {
-        // 使用現有的分離字段格式
-        return locale === 'zh-TW' ? staffMember.name : staffMember.name_en;
+        const localizedValue = staffMember.name as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.name_en : staffMember.name;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     const getDisplayPosition = (staffMember: Staff) => {
-        return locale === 'zh-TW' ? staffMember.position : staffMember.position_en;
+        const localizedValue = staffMember.position as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.position_en : staffMember.position;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     const getDisplayBio = (staffMember: Staff) => {
-        return locale === 'zh-TW' ? staffMember.bio : staffMember.bio_en;
+        const localizedValue = staffMember.bio as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.bio_en : staffMember.bio;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     if (!staff || staff.length === 0) {
@@ -155,92 +180,93 @@ export const StaffTable: React.FC<StaffTableProps> = ({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {staff.map((staffMember) => (
-                        <TableRow key={staffMember.id}>
-                            <TableCell>
-                                <div className="flex items-center space-x-3">
-                                    {staffMember.photo_url && (
-                                        <img
-                                            src={staffMember.photo_url}
-                                            alt={getDisplayName(staffMember)}
-                                            className="h-8 w-8 rounded-full object-cover"
-                                        />
-                                    )}
-                                    <div>
-                                        <div className="font-medium">
-                                            {getDisplayName(staffMember)}
+                    {staff.map((staffMember) => {
+                        const isVisible = staffMember.visible ?? true;
+
+                        return (
+                            <TableRow key={staffMember.id}>
+                                <TableCell>
+                                    <div className="flex items-center space-x-3">
+                                        {staffMember.photo_url && (
+                                            <img
+                                                src={staffMember.photo_url}
+                                                alt={getDisplayName(staffMember)}
+                                                className="h-8 w-8 rounded-full object-cover"
+                                            />
+                                        )}
+                                        <div>
+                                            <div className="font-medium">
+                                                {getDisplayName(staffMember)}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="font-medium">
-                                    {getDisplayPosition(staffMember)}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="space-y-1 text-sm">
-                                    {staffMember.email && (
-                                        <div className="text-gray-600">
-                                            📧 {staffMember.email}
-                                        </div>
-                                    )}
-                                    {staffMember.phone && (
-                                        <div className="text-gray-600">
-                                            📞 {staffMember.phone}
-                                        </div>
-                                    )}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <Badge variant="outline">
-                                    {staffMember.sort_order}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                <Badge
-                                    variant={staffMember.visible ? "default" : "secondary"}
-                                >
-                                    {staffMember.visible ? '顯示' : '隱藏'}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                <div className="text-sm text-gray-500">
-                                    {staffMember.created_at ?
-                                        new Date(staffMember.created_at).toLocaleDateString('zh-TW')
-                                        : '-'
-                                    }
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <span className="sr-only">打開選單</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                            onClick={() => onEdit(staffMember)}
-                                            className="cursor-pointer"
-                                        >
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            編輯 / Edit
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            onClick={() => handleDeleteClick(staffMember)}
-                                            className="cursor-pointer text-red-600 focus:text-red-600"
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            刪除 / Delete
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="font-medium">
+                                        {getDisplayPosition(staffMember)}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="space-y-1 text-sm">
+                                        {staffMember.email && (
+                                            <div className="text-gray-600">
+                                                📧 {staffMember.email}
+                                            </div>
+                                        )}
+                                        {staffMember.phone && (
+                                            <div className="text-gray-600">
+                                                📞 {staffMember.phone}
+                                            </div>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline">
+                                        {staffMember.sort_order ?? '-'}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={isVisible ? 'default' : 'secondary'}>
+                                        {isVisible ? '顯示' : '隱藏'}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="text-sm text-gray-500">
+                                        {staffMember.created_at ?
+                                            new Date(staffMember.created_at).toLocaleDateString('zh-TW')
+                                            : '-'}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                <span className="sr-only">打開選單</span>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                                onClick={() => onEdit(staffMember)}
+                                                className="cursor-pointer"
+                                            >
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                編輯 / Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                onClick={() => handleDeleteClick(staffMember)}
+                                                className="cursor-pointer text-red-600 focus:text-red-600"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                刪除 / Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
 
