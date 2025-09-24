@@ -10,19 +10,35 @@ import { Loader2 } from 'lucide-react';
 import MultiLanguageInput from './MultiLanguageInput';
 import { LocalizedContent, Staff } from '@/types/staff';
 
-const getLocalizedValue = (
-    value: string | LocalizedContent | undefined,
-    locale: 'zh-TW' | 'en'
-): string => {
-    if (!value) {
-        return '';
+const extractStaffLocalizedField = (
+    staff: Staff | undefined,
+    field: 'name' | 'position' | 'bio'
+): { 'zh-TW': string; en: string } => {
+    const baseRecord = staff as unknown as Record<string, string | LocalizedContent | undefined> | undefined;
+    const fallbackRecord = staff as unknown as Record<string, string | undefined> | undefined;
+
+    const value = baseRecord?.[field];
+    const fallbackEn = fallbackRecord?.[`${field}_en`] ?? '';
+
+    if (value && typeof value === 'object') {
+        const localized = value as LocalizedContent;
+        return {
+            'zh-TW': localized['zh-TW'] ?? '',
+            en: localized.en ?? fallbackEn,
+        };
     }
 
     if (typeof value === 'string') {
-        return locale === 'zh-TW' ? value : '';
+        return {
+            'zh-TW': value,
+            en: fallbackEn,
+        };
     }
 
-    return value[locale] ?? '';
+    return {
+        'zh-TW': '',
+        en: fallbackEn,
+    };
 };
 
 interface StaffFormData {
@@ -60,19 +76,14 @@ export const StaffForm: React.FC<StaffFormProps> = ({
 }) => {
     const [isUploading, setIsUploading] = useState(false);
 
+    const nameValues = extractStaffLocalizedField(staff, 'name');
+    const positionValues = extractStaffLocalizedField(staff, 'position');
+    const bioValues = extractStaffLocalizedField(staff, 'bio');
+
     const { data, setData, processing, errors, reset } = useForm<StaffFormData>({
-        name: {
-            'zh-TW': getLocalizedValue(staff?.name, 'zh-TW'),
-            'en': getLocalizedValue(staff?.name, 'en')
-        },
-        position: {
-            'zh-TW': getLocalizedValue(staff?.position, 'zh-TW'),
-            'en': getLocalizedValue(staff?.position, 'en')
-        },
-        bio: {
-            'zh-TW': getLocalizedValue(staff?.bio, 'zh-TW'),
-            'en': getLocalizedValue(staff?.bio, 'en')
-        },
+        name: nameValues,
+        position: positionValues,
+        bio: bioValues,
         email: staff?.email || '',
         phone: staff?.phone || '',
         sort_order: staff?.sort_order || 0,

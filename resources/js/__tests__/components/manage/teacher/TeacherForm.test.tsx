@@ -150,8 +150,8 @@ describe('TeacherForm Component', () => {
     };
 
     const mockUsers = [
-        { id: 1, name: '張教授', email: 'prof.zhang@example.com' },
-        { id: 2, name: '李教授', email: 'prof.li@example.com' }
+        { id: 1, name: '張教授', email: 'prof.zhang@example.com', role: 'teacher' as const },
+        { id: 2, name: '李教授', email: 'prof.li@example.com', role: 'teacher' as const }
     ];
 
     const mockLabs = [

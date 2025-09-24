@@ -107,8 +107,10 @@ describe('Staff Index Page', () => {
         active: [
             {
                 id: 1,
-                name: { 'zh-TW': '張三', en: 'Zhang San' },
-                position: { 'zh-TW': '系辦職員', en: 'Department Staff' },
+                name: '張三',
+                name_en: 'Zhang San',
+                position: '系辦職員',
+                position_en: 'Department Staff',
                 email: 'zhang.san@example.com',
                 phone: '02-12345678',
                 visible: true,
@@ -116,8 +118,10 @@ describe('Staff Index Page', () => {
             },
             {
                 id: 2,
-                name: { 'zh-TW': '李四', en: 'Li Si' },
-                position: { 'zh-TW': '系辦助理', en: 'Department Assistant' },
+                name: '李四',
+                name_en: 'Li Si',
+                position: '系辦助理',
+                position_en: 'Department Assistant',
                 email: 'li.si@example.com',
                 phone: '02-87654321',
                 visible: true,
@@ -127,9 +131,13 @@ describe('Staff Index Page', () => {
         trashed: [
             {
                 id: 3,
-                name: { 'zh-TW': '王五', en: 'Wang Wu' },
-                position: { 'zh-TW': '前職員', en: 'Former Staff' },
+                name: '王五',
+                name_en: 'Wang Wu',
+                position: '前職員',
+                position_en: 'Former Staff',
                 email: 'wang.wu@example.com',
+                visible: false,
+                sort_order: 30,
                 deleted_at: '2024-01-01T00:00:00.000000Z',
             },
         ],
@@ -150,6 +158,7 @@ describe('Staff Index Page', () => {
                     id: 1,
                     name: '陳教授',
                     email: 'prof.chen@example.com',
+                    role: 'teacher' as const,
                 },
                 lab: {
                     id: 1,

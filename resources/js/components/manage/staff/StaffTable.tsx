@@ -23,17 +23,22 @@ import { LocalizedContent, Staff } from '@/types/staff';
 
 const resolveLocalizedField = (
     value: string | LocalizedContent | undefined,
-    locale: 'zh-TW' | 'en'
+    locale: 'zh-TW' | 'en',
+    fallback?: string
 ): string => {
     if (!value) {
-        return '';
+        return fallback ?? '';
     }
 
     if (typeof value === 'string') {
-        return value;
+        return locale === 'zh-TW' ? value : fallback ?? '';
     }
 
-    return value[locale] ?? value['zh-TW'] ?? '';
+    if (locale === 'en') {
+        return value.en ?? fallback ?? value['zh-TW'] ?? '';
+    }
+
+    return value['zh-TW'] ?? fallback ?? '';
 };
 
 interface StaffTableProps {
@@ -95,15 +100,21 @@ export const StaffTable: React.FC<StaffTableProps> = ({
     };
 
     const getDisplayName = (staffMember: Staff) => {
-        return resolveLocalizedField(staffMember.name, locale);
+        const localizedValue = staffMember.name as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.name_en : staffMember.name;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     const getDisplayPosition = (staffMember: Staff) => {
-        return resolveLocalizedField(staffMember.position, locale);
+        const localizedValue = staffMember.position as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.position_en : staffMember.position;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     const getDisplayBio = (staffMember: Staff) => {
-        return resolveLocalizedField(staffMember.bio, locale);
+        const localizedValue = staffMember.bio as unknown as string | LocalizedContent | undefined;
+        const fallback = locale === 'en' ? staffMember.bio_en : staffMember.bio;
+        return resolveLocalizedField(localizedValue, locale, fallback);
     };
 
     if (!staff || staff.length === 0) {

@@ -100,7 +100,7 @@ describe('TeacherTable Component', () => {
             visible: true,
             sort_order: 1,
             avatar: undefined,
-            user: { id: 1, name: '張教授', email: 'prof.zhang@example.com' },
+            user: { id: 1, name: '張教授', email: 'prof.zhang@example.com', role: 'teacher' as const },
             lab: { id: 1, name: { 'zh-TW': 'AI 實驗室', 'en': 'AI Lab' } }
         },
         {
@@ -118,8 +118,8 @@ describe('TeacherTable Component', () => {
                 { 'zh-TW': '清大資工博士', 'en': 'Ph.D. in CS, NTHU' }
             ],
             website: undefined,
-            user_id: null,
-            lab_id: null,
+            user_id: undefined,
+            lab_id: undefined,
             visible: false,
             sort_order: 2,
             avatar: undefined,
