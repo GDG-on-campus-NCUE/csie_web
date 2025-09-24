@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import type { ChangeEvent } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, DragEvent } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -148,18 +148,21 @@ export default function PostsIndex({ posts, categories, authors, filters, status
     const [selected, setSelected] = useState<number[]>([]);
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [fileInputKey, setFileInputKey] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const defaultPerPage = perPageOptions[0] ?? 20;
 
     const flashMessages: PostFlashMessages = flash ?? {};
-    const importForm = useForm<{ action: 'import'; file: File | null }>({
+    const importForm = useForm<{ action: 'import'; files: File[] }>({
         action: 'import',
-        file: null,
+        files: [],
     });
 
     const resetImportForm = () => {
         importForm.reset();
         setFileInputKey((previous) => previous + 1);
         importForm.clearErrors();
+        setIsDragging(false);
     };
 
     const handleDialogChange = (open: boolean) => {
@@ -169,19 +172,68 @@ export default function PostsIndex({ posts, categories, authors, filters, status
         }
     };
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0] ?? null;
-        importForm.setData('file', file);
-        if (file) {
-            importForm.clearErrors('file');
+    const updateSelectedFiles = (files: FileList | File[] | null) => {
+        const normalized = files ? Array.from(files) : [];
+        importForm.setData('files', normalized);
+
+        if (normalized.length > 0) {
+            importForm.clearErrors();
         }
     };
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        updateSelectedFiles(event.target.files);
+    };
+
+    const handleDropZoneDragEnter = (event: DragEvent<HTMLLabelElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDropZoneDragOver = (event: DragEvent<HTMLLabelElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!isDragging) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDropZoneDragLeave = (event: DragEvent<HTMLLabelElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const relatedTarget = event.relatedTarget as Node | null;
+        if (!relatedTarget || !event.currentTarget.contains(relatedTarget)) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDropZoneDrop = (event: DragEvent<HTMLLabelElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+        updateSelectedFiles(event.dataTransfer?.files ?? null);
+    };
+
+    const selectedFiles = importForm.data.files;
+
+    const fileErrorMessage = useMemo(() => {
+        if (importForm.errors.files) {
+            return importForm.errors.files;
+        }
+
+        const entries = Object.entries(importForm.errors) as Array<[string, string]>;
+        const nested = entries.find(([key]) => key.startsWith('files.'));
+
+        return nested ? nested[1] : undefined;
+    }, [importForm.errors]);
 
     const handleImportSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!importForm.data.file) {
-            importForm.setError('file', '請選擇要上傳的 CSV 檔案');
+        if (!importForm.data.files || importForm.data.files.length === 0) {
+            importForm.setError('files', '請選擇要上傳的 CSV 檔案');
             return;
         }
 
@@ -416,17 +468,53 @@ export default function PostsIndex({ posts, categories, authors, filters, status
                         <form onSubmit={handleImportSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="posts-import-file">{t('posts.index.import.file_label', '選擇 CSV 檔案')}</Label>
-                                <Input
-                                    key={fileInputKey}
-                                    id="posts-import-file"
-                                    type="file"
-                                    accept=".csv"
-                                    onChange={handleFileChange}
-                                    required
-                                />
-                                {importForm.errors.file && (
-                                    <p className="text-sm text-red-600">{importForm.errors.file}</p>
+                                <label
+                                    htmlFor="posts-import-file"
+                                    onDragEnter={handleDropZoneDragEnter}
+                                    onDragOver={handleDropZoneDragOver}
+                                    onDragLeave={handleDropZoneDragLeave}
+                                    onDrop={handleDropZoneDrop}
+                                    className={cn(
+                                        'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center transition-colors',
+                                        isDragging ? 'border-primary bg-primary/5' : 'hover:border-slate-400'
+                                    )}
+                                >
+                                    <input
+                                        key={fileInputKey}
+                                        ref={fileInputRef}
+                                        id="posts-import-file"
+                                        type="file"
+                                        accept=".csv"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+
+                                    <Upload className="h-10 w-10 text-slate-400" />
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-slate-700">
+                                            {t('posts.index.import.drop_label', '拖曳或點擊上傳 CSV 檔案')}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            {t('posts.index.import.drop_hint', '支援一次匯入多個檔案')}
+                                        </p>
+                                    </div>
+                                </label>
+
+                                {selectedFiles.length > 0 && (
+                                    <ul className="space-y-1 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                                        {selectedFiles.map((file, index) => (
+                                            <li key={`${file.name}-${index}`} className="flex items-center gap-2">
+                                                <FileText className="h-4 w-4 text-slate-400" />
+                                                <span className="truncate" title={file.name}>
+                                                    {file.name}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 )}
+
+                                {fileErrorMessage && <p className="text-sm text-red-600">{fileErrorMessage}</p>}
                             </div>
 
                             <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">

@@ -390,7 +390,8 @@ class PostController extends Controller
         ];
 
         if ($action === 'import') {
-            $rules['file'] = ['required', 'file', 'mimes:csv,txt', 'max:5120'];
+            $rules['files'] = ['required', 'array', 'min:1'];
+            $rules['files.*'] = ['file', 'mimes:csv,txt', 'max:5120'];
         } else {
             $rules['ids'] = ['required', 'array'];
             $rules['ids.*'] = ['integer', 'exists:posts,id'];
@@ -399,10 +400,10 @@ class PostController extends Controller
         $validated = $request->validate($rules);
 
         if ($validated['action'] === 'import') {
-            /** @var UploadedFile $file */
-            $file = $validated['file'];
+            /** @var array<int, UploadedFile> $files */
+            $files = $request->file('files', []);
 
-            return $this->importPostsFromCsv($request, $file);
+            return $this->importPostsFromCsv($request, $files);
         }
 
         $posts = Post::whereIn('id', $validated['ids'])->get();
@@ -440,17 +441,74 @@ class PostController extends Controller
         return redirect()->route('manage.posts.index')->with('success', '已將所選公告設為草稿');
     }
 
-    protected function importPostsFromCsv(Request $request, UploadedFile $file): RedirectResponse
+    protected function importPostsFromCsv(Request $request, array $files): RedirectResponse
     {
+        $totalCreated = 0;
+        $totalSkipped = 0;
+        $allErrors = [];
+        $processed = 0;
+
+        foreach ($files as $file) {
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
+            $processed++;
+
+            $result = $this->processCsvImportFile($request, $file);
+
+            $totalCreated += $result['created'];
+            $totalSkipped += $result['skipped'];
+            if (! empty($result['errors'])) {
+                $allErrors = array_merge($allErrors, $result['errors']);
+            }
+        }
+
+        if ($processed === 0) {
+            return redirect()
+                ->route('manage.posts.index')
+                ->with('error', '請選擇要上傳的 CSV 檔案')
+                ->with('importErrors', $allErrors);
+        }
+
+        if ($totalCreated === 0) {
+            return redirect()
+                ->route('manage.posts.index')
+                ->with('error', '未成功匯入任何公告，請檢查 CSV 檔案')
+                ->with('importErrors', $allErrors);
+        }
+
+        $message = "成功匯入 {$totalCreated} 筆公告";
+        if ($totalSkipped > 0) {
+            $message .= "，另外略過 {$totalSkipped} 筆未成功的資料";
+        }
+
+        return redirect()
+            ->route('manage.posts.index')
+            ->with('success', $message)
+            ->with('importErrors', $allErrors);
+    }
+
+    private function processCsvImportFile(Request $request, UploadedFile $file): array
+    {
+        $fileName = $file->getClientOriginalName();
         $realPath = $file->getRealPath();
 
         if (! $realPath || ! is_readable($realPath)) {
-            return back()->withErrors(['file' => 'CSV 檔案無法讀取，請重新上傳。']);
+            return [
+                'created' => 0,
+                'skipped' => 0,
+                'errors' => ["{$fileName}：CSV 檔案無法讀取，請重新上傳。"],
+            ];
         }
 
         $handle = fopen($realPath, 'rb');
         if ($handle === false) {
-            return back()->withErrors(['file' => 'CSV 檔案開啟失敗，請稍後再試。']);
+            return [
+                'created' => 0,
+                'skipped' => 0,
+                'errors' => ["{$fileName}：CSV 檔案開啟失敗，請稍後再試。"],
+            ];
         }
 
         $lineNumber = 1;
@@ -461,7 +519,11 @@ class PostController extends Controller
         try {
             $header = fgetcsv($handle);
             if ($header === false) {
-                return back()->withErrors(['file' => 'CSV 檔案沒有資料，請確認後再試。']);
+                return [
+                    'created' => 0,
+                    'skipped' => 0,
+                    'errors' => ["{$fileName}：CSV 檔案沒有資料，請確認後再試。"],
+                ];
             }
 
             $normalizedHeader = [];
@@ -474,9 +536,13 @@ class PostController extends Controller
 
             $categoryColumn = $normalizedHeader['category_slug'] ?? $normalizedHeader['category_id'] ?? null;
             if ($categoryColumn === null || ! array_key_exists('title', $normalizedHeader) || ! array_key_exists('content', $normalizedHeader)) {
-                return back()->withErrors([
-                    'file' => 'CSV 檔案缺少必要欄位，請至少包含「title」、「content」及「category_slug」或「category_id」。',
-                ]);
+                return [
+                    'created' => 0,
+                    'skipped' => 0,
+                    'errors' => [
+                        "{$fileName}：CSV 檔案缺少必要欄位，請至少包含「title」、「content」及「category_slug」或「category_id」。",
+                    ],
+                ];
             }
 
             while (($row = fgetcsv($handle)) !== false) {
@@ -595,6 +661,7 @@ class PostController extends Controller
                     $skipped++;
                     $errors[] = "第 {$lineNumber} 行：{$exception->getMessage()}";
                     Log::warning('批次匯入公告失敗', [
+                        'file' => $fileName,
                         'line' => $lineNumber,
                         'message' => $exception->getMessage(),
                     ]);
@@ -604,15 +671,19 @@ class PostController extends Controller
             fclose($handle);
         }
 
-        $message = "成功匯入 {$created} 筆公告";
-        if ($skipped > 0) {
-            $message .= "，另外略過 {$skipped} 筆未成功的資料";
+        if ($created === 0 && $skipped === 0 && empty($errors)) {
+            return [
+                'created' => 0,
+                'skipped' => 0,
+                'errors' => ["{$fileName}：未找到任何有效的公告資料。"],
+            ];
         }
 
-        return redirect()
-            ->route('manage.posts.index')
-            ->with('success', $message)
-            ->with('importErrors', $errors);
+        return [
+            'created' => $created,
+            'skipped' => $skipped,
+            'errors' => array_map(fn ($message) => "{$fileName}：{$message}", $errors),
+        ];
     }
 
     private function statusOptions(?\Illuminate\Contracts\Auth\Authenticatable $user, ?Post $post = null): array
