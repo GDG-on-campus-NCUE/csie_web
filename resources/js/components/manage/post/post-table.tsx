@@ -67,7 +67,7 @@ export function PostTable({
 
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
-            <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
+            <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
                     <CardTitle className="text-lg font-semibold text-slate-900">
                         {t('posts.index.table.title', fallbackText('公告列表', 'Announcements'))}
@@ -111,7 +111,7 @@ export function PostTable({
                 )}
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="hidden md:block">
+                <div className="hidden xl:block">
                     <table className="min-w-full divide-y divide-slate-200 text-sm">
                         <thead className="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                             <tr>
@@ -257,7 +257,7 @@ export function PostTable({
                     </table>
                 </div>
 
-                <div className="grid gap-3 md:hidden">
+                <div className="grid gap-3 xl:hidden">
                     {posts.length === 0 ? (
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
                             {t('posts.index.table.empty', fallbackText('尚無符合條件的公告。', 'No announcements match the filters.'))}

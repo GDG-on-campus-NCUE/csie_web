@@ -41,6 +41,8 @@ export function PostImportUploader({
     const resetInput = () => {
         setInputKey((previous) => previous + 1);
         importForm.reset();
+        // 回復預設的轉換函式，避免殘留舊的 FormData 設定。
+        importForm.transform((data) => data);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -56,7 +58,18 @@ export function PostImportUploader({
             return;
         }
 
-        importForm.setData({ action: 'import', files });
+        // 以函式更新方式確保狀態同步，避免殘留舊的檔案清單。
+        importForm.setData((previous) => ({ ...previous, action: 'import', files }));
+
+        // 手動建構 FormData，明確設定後端預期的欄位名稱，避免批次匯入時找不到檔案欄位。
+        importForm.transform(() => {
+            const formData = new FormData();
+            formData.append('action', 'import');
+            files.forEach((file) => {
+                formData.append('files[]', file, file.name);
+            });
+            return formData;
+        });
 
         const startMessage = t(
             'posts.index.import.start_toast',
@@ -135,6 +148,7 @@ export function PostImportUploader({
                 ref={fileInputRef}
                 type="file"
                 accept=".csv"
+                name="files"
                 multiple
                 className="hidden"
                 onChange={handleFileChange}
