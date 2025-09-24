@@ -37,6 +37,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $shared = parent::share($request);
+
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $availableLocales = ['zh-TW', 'en'];
@@ -49,7 +51,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         return [
-            ...parent::share($request),
+            ...$shared,
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
@@ -60,6 +62,11 @@ class HandleInertiaRequests extends Middleware
             'locales' => $availableLocales,
             // 前端共用的翻譯字串
             'i18n' => $translations,
+            'flash' => [
+                ...($shared['flash'] ?? []),
+                'info' => $request->session()->get('info'),
+                'importErrors' => $request->session()->get('importErrors'),
+            ],
         ];
     }
 }

@@ -78,6 +78,19 @@ class ProgramController extends Controller
      */
     public function update(Request $request, Program $program)
     {
+        if ($request->input('action') === 'sync-posts') {
+            $validated = $request->validate([
+                'action' => ['required', 'in:sync-posts'],
+                'posts' => ['nullable', 'array'],
+                'posts.*' => ['integer', 'exists:posts,id'],
+            ]);
+
+            $program->posts()->sync($validated['posts'] ?? []);
+
+            return redirect()->route('manage.academics.index', ['tab' => 'programs'])
+                ->with('success', '學程已更新對應公告內容');
+        }
+
         $validated = $request->validate([
             'code' => 'nullable|string|unique:programs,code,' . $program->id,
             'name' => 'required|array',
@@ -90,9 +103,18 @@ class ProgramController extends Controller
             'website_url' => 'nullable|url',
             'sort_order' => 'integer',
             'visible' => 'boolean',
+            'posts' => ['sometimes', 'array'],
+            'posts.*' => ['integer', 'exists:posts,id'],
         ]);
 
+        $posts = $validated['posts'] ?? null;
+        unset($validated['posts']);
+
         $program->update($validated);
+
+        if ($posts !== null) {
+            $program->posts()->sync($posts);
+        }
 
         return redirect()->route('manage.academics.index', ['tab' => 'programs'])
             ->with('success', '學程更新成功');

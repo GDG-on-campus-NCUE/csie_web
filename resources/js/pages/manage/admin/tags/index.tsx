@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,14 +76,12 @@ export default function TagsIndex({ tags, contextOptions, tableReady }: TagsInde
         <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
             <Head title={pageTitle} />
 
-            <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-                <Card className="border border-slate-200 bg-white shadow-sm">
-                    <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold text-slate-900">{pageTitle}</h1>
-                            <p className="text-sm text-slate-600">{pageDescription}</p>
-                        </div>
-                        {tableReady ? (
+            <section className="space-y-6">
+                <ManagePageHeader
+                    title={pageTitle}
+                    description={pageDescription}
+                    actions={
+                        tableReady ? (
                             <Button asChild className="rounded-full">
                                 <Link href="/manage/tags/create" className="inline-flex items-center gap-2">
                                     <Plus className="h-4 w-4" />
@@ -94,9 +93,9 @@ export default function TagsIndex({ tags, contextOptions, tableReady }: TagsInde
                                 <Plus className="h-4 w-4" />
                                 {t('tags.index.actions.create', '新增標籤')}
                             </Button>
-                        )}
-                    </CardContent>
-                </Card>
+                        )
+                    }
+                />
 
                 <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardHeader className="border-b border-slate-100 pb-4">
