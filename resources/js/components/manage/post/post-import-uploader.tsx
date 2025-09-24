@@ -4,7 +4,11 @@ import type { TranslatorFunction } from './post-types';
 
 // 將批次匯入流程抽象為單一按鈕與隱藏的檔案輸入框，避免出現干擾視覺的對話框。
 interface PostImportUploaderProps {
-    trigger: ReactElement<{ onClick?: (event: MouseEvent<any>) => void; disabled?: boolean }>;
+    trigger: ReactElement<{
+        onClick?: (event: MouseEvent<any>) => void;
+        disabled?: boolean;
+        'data-import-processing'?: string;
+    }>;
     t: TranslatorFunction;
     fallbackLanguage: 'zh' | 'en';
     onStart?: (message: string) => void;
