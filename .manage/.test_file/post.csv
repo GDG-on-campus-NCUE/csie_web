@@ -1,51 +1,6 @@
-title,content,category_slug
-範例公告 01,這是用於匯入測試的第 1 筆公告內容。,general
-範例公告 02,這是用於匯入測試的第 2 筆公告內容。,general
-範例公告 03,這是用於匯入測試的第 3 筆公告內容。,general
-範例公告 04,這是用於匯入測試的第 4 筆公告內容。,general
-範例公告 05,這是用於匯入測試的第 5 筆公告內容。,general
-範例公告 06,這是用於匯入測試的第 6 筆公告內容。,general
-範例公告 07,這是用於匯入測試的第 7 筆公告內容。,general
-範例公告 08,這是用於匯入測試的第 8 筆公告內容。,general
-範例公告 09,這是用於匯入測試的第 9 筆公告內容。,general
-範例公告 10,這是用於匯入測試的第 10 筆公告內容。,general
-範例公告 11,這是用於匯入測試的第 11 筆公告內容。,general
-範例公告 12,這是用於匯入測試的第 12 筆公告內容。,general
-範例公告 13,這是用於匯入測試的第 13 筆公告內容。,general
-範例公告 14,這是用於匯入測試的第 14 筆公告內容。,general
-範例公告 15,這是用於匯入測試的第 15 筆公告內容。,general
-範例公告 16,這是用於匯入測試的第 16 筆公告內容。,general
-範例公告 17,這是用於匯入測試的第 17 筆公告內容。,general
-範例公告 18,這是用於匯入測試的第 18 筆公告內容。,general
-範例公告 19,這是用於匯入測試的第 19 筆公告內容。,general
-範例公告 20,這是用於匯入測試的第 20 筆公告內容。,general
-範例公告 21,這是用於匯入測試的第 21 筆公告內容。,general
-範例公告 22,這是用於匯入測試的第 22 筆公告內容。,general
-範例公告 23,這是用於匯入測試的第 23 筆公告內容。,general
-範例公告 24,這是用於匯入測試的第 24 筆公告內容。,general
-範例公告 25,這是用於匯入測試的第 25 筆公告內容。,general
-範例公告 26,這是用於匯入測試的第 26 筆公告內容。,general
-範例公告 27,這是用於匯入測試的第 27 筆公告內容。,general
-範例公告 28,這是用於匯入測試的第 28 筆公告內容。,general
-範例公告 29,這是用於匯入測試的第 29 筆公告內容。,general
-範例公告 30,這是用於匯入測試的第 30 筆公告內容。,general
-範例公告 31,這是用於匯入測試的第 31 筆公告內容。,general
-範例公告 32,這是用於匯入測試的第 32 筆公告內容。,general
-範例公告 33,這是用於匯入測試的第 33 筆公告內容。,general
-範例公告 34,這是用於匯入測試的第 34 筆公告內容。,general
-範例公告 35,這是用於匯入測試的第 35 筆公告內容。,general
-範例公告 36,這是用於匯入測試的第 36 筆公告內容。,general
-範例公告 37,這是用於匯入測試的第 37 筆公告內容。,general
-範例公告 38,這是用於匯入測試的第 38 筆公告內容。,general
-範例公告 39,這是用於匯入測試的第 39 筆公告內容。,general
-範例公告 40,這是用於匯入測試的第 40 筆公告內容。,general
-範例公告 41,這是用於匯入測試的第 41 筆公告內容。,general
-範例公告 42,這是用於匯入測試的第 42 筆公告內容。,general
-範例公告 43,這是用於匯入測試的第 43 筆公告內容。,general
-範例公告 44,這是用於匯入測試的第 44 筆公告內容。,general
-範例公告 45,這是用於匯入測試的第 45 筆公告內容。,general
-範例公告 46,這是用於匯入測試的第 46 筆公告內容。,general
-範例公告 47,這是用於匯入測試的第 47 筆公告內容。,general
-範例公告 48,這是用於匯入測試的第 48 筆公告內容。,general
-範例公告 49,這是用於匯入測試的第 49 筆公告內容。,general
-範例公告 50,這是用於匯入測試的第 50 筆公告內容。,general
+title,title_en,content,content_en,summary,summary_en,category_slug,status,publish_at,tags,source_url
+公告示範 01,Sample Announcement 01,"這是第 1 筆公告內容，包含了公告的詳細說明。","This is the first announcement content with detailed description.","簡短摘要 01","Short summary 01",general,published,2024-09-01 09:00,"公告, 活動","https://example.com/post-01"
+公告示範 02,Sample Announcement 02,"這是第 2 筆公告內容，說明活動與注意事項。","This is the second announcement explaining the event and reminders.","簡短摘要 02","Short summary 02",general,scheduled,2024-09-15 13:30,"招生, 活動","https://example.com/post-02"
+公告示範 03,Sample Announcement 03,"這是第 3 筆公告內容，提醒期中考資訊。","This is the third announcement reminding midterm information.","簡短摘要 03","Short summary 03",academic,draft,,"課程, 考試",
+公告示範 04,Sample Announcement 04,"這是第 4 筆公告內容，分享成果發表。","This is the fourth announcement sharing research results.","簡短摘要 04","Short summary 04",research,published,2024-10-05 10:00,"研究, 榮譽","https://example.com/post-04"
+公告示範 05,Sample Announcement 05,"這是第 5 筆公告內容，提供系所最新消息。","This is the fifth announcement providing the latest department news.","簡短摘要 05","Short summary 05",general,published,2024-08-20 08:30,"公告, 最新消息",

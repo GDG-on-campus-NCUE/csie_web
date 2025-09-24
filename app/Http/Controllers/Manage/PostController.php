@@ -180,6 +180,8 @@ class PostController extends Controller
 
         $excerpt = $this->sanitizePlainText($validated['excerpt'] ?? null);
 
+        $tags = $this->prepareTags($request->input('tags'));
+
         $post = new Post([
             'category_id' => (int) $validated['category_id'],
             'title' => $validated['title'],
@@ -192,7 +194,7 @@ class PostController extends Controller
             'status' => $resolvedStatus,
             'publish_at' => $publishAt,
             'pinned' => false,
-            'tags' => $this->prepareTags($request->input('tags')),
+            'tags' => $tags,
             'source_type' => 'manual',
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
@@ -204,6 +206,7 @@ class PostController extends Controller
 
         $post->save();
 
+        $this->ensureTagsRegistered($tags);
         $this->syncAttachments($post, $request);
 
         return redirect()->route('manage.posts.index')->with('success', '公告建立成功');
@@ -338,6 +341,8 @@ class PostController extends Controller
 
         $excerpt = $this->sanitizePlainText($validated['excerpt'] ?? null);
 
+        $tags = $this->prepareTags($request->input('tags'));
+
         $post->fill([
             'category_id' => (int) $validated['category_id'],
             'title' => $validated['title'],
@@ -349,7 +354,7 @@ class PostController extends Controller
             'content_en' => $content,
             'status' => $resolvedStatus,
             'publish_at' => $publishAt,
-            'tags' => $this->prepareTags($request->input('tags')),
+            'tags' => $tags,
             'updated_by' => $request->user()->id,
         ]);
 
@@ -365,6 +370,7 @@ class PostController extends Controller
 
         $post->save();
 
+        $this->ensureTagsRegistered($tags);
         $this->syncAttachments($post, $request);
 
         return redirect()->route('manage.posts.index')->with('success', '公告更新成功');
@@ -545,6 +551,8 @@ class PostController extends Controller
                 ];
             }
 
+            $collectedTags = [];
+
             while (($row = fgetcsv($handle)) !== false) {
                 $lineNumber++;
 
@@ -609,6 +617,9 @@ class PostController extends Controller
 
                     $tagsInput = $normalizedHeader['tags'] ?? null;
                     $tags = $tagsInput !== null ? $this->prepareTags($row[$tagsInput] ?? []) : [];
+                    if (! empty($tags)) {
+                        $collectedTags = array_merge($collectedTags, $tags);
+                    }
 
                     $titleEn = isset($normalizedHeader['title_en'])
                         ? trim((string) ($row[$normalizedHeader['title_en']] ?? ''))
@@ -666,6 +677,10 @@ class PostController extends Controller
                         'message' => $exception->getMessage(),
                     ]);
                 }
+            }
+
+            if (! empty($collectedTags)) {
+                $this->ensureTagsRegistered($collectedTags);
             }
         } finally {
             fclose($handle);
@@ -845,6 +860,82 @@ class PostController extends Controller
                 ]);
             }
         }
+    }
+
+    /**
+     * 將表單或匯入中出現的新標籤同步寫入 tags 資料表，方便其他模組共用。
+     */
+    private function ensureTagsRegistered(array $tags): void
+    {
+        if (empty($tags) || ! Tag::tableExists()) {
+            return;
+        }
+
+        $normalized = collect($tags)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($normalized->isEmpty()) {
+            return;
+        }
+
+        foreach (['posts', 'attachments'] as $context) {
+            $existingTags = Tag::query()
+                ->where('context', $context)
+                ->get(['name', 'slug']);
+
+            $existingByName = [];
+            $existingSlugs = [];
+
+            foreach ($existingTags as $tag) {
+                $existingByName[mb_strtolower($tag->name)] = $tag->slug;
+                $existingSlugs[strtolower($tag->slug)] = $tag->slug;
+            }
+
+            foreach ($normalized as $name) {
+                $lower = mb_strtolower($name);
+                if (isset($existingByName[$lower])) {
+                    continue;
+                }
+
+                $slug = $this->generateTagSlug($name, $context, $existingSlugs);
+
+                Tag::create([
+                    'context' => $context,
+                    'name' => $name,
+                    'slug' => $slug,
+                    'description' => null,
+                    'sort_order' => 0,
+                ]);
+
+                $existingByName[$lower] = $slug;
+            }
+        }
+    }
+
+    /**
+     * 產生不重複的標籤 slug，避免不同模組共用時發生衝突。
+     */
+    private function generateTagSlug(string $name, string $context, array &$existingSlugs): string
+    {
+        $base = Str::slug($name);
+        if ($base === '') {
+            $base = Str::slug(Str::random(8));
+        }
+
+        $candidate = $base;
+        $suffix = 1;
+
+        while (isset($existingSlugs[strtolower($candidate)])) {
+            $candidate = $base . '-' . $suffix;
+            $suffix++;
+        }
+
+        $existingSlugs[strtolower($candidate)] = $candidate;
+
+        return $candidate;
     }
 
     private function removeAttachments(EloquentCollection $attachments): void

@@ -62,16 +62,18 @@ export function PostTable({
 }: PostTableProps) {
     const selectedCount = selectedIds.length;
     const allSelected = posts.length > 0 && selectedCount === posts.length;
+    // 依語系提供預設文字，避免英文介面仍顯示中文字串。
+    const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
 
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
             <CardHeader className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <CardTitle className="text-lg font-semibold text-slate-900">
-                        {t('posts.index.table.title', '公告列表')}
+                        {t('posts.index.table.title', fallbackText('公告列表', 'Announcements'))}
                     </CardTitle>
                     <p className="text-sm text-slate-600">
-                        {t('posts.index.table.records_total', '共 :total 筆資料', {
+                        {t('posts.index.table.records_total', fallbackText('共 :total 筆資料', 'Total :total records'), {
                             total: pagination.total,
                         })}
                     </p>
@@ -85,7 +87,7 @@ export function PostTable({
                             onClick={() => onBulkAction('publish')}
                         >
                             <FileText className="mr-2 h-4 w-4" />
-                            {t('posts.index.actions.bulk_publish', '批次發布')}
+                            {t('posts.index.actions.bulk_publish', fallbackText('批次發布', 'Bulk publish'))}
                         </Button>
                         <Button
                             type="button"
@@ -94,7 +96,7 @@ export function PostTable({
                             onClick={() => onBulkAction('unpublish')}
                         >
                             <Calendar className="mr-2 h-4 w-4" />
-                            {t('posts.index.actions.bulk_unpublish', '設為草稿')}
+                            {t('posts.index.actions.bulk_unpublish', fallbackText('設為草稿', 'Mark as draft'))}
                         </Button>
                         <Button
                             type="button"
@@ -103,7 +105,7 @@ export function PostTable({
                             onClick={() => onBulkAction('delete')}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {t('posts.index.actions.bulk_delete', '刪除選取')}
+                            {t('posts.index.actions.bulk_delete', fallbackText('刪除選取', 'Delete selected'))}
                         </Button>
                     </div>
                 )}
@@ -121,21 +123,37 @@ export function PostTable({
                                         />
                                     </th>
                                 )}
-                                <th className="px-4 py-3">{t('posts.index.table.columns.title', '標題')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.category', '分類')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.author', '作者')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.status', '狀態')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.published_at', '發布時間')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.views', '瀏覽數')}</th>
-                                <th className="px-4 py-3">{t('posts.index.table.columns.attachments', '附件')}</th>
-                                <th className="px-4 py-3 text-right">{t('posts.index.table.columns.actions', '操作')}</th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.title', fallbackText('標題', 'Title'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.category', fallbackText('分類', 'Category'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.author', fallbackText('作者', 'Author'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.status', fallbackText('狀態', 'Status'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.published_at', fallbackText('發布時間', 'Published at'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.views', fallbackText('瀏覽數', 'Views'))}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t('posts.index.table.columns.attachments', fallbackText('附件', 'Attachments'))}
+                                </th>
+                                <th className="px-4 py-3 text-right">
+                                    {t('posts.index.table.columns.actions', fallbackText('操作', 'Actions'))}
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
                             {posts.length === 0 ? (
                                 <tr>
                                     <td colSpan={canBulk ? 9 : 8} className="px-4 py-6 text-center text-sm text-slate-500">
-                                        {t('posts.index.table.empty', '尚無符合條件的公告。')}
+                                        {t('posts.index.table.empty', fallbackText('尚無符合條件的公告。', 'No announcements match the filters.'))}
                                     </td>
                                 </tr>
                             ) : (
@@ -148,10 +166,10 @@ export function PostTable({
                                         ? fallbackLanguage === 'zh'
                                             ? post.category.name
                                             : post.category.name_en ?? post.category.name
-                                        : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                        : t('posts.show.not_set', fallbackText('未設定', 'Not set'));
                                     const authorLabel = post.author
                                         ? post.author.name
-                                        : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                        : t('posts.show.not_set', fallbackText('未設定', 'Not set'));
 
                                     return (
                                         <tr key={post.id} className={isSelected ? 'bg-slate-50/60' : undefined}>
@@ -172,7 +190,7 @@ export function PostTable({
                                                         {post.title}
                                                     </Link>
                                                     <span className="text-xs text-slate-500">
-                                                        {`${t('posts.show.slug', '網址 Slug')}：${post.slug}`}
+                                                        {`${t('posts.show.slug', fallbackText('網址 Slug', 'Slug'))}：${post.slug}`}
                                                     </span>
                                                 </div>
                                             </td>
@@ -183,7 +201,7 @@ export function PostTable({
                                             </td>
                                             <td className="px-4 py-3 text-slate-600">
                                                 {publishDate ??
-                                                    t('posts.index.table.not_scheduled', fallbackLanguage === 'zh' ? '未排程' : 'Not scheduled')}
+                                                    t('posts.index.table.not_scheduled', fallbackText('未排程', 'Not scheduled'))}
                                             </td>
                                             <td className="px-4 py-3 text-slate-600">{post.views}</td>
                                             <td className="px-4 py-3 text-slate-600">{post.attachments_count}</td>
@@ -196,7 +214,7 @@ export function PostTable({
                                                                 className={iconActionClass}
                                                                 aria-label={t(
                                                                     'posts.index.actions.view_aria',
-                                                                    fallbackLanguage === 'zh' ? '檢視公告' : 'View announcement',
+                                                                    fallbackText('檢視公告', 'View announcement'),
                                                                 )}
                                                             >
                                                                 <Eye className="h-4 w-4" />
@@ -205,7 +223,7 @@ export function PostTable({
                                                         <TooltipContent>
                                                             {t(
                                                                 'posts.index.actions.view_label',
-                                                                fallbackLanguage === 'zh' ? '檢視公告內容' : 'View details',
+                                                                fallbackText('檢視公告內容', 'View details'),
                                                             )}
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -216,7 +234,7 @@ export function PostTable({
                                                                 className={iconActionClass}
                                                                 aria-label={t(
                                                                     'posts.index.actions.edit_aria',
-                                                                    fallbackLanguage === 'zh' ? '編輯公告' : 'Edit announcement',
+                                                                    fallbackText('編輯公告', 'Edit announcement'),
                                                                 )}
                                                             >
                                                                 <Pen className="h-4 w-4" />
@@ -225,7 +243,7 @@ export function PostTable({
                                                         <TooltipContent>
                                                             {t(
                                                                 'posts.index.actions.edit_label',
-                                                                fallbackLanguage === 'zh' ? '編輯公告內容' : 'Edit this bulletin',
+                                                                fallbackText('編輯公告內容', 'Edit this announcement'),
                                                             )}
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -242,21 +260,21 @@ export function PostTable({
                 <div className="grid gap-3 md:hidden">
                     {posts.length === 0 ? (
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-                            {t('posts.index.table.empty', '尚無符合條件的公告。')}
+                            {t('posts.index.table.empty', fallbackText('尚無符合條件的公告。', 'No announcements match the filters.'))}
                         </div>
                     ) : (
                         posts.map((post) => {
                             const statusVariant = statusVariantMap[post.status];
                             const statusLabel = getStatusLabel(post.status, t, fallbackLanguage);
                             const isSelected = selectedIds.includes(post.id);
-                            const categoryLabel = post.category
-                                ? localeForDate === 'zh-TW'
-                                    ? post.category.name
-                                    : post.category.name_en ?? post.category.name
-                                : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
-                            const authorLabel = post.author
-                                ? post.author.name
-                                : t('posts.show.not_set', fallbackLanguage === 'zh' ? '未設定' : 'Not set');
+                                    const categoryLabel = post.category
+                                        ? localeForDate === 'zh-TW'
+                                            ? post.category.name
+                                            : post.category.name_en ?? post.category.name
+                                        : t('posts.show.not_set', fallbackText('未設定', 'Not set'));
+                                    const authorLabel = post.author
+                                        ? post.author.name
+                                        : t('posts.show.not_set', fallbackText('未設定', 'Not set'));
                             const publishDate = formatDateTime(post.publish_at, localeForDate);
 
                             return (
@@ -273,44 +291,44 @@ export function PostTable({
                                                 <Badge variant={statusVariant}>{statusLabel}</Badge>
                                             </div>
                                             <span className="text-xs text-slate-500">
-                                                {`${t('posts.show.slug', '網址 Slug')}：${post.slug}`}
+                                                {`${t('posts.show.slug', fallbackText('網址 Slug', 'Slug'))}：${post.slug}`}
                                             </span>
                                         </div>
 
                                         <div className="grid gap-2 text-sm text-slate-600">
                                             <div className="flex items-center justify-between gap-3">
                                                 <span className="font-medium text-slate-700">
-                                                    {t('posts.index.table.columns.category', '分類')}
+                                                    {t('posts.index.table.columns.category', fallbackText('分類', 'Category'))}
                                                 </span>
                                                 <span className="text-right">{categoryLabel}</span>
                                             </div>
                                             <div className="flex items-center justify-between gap-3">
                                                 <span className="font-medium text-slate-700">
-                                                    {t('posts.index.table.columns.author', '作者')}
+                                                    {t('posts.index.table.columns.author', fallbackText('作者', 'Author'))}
                                                 </span>
                                                 <span className="text-right">{authorLabel}</span>
                                             </div>
                                             <div className="flex items-center justify-between gap-3">
                                                 <span className="font-medium text-slate-700">
-                                                    {t('posts.index.table.columns.published_at', '發布時間')}
+                                                    {t('posts.index.table.columns.published_at', fallbackText('發布時間', 'Published at'))}
                                                 </span>
                                                 <span className="text-right">
                                                     {publishDate ??
                                                         t(
                                                             'posts.index.table.not_scheduled',
-                                                            fallbackLanguage === 'zh' ? '未排程' : 'Not scheduled',
+                                                            fallbackText('未排程', 'Not scheduled'),
                                                         )}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between gap-3">
                                                 <span className="font-medium text-slate-700">
-                                                    {t('posts.index.table.columns.views', '瀏覽數')}
+                                                    {t('posts.index.table.columns.views', fallbackText('瀏覽數', 'Views'))}
                                                 </span>
                                                 <span className="text-right">{post.views}</span>
                                             </div>
                                             <div className="flex items-center justify-between gap-3">
                                                 <span className="font-medium text-slate-700">
-                                                    {t('posts.index.table.columns.attachments', '附件')}
+                                                    {t('posts.index.table.columns.attachments', fallbackText('附件', 'Attachments'))}
                                                 </span>
                                                 <span className="text-right">{post.attachments_count}</span>
                                             </div>
@@ -325,8 +343,8 @@ export function PostTable({
                                                     />
                                                     <span className="text-xs text-slate-600">
                                                         {isSelected
-                                                            ? t('posts.index.mobile.selected', '已選取')
-                                                            : t('posts.index.mobile.select', '選取')}
+                                                            ? t('posts.index.mobile.selected', fallbackText('已選取', 'Selected'))
+                                                            : t('posts.index.mobile.select', fallbackText('選取', 'Select'))}
                                                     </span>
                                                 </div>
                                             )}
@@ -334,13 +352,13 @@ export function PostTable({
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link href={`/manage/posts/${post.id}`}>
                                                         <Eye className="mr-1 h-4 w-4" />
-                                                        {t('posts.index.actions.view_label', '檢視公告內容')}
+                                                        {t('posts.index.actions.view_label', fallbackText('檢視公告內容', 'View details'))}
                                                     </Link>
                                                 </Button>
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link href={`/manage/posts/${post.id}/edit`}>
                                                         <Pen className="mr-1 h-4 w-4" />
-                                                        {t('posts.index.actions.edit_label', '編輯公告內容')}
+                                                        {t('posts.index.actions.edit_label', fallbackText('編輯公告內容', 'Edit this announcement'))}
                                                     </Link>
                                                 </Button>
                                             </div>
@@ -355,12 +373,12 @@ export function PostTable({
                 {paginationLinks.length > 0 && (
                     <div className="flex flex-col gap-4 border-t border-slate-100 pt-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
                         <p>
-                            {t('posts.index.table.page', '第 :current / :last 頁', {
+                            {t('posts.index.table.page', fallbackText('第 :current / :last 頁', 'Page :current of :last'), {
                                 current: pagination.current_page,
                                 last: pagination.last_page,
                             })}
                             ，
-                            {t('posts.index.table.records_total', '共 :total 筆資料', {
+                            {t('posts.index.table.records_total', fallbackText('共 :total 筆資料', 'Total :total records'), {
                                 total: pagination.total,
                             })}
                         </p>
@@ -372,7 +390,7 @@ export function PostTable({
                                 className="h-9 w-9"
                                 onClick={() => changePage(pagination.current_page - 1)}
                                 disabled={pagination.current_page <= 1}
-                                aria-label={t('posts.index.table.prev', '上一頁')}
+                                aria-label={t('posts.index.table.prev', fallbackText('上一頁', 'Previous page'))}
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
@@ -406,7 +424,7 @@ export function PostTable({
                                 className="h-9 w-9"
                                 onClick={() => changePage(pagination.current_page + 1)}
                                 disabled={pagination.current_page >= pagination.last_page}
-                                aria-label={t('posts.index.table.next', '下一頁')}
+                                aria-label={t('posts.index.table.next', fallbackText('下一頁', 'Next page'))}
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
