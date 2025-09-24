@@ -28,6 +28,7 @@ export interface PaginationMeta {
     total: number;
     from?: number | null;
     to?: number | null;
+    links?: PaginationLink[];
 }
 
 export interface PaginationLink {
@@ -39,7 +40,7 @@ export interface PaginationLink {
 interface UserTableProps {
     data: UserRow[];
     meta: PaginationMeta;
-    links: PaginationLink[];
+    links?: PaginationLink[] | Record<string, unknown> | null;
     selected: number[];
     onSelect: (userId: number, checked: boolean) => void;
     onSelectAll: (checked: boolean) => void;
@@ -102,6 +103,13 @@ export default function UserTable({
     authUserId,
 }: UserTableProps) {
     const allIds = useMemo(() => data.map((user) => user.id), [data]);
+
+    // 為了避免 API 回傳的連結格式不一致，預先轉換為陣列以供下方渲染使用
+    const paginationLinks = Array.isArray(links)
+        ? links
+        : Array.isArray(meta.links)
+            ? meta.links
+            : [];
 
     const isAllSelected = allIds.length > 0 && allIds.every((id) => selected.includes(id));
     const isIndeterminate = selected.length > 0 && !isAllSelected;
@@ -300,7 +308,7 @@ export default function UserTable({
                     共 <span className="font-semibold text-neutral-900">{meta.total}</span> 筆資料
                 </div>
                 <div className="flex items-center gap-2">
-                    {links.map((link, index) => {
+                    {paginationLinks.map((link, index) => {
                         const label = link.label.replace('&laquo;', '«').replace('&raquo;', '»');
                         const isDisabled = !link.url;
                         return (
