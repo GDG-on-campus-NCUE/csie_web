@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import { Staff, Teacher } from '@/types/staff';
+import { LocalizedContent, Staff, Teacher } from '@/types/staff';
 import StaffTable from '@/components/manage/staff/StaffTable';
 import TeacherTable from '@/components/manage/staff/TeacherTable';
 import Pagination from '@/components/ui/pagination';
@@ -29,6 +29,21 @@ interface Props {
     perPage: number;
     perPageOptions: number[];
 }
+
+const resolveStaffText = (
+    value: string | LocalizedContent | undefined,
+    locale: 'zh-TW' | 'en' = 'zh-TW'
+): string => {
+    if (!value) {
+        return '';
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    return value[locale] ?? value['zh-TW'] ?? '';
+};
 
 export default function Index({
     initialTab,
@@ -92,7 +107,8 @@ export default function Index({
     };
 
     const handleStaffDelete = (staffMember: Staff) => {
-        if (confirm(`確定要刪除職員 ${staffMember.name} 嗎？`)) {
+        const staffName = resolveStaffText(staffMember.name) || '此職員';
+        if (confirm(`確定要刪除職員 ${staffName} 嗎？`)) {
             router.delete(`/manage/staff/${staffMember.id}`);
         }
     };

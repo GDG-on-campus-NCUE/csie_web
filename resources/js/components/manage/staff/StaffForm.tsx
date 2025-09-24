@@ -8,7 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import MultiLanguageInput from './MultiLanguageInput';
-import { Staff } from '@/types/staff';
+import { LocalizedContent, Staff } from '@/types/staff';
+
+const getLocalizedValue = (
+    value: string | LocalizedContent | undefined,
+    locale: 'zh-TW' | 'en'
+): string => {
+    if (!value) {
+        return '';
+    }
+
+    if (typeof value === 'string') {
+        return locale === 'zh-TW' ? value : '';
+    }
+
+    return value[locale] ?? '';
+};
 
 interface StaffFormData {
     name: {
@@ -47,16 +62,16 @@ export const StaffForm: React.FC<StaffFormProps> = ({
 
     const { data, setData, processing, errors, reset } = useForm<StaffFormData>({
         name: {
-            'zh-TW': (staff?.name as any)?.['zh-TW'] || '',
-            'en': (staff?.name as any)?.['en'] || ''
+            'zh-TW': getLocalizedValue(staff?.name, 'zh-TW'),
+            'en': getLocalizedValue(staff?.name, 'en')
         },
         position: {
-            'zh-TW': (staff?.position as any)?.['zh-TW'] || '',
-            'en': (staff?.position as any)?.['en'] || ''
+            'zh-TW': getLocalizedValue(staff?.position, 'zh-TW'),
+            'en': getLocalizedValue(staff?.position, 'en')
         },
         bio: {
-            'zh-TW': (staff?.bio as any)?.['zh-TW'] || '',
-            'en': (staff?.bio as any)?.['en'] || ''
+            'zh-TW': getLocalizedValue(staff?.bio, 'zh-TW'),
+            'en': getLocalizedValue(staff?.bio, 'en')
         },
         email: staff?.email || '',
         phone: staff?.phone || '',

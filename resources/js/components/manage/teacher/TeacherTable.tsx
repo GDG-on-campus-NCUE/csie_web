@@ -22,8 +22,8 @@ import { Teacher } from '@/types/staff';
 
 interface TeacherTableProps {
     teachers: Teacher[];
-    onEdit: (teacher: Teacher) => void;
-    onDelete: (teacher: Teacher) => void;
+    onEdit?: (teacher: Teacher) => void;
+    onDelete?: (teacher: Teacher) => void;
     onSort?: (field: keyof Teacher, direction: 'asc' | 'desc') => void;
     sortField?: keyof Teacher;
     sortDirection?: 'asc' | 'desc';
@@ -239,7 +239,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                                             查看 / View
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            onClick={() => onEdit(teacher)}
+                                            onClick={() => onEdit?.(teacher)}
                                             className="cursor-pointer"
                                         >
                                             <Edit className="mr-2 h-4 w-4" />
@@ -247,7 +247,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
-                                            onClick={() => onDelete(teacher)}
+                                            onClick={() => onDelete?.(teacher)}
                                             className="cursor-pointer text-red-600 focus:text-red-600"
                                         >
                                             <Trash2 className="mr-2 h-4 w-4" />

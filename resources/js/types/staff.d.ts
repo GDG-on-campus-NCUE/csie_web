@@ -7,25 +7,23 @@ export interface LocalizedContent {
 
 export interface Staff {
     id: number;
-    name: string;
-    name_en: string;
-    position: string;
-    position_en: string;
+    name: string | LocalizedContent;
+    position: string | LocalizedContent;
     email?: string;
     phone?: string;
-    photo_url?: string;
-    bio?: string;
-    bio_en?: string;
-    visible: boolean;
-    sort_order: number;
+    office?: string;
+    photo_url?: string | null;
+    bio?: string | LocalizedContent;
+    visible?: boolean;
+    sort_order?: number;
     created_at?: string;
     updated_at?: string;
-    deleted_at?: string;
+    deleted_at?: string | null;
 }
 
 export interface Teacher {
     id: number;
-    user_id?: number;
+    user_id?: number | null;
     name: LocalizedContent;
     title: LocalizedContent;
     email: string;
@@ -36,7 +34,7 @@ export interface Teacher {
     education?: LocalizedContent[];
     avatar?: string;
     website?: string;
-    lab_id?: number;
+    lab_id?: number | null;
     visible: boolean;
     sort_order: number;
     user?: User;
@@ -49,7 +47,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'user';
+    role?: 'admin' | 'teacher' | 'user';
 }
 
 export interface Lab {

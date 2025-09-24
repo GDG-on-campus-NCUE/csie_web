@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import Index from '@/pages/manage/admin/staff/index';
 import { createInertiaApp } from '@inertiajs/react';
@@ -107,10 +107,8 @@ describe('Staff Index Page', () => {
         active: [
             {
                 id: 1,
-                name: '張三',
-                name_en: 'Zhang San',
-                position: '系辦職員',
-                position_en: 'Department Staff',
+                name: { 'zh-TW': '張三', en: 'Zhang San' },
+                position: { 'zh-TW': '系辦職員', en: 'Department Staff' },
                 email: 'zhang.san@example.com',
                 phone: '02-12345678',
                 visible: true,
@@ -118,10 +116,8 @@ describe('Staff Index Page', () => {
             },
             {
                 id: 2,
-                name: '李四',
-                name_en: 'Li Si',
-                position: '系辦助理',
-                position_en: 'Department Assistant',
+                name: { 'zh-TW': '李四', en: 'Li Si' },
+                position: { 'zh-TW': '系辦助理', en: 'Department Assistant' },
                 email: 'li.si@example.com',
                 phone: '02-87654321',
                 visible: true,
@@ -131,9 +127,8 @@ describe('Staff Index Page', () => {
         trashed: [
             {
                 id: 3,
-                name: '王五',
-                name_en: 'Wang Wu',
-                position: '前職員',
+                name: { 'zh-TW': '王五', en: 'Wang Wu' },
+                position: { 'zh-TW': '前職員', en: 'Former Staff' },
                 email: 'wang.wu@example.com',
                 deleted_at: '2024-01-01T00:00:00.000000Z',
             },
@@ -144,10 +139,8 @@ describe('Staff Index Page', () => {
         data: [
             {
                 id: 1,
-                name: '陳教授',
-                name_en: 'Prof. Chen',
-                title: '副教授',
-                title_en: 'Associate Professor',
+                name: { 'zh-TW': '陳教授', en: 'Prof. Chen' },
+                title: { 'zh-TW': '副教授', en: 'Associate Professor' },
                 email: 'prof.chen@example.com',
                 phone: '02-12345678',
                 office: 'E301',
@@ -158,13 +151,10 @@ describe('Staff Index Page', () => {
                     name: '陳教授',
                     email: 'prof.chen@example.com',
                 },
-                labs: [
-                    {
-                        id: 1,
-                        name: '資料庫實驗室',
-                        name_en: 'Database Lab',
-                    },
-                ],
+                lab: {
+                    id: 1,
+                    name: { 'zh-TW': '資料庫實驗室', en: 'Database Lab' },
+                },
             },
         ],
         links: {},

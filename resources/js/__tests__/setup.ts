@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 
 // Mock Inertia.js route helper
 (global as any).route = jest.fn((name: string, params?: any) =>

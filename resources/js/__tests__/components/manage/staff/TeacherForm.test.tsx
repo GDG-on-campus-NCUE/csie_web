@@ -166,23 +166,23 @@ describe('TeacherForm Component', () => {
     const mockTeacherData = {
         id: 1,
         user_id: 1,
-        name: '陳教授',
-        name_en: 'Prof. Chen',
-        title: '副教授',
-        title_en: 'Associate Professor',
-        specialization: '資料庫系統,機器學習',
-        specialization_en: 'Database Systems, Machine Learning',
+        name: { 'zh-TW': '陳教授', en: 'Prof. Chen' },
+        title: { 'zh-TW': '副教授', en: 'Associate Professor' },
         email: 'prof.chen@example.com',
         phone: '02-12345678',
-        extension: '5678',
         office: 'E301',
-        bio: '專精於資料庫系統研究',
-        bio_en: 'Specializes in database systems research',
-        education: '台灣大學資訊工程博士',
-        education_en: 'Ph.D. in Computer Science, National Taiwan University',
+        job_title: '系主任',
+        bio: { 'zh-TW': '專精於資料庫系統研究', en: 'Specializes in database systems research' },
+        specialties: [
+            { 'zh-TW': '資料庫系統', en: 'Database Systems' },
+            { 'zh-TW': '機器學習', en: 'Machine Learning' }
+        ],
+        education: [
+            { 'zh-TW': '台灣大學資訊工程博士', en: 'Ph.D. in Computer Science, National Taiwan University' }
+        ],
         sort_order: 10,
         visible: true,
-        photo_url: null,
+        photo_url: 'teachers/chen.jpg',
     };
 
     const mockUsers = [
@@ -205,8 +205,8 @@ describe('TeacherForm Component', () => {
         expect(screen.getByTestId('input-name_en')).toBeInTheDocument();
         expect(screen.getByTestId('input-title')).toBeInTheDocument();
         expect(screen.getByTestId('input-title_en')).toBeInTheDocument();
-        expect(screen.getByTestId('input-specialization')).toBeInTheDocument();
-        expect(screen.getByTestId('input-specialization_en')).toBeInTheDocument();
+        expect(screen.getByTestId('textarea-expertise')).toBeInTheDocument();
+        expect(screen.getByTestId('textarea-expertise_en')).toBeInTheDocument();
         expect(screen.getByTestId('input-email')).toBeInTheDocument();
         expect(screen.getByTestId('input-phone')).toBeInTheDocument();
         expect(screen.getByTestId('input-office')).toBeInTheDocument();
@@ -305,7 +305,7 @@ describe('TeacherForm Component', () => {
         const user = userEvent.setup();
         render(<TeacherForm teacher={mockTeacherData} users={mockUsers} />);
 
-        const specializationInput = screen.getByTestId('input-specialization');
+        const specializationInput = screen.getByTestId('textarea-expertise');
 
         // Should display comma-separated specializations
         expect(specializationInput).toHaveValue('資料庫系統,機器學習');

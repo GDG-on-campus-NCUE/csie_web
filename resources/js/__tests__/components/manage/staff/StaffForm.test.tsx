@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/jest-globals';
 import userEvent from '@testing-library/user-event';
 import { StaffForm } from '@/components/manage/staff/StaffForm';
 
