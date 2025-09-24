@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslator } from '@/hooks/use-translator';
 
 import { PostFilterForm } from '@/components/manage/post/post-filter-form';
-import { PostFlashAlerts } from '@/components/manage/post/post-flash-alerts';
 import { PostTable } from '@/components/manage/post/post-table';
 import { PostImportUploader } from '@/components/manage/post/post-import-uploader';
 import type {
@@ -111,11 +110,6 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             { title: t('layout.breadcrumbs.posts', '公告管理'), href: '/manage/posts' },
         ],
         [t],
-    );
-
-    const hasFlashAlerts = useMemo(
-        () => Boolean(flashMessages.success || flashMessages.error || (flashMessages.importErrors && flashMessages.importErrors.length > 0)),
-        [flashMessages],
     );
 
     const hasActiveFilters = useMemo(
@@ -376,8 +370,6 @@ export default function PostsIndex({ posts, categories, authors, filters, status
             <ToastContainer toasts={toasts} onDismiss={dismissToast} position="bottom-right" />
 
             <section className="space-y-6">
-                {hasFlashAlerts && <PostFlashAlerts messages={flashMessages} t={t} />}
-
                 <ManagePageHeader
                     badge={{ icon: <Filter className="h-4 w-4" />, label: t('posts.index.badge', '公告總覽') }}
                     title={t('posts.index.title', '公告管理')}

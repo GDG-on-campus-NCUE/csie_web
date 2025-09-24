@@ -273,6 +273,7 @@ return [
         ],
         'source_type' => [
             'manual' => '手動輸入',
+            'import' => '批次匯入',
             'link' => '外部連結',
         ],
         'index' => [

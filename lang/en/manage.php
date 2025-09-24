@@ -273,6 +273,7 @@ return [
         ],
         'source_type' => [
             'manual' => 'Manual input',
+            'import' => 'Bulk import',
             'link' => 'External link',
         ],
         'index' => [

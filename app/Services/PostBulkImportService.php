@@ -383,14 +383,16 @@ class PostBulkImportService
      */
     private function resolveCategory(array $row, array $header): ?PostCategory
     {
-        // 優先使用 category_slug
+        // 優先使用 category_slug，若不存在自動建立分類
         if (isset($header['category_slug'])) {
-            $categorySlug = trim((string) ($row[$header['category_slug']] ?? ''));
-            if ($categorySlug !== '') {
-                $category = PostCategory::where('slug', $categorySlug)->first();
+            $rawIdentifier = trim((string) ($row[$header['category_slug']] ?? ''));
+            if ($rawIdentifier !== '') {
+                $category = $this->findCategoryByIdentifier($rawIdentifier);
                 if ($category) {
                     return $category;
                 }
+
+                return $this->createCategoryFromIdentifier($rawIdentifier);
             }
         }
 
@@ -402,17 +404,58 @@ class PostBulkImportService
             }
         }
 
-        // 嘗試用名稱匹配（最後手段）
-        if (isset($header['category_slug'])) {
-            $identifier = trim((string) ($row[$header['category_slug']] ?? ''));
-            if ($identifier !== '') {
-                return PostCategory::where('name', $identifier)
-                    ->orWhere('name_en', $identifier)
-                    ->first();
+        return null;
+    }
+
+    private function findCategoryByIdentifier(string $identifier): ?PostCategory
+    {
+        $normalizedSlug = Str::slug($identifier);
+        $slugCandidates = array_filter(array_unique([$identifier, $normalizedSlug]));
+
+        if (!empty($slugCandidates)) {
+            $category = PostCategory::whereIn('slug', $slugCandidates)->first();
+            if ($category) {
+                return $category;
             }
         }
 
-        return null;
+        return PostCategory::where('name', $identifier)
+            ->orWhere('name_en', $identifier)
+            ->first();
+    }
+
+    private function createCategoryFromIdentifier(string $identifier): ?PostCategory
+    {
+        $slug = Str::slug($identifier);
+
+        if ($slug === '' || PostCategory::where('slug', $slug)->exists()) {
+            $slug = Str::slug($identifier . '-' . Str::random(6));
+        }
+
+        if ($slug === '') {
+            $slug = Str::slug(Str::random(8));
+        }
+
+        $displayName = trim($identifier) !== '' ? trim($identifier) : Str::title(str_replace('-', ' ', $slug));
+        $englishName = Str::title(str_replace('-', ' ', $slug));
+
+        try {
+            return PostCategory::create([
+                'slug' => $slug,
+                'name' => $displayName,
+                'name_en' => $englishName,
+                'sort_order' => 0,
+                'visible' => true,
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('建立匯入公告分類失敗', [
+                'identifier' => $identifier,
+                'slug' => $slug,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return PostCategory::where('slug', $slug)->first();
+        }
     }
 
     /**
