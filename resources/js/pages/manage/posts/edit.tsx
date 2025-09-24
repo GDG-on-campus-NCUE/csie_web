@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import PostForm, { PostFormSubmitHandler, PostResource } from './components/post-form';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
+import { useMemo } from 'react';
 
 interface CategoryOption {
     id: number;
@@ -14,18 +15,35 @@ interface CategoryOption {
     slug: string;
 }
 
+interface TagOption {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+}
+
+type RawTagOption = TagOption | TagOption[];
+
 interface EditPostProps {
     post: PostResource & { id: number };
     categories: CategoryOption[];
     statusOptions: Array<'draft' | 'published' | 'scheduled'>;
+    availableTags: RawTagOption[];
 }
 
-export default function EditPost({ post, categories, statusOptions }: EditPostProps) {
+export default function EditPost({ post, categories, statusOptions, availableTags }: EditPostProps) {
     const { auth } = usePage<SharedData>().props;
     const userRole = auth?.user?.role ?? 'user';
     const layoutRole: 'admin' | 'teacher' | 'user' =
         userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
     const { t } = useTranslator('manage');
+    const normalizedAvailableTags = useMemo(
+        () =>
+            (availableTags ?? [])
+                .map((tag) => Array.isArray(tag) ? tag[0] : tag)
+                .filter((tag): tag is TagOption => Boolean(tag)),
+        [availableTags]
+    );
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('layout.breadcrumbs.dashboard', '管理首頁'), href: '/manage/dashboard' },
@@ -79,6 +97,7 @@ export default function EditPost({ post, categories, statusOptions }: EditPostPr
                     statusOptions={statusOptions}
                     post={post}
                     onSubmit={handleSubmit}
+                    availableTags={normalizedAvailableTags}
                 />
             </section>
         </ManageLayout>

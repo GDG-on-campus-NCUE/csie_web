@@ -9,6 +9,10 @@ return [
             'posts_create' => '新增公告',
             'posts_edit' => '編輯公告',
             'posts_show' => '公告詳情',
+            'tags' => '標籤管理',
+            'tags_create' => '新增標籤',
+            'tags_edit' => '編輯標籤',
+            'tags_show' => '標籤詳情',
             'attachments' => '附件管理',
             'users' => '使用者管理',
             'users_create' => '新增使用者',
@@ -38,6 +42,7 @@ return [
         'admin' => [
             'dashboard' => '儀表板',
             'posts' => '公告管理',
+            'tags' => '標籤管理',
             'staff' => '師資與職員',
             'labs' => '實驗室管理',
             'academics' => '課程與學程',
@@ -405,6 +410,8 @@ return [
                     'label' => '標籤',
                     'placeholder' => '以逗號分隔，如：系所公告, 活動',
                     'helper' => '使用逗號分隔多個標籤。',
+                    'suggestions_title' => '常用標籤',
+                    'suggestions_hint' => '點擊即可加入或移除。',
                 ],
                 'pinned' => [
                     'label' => '是否置頂',
@@ -506,6 +513,114 @@ return [
             'no_attachments' => '此公告目前沒有附件。',
             'view_attachment' => '檢視',
             'download_attachment' => '下載',
+        ],
+    ],
+    'tags' => [
+        'index' => [
+            'header' => [
+                'title' => '標籤管理',
+                'description' => '統一管理各後台模組可用的標籤。',
+            ],
+            'actions' => [
+                'create' => '新增標籤',
+                'edit' => '編輯標籤',
+                'delete' => '刪除標籤',
+                'delete_confirm' => '確定要刪除此標籤嗎？',
+            ],
+            'filters' => [
+                'all' => '全部管理頁面',
+                'context' => '篩選管理頁面：',
+            ],
+            'table' => [
+                'title' => '標籤列表',
+                'headers' => [
+                    'context' => '管理頁面',
+                    'name' => '標籤名稱',
+                    'slug' => '網址代稱',
+                    'sort_order' => '排序',
+                    'description' => '描述',
+                    'actions' => '操作',
+                ],
+                'empty_description' => '—',
+            ],
+            'empty' => [
+                'title' => '目前尚未建立標籤',
+                'description' => '建立標籤後，即可在公告或其他管理頁面快速套用。',
+            ],
+        ],
+        'form' => [
+            'sections' => [
+                'basic' => [
+                    'title' => '標籤基本設定',
+                    'description' => '設定標籤名稱、分類與排序。',
+                ],
+            ],
+            'fields' => [
+                'context' => [
+                    'label' => '管理頁面',
+                ],
+                'sort_order' => [
+                    'label' => '排序優先度',
+                    'placeholder' => '數字越小越優先顯示',
+                ],
+                'name' => [
+                    'label' => '標籤名稱',
+                    'placeholder' => '例如：系務公告',
+                ],
+                'slug' => [
+                    'label' => '網址代稱',
+                    'placeholder' => '例如：department-news',
+                ],
+                'description' => [
+                    'label' => '說明（選填）',
+                    'placeholder' => '描述標籤的用途，便於團隊維護。',
+                ],
+            ],
+            'actions' => [
+                'slug_helper' => '留空時會依名稱自動產生。',
+                'cancel' => '取消',
+                'submitting' => '處理中...',
+                'create' => '建立標籤',
+                'update' => '更新標籤',
+            ],
+        ],
+        'create' => [
+            'header' => [
+                'title' => '新增標籤',
+                'description' => '建立可供公告與其他模組使用的標籤。',
+            ],
+            'actions' => [
+                'back' => '返回標籤列表',
+            ],
+        ],
+        'edit' => [
+            'header' => [
+                'title' => '編輯標籤',
+                'description' => '更新標籤名稱、排序與用途描述。',
+            ],
+            'actions' => [
+                'back' => '返回標籤列表',
+            ],
+        ],
+        'show' => [
+            'header' => [
+                'title' => '標籤詳情',
+                'description' => '檢視標籤的對應管理頁面與設定。',
+            ],
+            'actions' => [
+                'back' => '返回列表',
+                'edit' => '編輯標籤',
+            ],
+            'fields' => [
+                'name' => '標籤名稱',
+                'sort_order' => '排序優先度',
+                'description' => '描述',
+                'created_at' => '建立時間',
+                'updated_at' => '最後更新',
+            ],
+            'empty' => [
+                'description' => '未提供描述',
+            ],
         ],
     ],
     'attachments' => [

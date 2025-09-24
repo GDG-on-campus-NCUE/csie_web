@@ -17,6 +17,7 @@ use App\Http\Controllers\Manage\Admin\ProjectController as AdminProjectControlle
 use App\Http\Controllers\Manage\Admin\PublicationController as AdminPublicationController;
 use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
+use App\Http\Controllers\Manage\Admin\TagController as AdminTagController;
 
 Route::middleware(['auth', 'role:admin|teacher'])
     ->prefix('manage')->name('manage.')
@@ -77,4 +78,7 @@ Route::middleware(['auth', 'role:admin|teacher'])
             ->name('attachments.restore');
         Route::delete('attachments/{attachment}/force', [AdminAttachmentController::class, 'forceDelete'])
             ->name('attachments.force-delete');
+
+        // 標籤管理
+        Route::resource('tags', AdminTagController::class);
     });

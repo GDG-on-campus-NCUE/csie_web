@@ -41,6 +41,11 @@ export function AppSidebar() {
             icon: Megaphone,
         },
         {
+            title: t('sidebar.admin.tags'),
+            href: '/manage/tags',
+            icon: NotebookPen,
+        },
+        {
             title: t('sidebar.admin.staff'),
             href: '/manage/staff',
             icon: UserCheck,

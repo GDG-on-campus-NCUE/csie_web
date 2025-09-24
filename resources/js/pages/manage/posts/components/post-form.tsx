@@ -28,6 +28,15 @@ interface AttachmentSummary {
     mime_type: string | null;
 }
 
+interface TagOption {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+}
+
+type RawTagOption = TagOption | TagOption[];
+
 export interface PostResource {
     id?: number;
     title?: string;
@@ -51,6 +60,7 @@ interface PostFormProps {
     statusOptions: Array<'draft' | 'published' | 'scheduled'>;
     post?: PostResource;
     onSubmit: PostFormSubmitHandler;
+    availableTags?: RawTagOption[];
 }
 
 interface AttachmentLinkInput {
@@ -114,7 +124,15 @@ const formatDateTime = (value: string | null | undefined) => {
 
 const createLinkId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 
-export default function PostForm({ mode, cancelUrl, categories, statusOptions, post, onSubmit }: PostFormProps) {
+export default function PostForm({
+    mode,
+    cancelUrl,
+    categories,
+    statusOptions,
+    post,
+    onSubmit,
+    availableTags = [],
+}: PostFormProps) {
     const { t, localeKey } = useTranslator('manage');
     const fallbackLanguage: 'zh' | 'en' = localeKey === 'zh-TW' ? 'zh' : 'en';
     const initialStatus = useMemo(() => {
@@ -147,6 +165,38 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
     const [linkInputs, setLinkInputs] = useState<AttachmentLinkInput[]>([]);
 
     const existingAttachments = post?.attachments ?? [];
+
+    const normalizedAvailableTags = useMemo(() => {
+        return (availableTags ?? [])
+            .map((tag) => Array.isArray(tag) ? tag[0] : tag)
+            .filter((tag): tag is TagOption => Boolean(tag));
+    }, [availableTags]);
+
+    const selectedTags = useMemo(() => {
+        const items = (data.tags ?? '')
+            .split(',')
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0);
+
+        return Array.from(new Set(items));
+    }, [data.tags]);
+
+    const toggleTag = (tagName: string) => {
+        const value = tagName.trim();
+        if (value === '') {
+            return;
+        }
+
+        if (selectedTags.includes(value)) {
+            const next = selectedTags.filter((item) => item !== value);
+            setData('tags', next.join(', '));
+            return;
+        }
+
+        setData('tags', [...selectedTags, value].join(', '));
+    };
+
+    const isTagSelected = (tagName: string) => selectedTags.includes(tagName.trim());
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -298,6 +348,35 @@ export default function PostForm({ mode, cancelUrl, categories, statusOptions, p
                         <p className="text-xs text-slate-500">
                             {t('posts.form.fields.tags.helper', '使用逗號分隔多個標籤。')}
                         </p>
+                        {normalizedAvailableTags.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-xs font-medium text-slate-500">
+                                    {t('posts.form.fields.tags.suggestions_title', '常用標籤')}{' '}
+                                    <span className="font-normal text-slate-400">
+                                        {t('posts.form.fields.tags.suggestions_hint', '點擊即可加入或移除。')}
+                                    </span>
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {normalizedAvailableTags.map((tag) => {
+                                        const selected = isTagSelected(tag.name);
+                                        return (
+                                            <Button
+                                                key={tag.id}
+                                                type="button"
+                                                size="sm"
+                                                variant={selected ? 'default' : 'outline'}
+                                                className={selected ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}
+                                                aria-pressed={selected}
+                                                title={tag.description ?? undefined}
+                                                onClick={() => toggleTag(tag.name)}
+                                            >
+                                                #{tag.name}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                         <InputError message={errors.tags as string | undefined} />
                     </div>
 

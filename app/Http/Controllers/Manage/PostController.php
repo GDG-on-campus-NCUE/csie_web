@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attachment;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -141,6 +142,18 @@ class PostController extends Controller
                 ->orderBy('name')
                 ->get(),
             'statusOptions' => $statusOptions,
+            'availableTags' => Tag::forContext('posts')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Tag $tag) => [[
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'slug' => $tag->slug,
+                    'description' => $tag->description,
+                ]])
+                ->values()
+                ->all(),
         ]);
     }
 
@@ -272,6 +285,18 @@ class PostController extends Controller
                 ->orderBy('name')
                 ->get(),
             'statusOptions' => $statusOptions,
+            'availableTags' => Tag::forContext('posts')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Tag $tag) => [[
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'slug' => $tag->slug,
+                    'description' => $tag->description,
+                ]])
+                ->values()
+                ->all(),
         ]);
     }
 
