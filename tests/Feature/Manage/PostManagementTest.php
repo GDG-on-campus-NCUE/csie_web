@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -188,5 +189,20 @@ class PostManagementTest extends TestCase
         $this->assertNotNull($post);
         $this->assertNotNull($post->cover_image_url);
         $this->assertTrue(Storage::disk('public')->exists(str_replace('/storage/', '', $post->cover_image_url)));
+    }
+
+    public function test_post_create_page_handles_missing_tag_table(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Schema::dropIfExists('tags');
+
+        $response = $this->actingAs($admin)->get(route('manage.posts.create'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) =>
+            $page->component('manage/posts/create')
+                ->where('availableTags', [])
+        );
     }
 }

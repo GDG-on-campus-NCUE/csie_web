@@ -1,11 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { BreadcrumbItem } from '@/types';
 import type { TagContextOption, TagResource } from '@/components/manage/tags/tag-form';
@@ -20,9 +21,10 @@ interface TagListItem extends TagResource {
 interface TagsIndexProps {
     tags: TagListItem[];
     contextOptions: TagContextOption[];
+    tableReady: boolean;
 }
 
-export default function TagsIndex({ tags, contextOptions }: TagsIndexProps) {
+export default function TagsIndex({ tags, contextOptions, tableReady }: TagsIndexProps) {
     const { t } = useTranslator('manage');
     const [filter, setFilter] = useState<string>('all');
 
@@ -40,17 +42,29 @@ export default function TagsIndex({ tags, contextOptions }: TagsIndexProps) {
     );
 
     const filteredTags = useMemo(() => {
+        if (!tableReady) {
+            return [];
+        }
+
         if (filter === 'all') {
             return tags;
         }
 
         return tags.filter((tag) => tag.context === filter);
-    }, [filter, tags]);
+    }, [filter, tableReady, tags]);
 
     const pageTitle = t('tags.index.header.title', '標籤管理');
     const pageDescription = t('tags.index.header.description', '統一管理各後台模組可用的標籤。');
+    const migrationHint = t(
+        'tags.index.alert.missing_table',
+        '標籤資料表尚未建立，請執行資料庫遷移（php artisan migrate）後重新整理此頁面。'
+    );
 
     const handleDelete = (tag: TagListItem) => {
+        if (!tableReady) {
+            return;
+        }
+
         const message = t('tags.index.actions.delete_confirm', '確定要刪除此標籤嗎？');
         if (confirm(message)) {
             router.delete(`/manage/tags/${tag.id}`);
@@ -68,15 +82,19 @@ export default function TagsIndex({ tags, contextOptions }: TagsIndexProps) {
                             <h1 className="text-3xl font-semibold text-slate-900">{pageTitle}</h1>
                             <p className="text-sm text-slate-600">{pageDescription}</p>
                         </div>
-                        <Button
-                            asChild
-                            className="rounded-full"
-                        >
-                            <Link href="/manage/tags/create" className="inline-flex items-center gap-2">
+                        {tableReady ? (
+                            <Button asChild className="rounded-full">
+                                <Link href="/manage/tags/create" className="inline-flex items-center gap-2">
+                                    <Plus className="h-4 w-4" />
+                                    {t('tags.index.actions.create', '新增標籤')}
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button className="rounded-full" disabled>
                                 <Plus className="h-4 w-4" />
                                 {t('tags.index.actions.create', '新增標籤')}
-                            </Link>
-                        </Button>
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -94,6 +112,7 @@ export default function TagsIndex({ tags, contextOptions }: TagsIndexProps) {
                                     id="tag-context-filter"
                                     value={filter}
                                     onChange={(event) => setFilter(event.target.value)}
+                                    disabled={!tableReady}
                                 >
                                     {filterOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -105,7 +124,14 @@ export default function TagsIndex({ tags, contextOptions }: TagsIndexProps) {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        {filteredTags.length === 0 ? (
+                        {!tableReady ? (
+                            <div className="px-6 py-10">
+                                <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                    <AlertDescription>{migrationHint}</AlertDescription>
+                                </Alert>
+                            </div>
+                        ) : filteredTags.length === 0 ? (
                             <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-slate-500">
                                 <p className="text-base font-medium">
                                     {t('tags.index.empty.title', '目前尚未建立標籤')}

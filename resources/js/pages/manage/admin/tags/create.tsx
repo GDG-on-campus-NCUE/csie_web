@@ -1,17 +1,19 @@
 import { Head, Link } from '@inertiajs/react';
 import ManageLayout from '@/layouts/manage/manage-layout';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import TagForm, { TagContextOption, TagFormSubmitHandler } from '@/components/manage/tags/tag-form';
 import type { BreadcrumbItem } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
 
 interface TagCreateProps {
     contextOptions: TagContextOption[];
+    tableReady: boolean;
 }
 
-export default function CreateTag({ contextOptions }: TagCreateProps) {
+export default function CreateTag({ contextOptions, tableReady }: TagCreateProps) {
     const { t } = useTranslator('manage');
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -23,6 +25,10 @@ export default function CreateTag({ contextOptions }: TagCreateProps) {
     const pageTitle = t('tags.create.header.title', '新增標籤');
     const pageDescription = t('tags.create.header.description', '建立可供公告與其他模組使用的標籤。');
     const backToIndex = t('tags.create.actions.back', '返回標籤列表');
+    const migrationHint = t(
+        'tags.create.alert.missing_table',
+        '標籤資料表尚未建立，請執行資料庫遷移（php artisan migrate）後再試一次。'
+    );
 
     const handleSubmit: TagFormSubmitHandler = (form) => {
         form.post('/manage/tags', { preserveScroll: true });
@@ -48,12 +54,23 @@ export default function CreateTag({ contextOptions }: TagCreateProps) {
                     </CardContent>
                 </Card>
 
-                <TagForm
-                    contextOptions={contextOptions}
-                    submitLabel={t('tags.form.actions.create', '建立標籤')}
-                    cancelUrl="/manage/tags"
-                    onSubmit={handleSubmit}
-                />
+                {tableReady ? (
+                    <TagForm
+                        contextOptions={contextOptions}
+                        submitLabel={t('tags.form.actions.create', '建立標籤')}
+                        cancelUrl="/manage/tags"
+                        onSubmit={handleSubmit}
+                    />
+                ) : (
+                    <Card className="border border-amber-200 bg-amber-50 text-amber-900 shadow-sm">
+                        <CardContent className="p-6">
+                            <Alert className="border-amber-200 bg-transparent p-0 text-inherit">
+                                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                <AlertDescription>{migrationHint}</AlertDescription>
+                            </Alert>
+                        </CardContent>
+                    </Card>
+                )}
             </section>
         </ManageLayout>
     );
