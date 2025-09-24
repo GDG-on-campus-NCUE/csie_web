@@ -9,6 +9,10 @@ return [
             'posts_create' => 'Create bulletin',
             'posts_edit' => 'Edit bulletin',
             'posts_show' => 'Bulletin detail',
+            'tags' => 'Tag management',
+            'tags_create' => 'Create tag',
+            'tags_edit' => 'Edit tag',
+            'tags_show' => 'Tag details',
             'attachments' => 'Attachments',
             'users' => 'Users',
             'users_create' => 'Create user',
@@ -38,6 +42,7 @@ return [
         'admin' => [
             'dashboard' => 'Dashboard',
             'posts' => 'Announcements',
+            'tags' => 'Tag management',
             'staff' => 'Faculty & Staff',
             'labs' => 'Laboratories',
             'academics' => 'Courses & Programs',
@@ -405,6 +410,8 @@ return [
                     'label' => 'Tags',
                     'placeholder' => 'Separate with commas, e.g. Department, Event',
                     'helper' => 'Use commas to separate multiple tags.',
+                    'suggestions_title' => 'Suggested tags',
+                    'suggestions_hint' => 'Click to add or remove.',
                 ],
                 'pinned' => [
                     'label' => 'Pin announcement',
@@ -506,6 +513,114 @@ return [
             'no_attachments' => 'No attachments have been uploaded for this bulletin.',
             'view_attachment' => 'View',
             'download_attachment' => 'Download',
+        ],
+    ],
+    'tags' => [
+        'index' => [
+            'header' => [
+                'title' => 'Tag management',
+                'description' => 'Manage reusable tags for each admin module.',
+            ],
+            'actions' => [
+                'create' => 'New tag',
+                'edit' => 'Edit tag',
+                'delete' => 'Delete tag',
+                'delete_confirm' => 'Are you sure you want to delete this tag?',
+            ],
+            'filters' => [
+                'all' => 'All modules',
+                'context' => 'Filter by module:',
+            ],
+            'table' => [
+                'title' => 'Tag list',
+                'headers' => [
+                    'context' => 'Module',
+                    'name' => 'Tag name',
+                    'slug' => 'Slug',
+                    'sort_order' => 'Order',
+                    'description' => 'Description',
+                    'actions' => 'Actions',
+                ],
+                'empty_description' => '—',
+            ],
+            'empty' => [
+                'title' => 'No tags yet',
+                'description' => 'Create tags to help editors quickly apply consistent labels across modules.',
+            ],
+        ],
+        'form' => [
+            'sections' => [
+                'basic' => [
+                    'title' => 'Tag basics',
+                    'description' => 'Configure the tag name, module, and ordering.',
+                ],
+            ],
+            'fields' => [
+                'context' => [
+                    'label' => 'Module',
+                ],
+                'sort_order' => [
+                    'label' => 'Display order',
+                    'placeholder' => 'Smaller numbers appear first',
+                ],
+                'name' => [
+                    'label' => 'Tag name',
+                    'placeholder' => 'e.g. Department News',
+                ],
+                'slug' => [
+                    'label' => 'Slug',
+                    'placeholder' => 'e.g. department-news',
+                ],
+                'description' => [
+                    'label' => 'Description (optional)',
+                    'placeholder' => 'Describe how this tag should be used.',
+                ],
+            ],
+            'actions' => [
+                'slug_helper' => 'Leave blank to generate from the name.',
+                'cancel' => 'Cancel',
+                'submitting' => 'Saving…',
+                'create' => 'Create tag',
+                'update' => 'Update tag',
+            ],
+        ],
+        'create' => [
+            'header' => [
+                'title' => 'Create tag',
+                'description' => 'Define reusable tags for announcements and other modules.',
+            ],
+            'actions' => [
+                'back' => 'Back to tags',
+            ],
+        ],
+        'edit' => [
+            'header' => [
+                'title' => 'Edit tag',
+                'description' => 'Update the tag label, ordering, and description.',
+            ],
+            'actions' => [
+                'back' => 'Back to tags',
+            ],
+        ],
+        'show' => [
+            'header' => [
+                'title' => 'Tag details',
+                'description' => 'Review the module and settings associated with this tag.',
+            ],
+            'actions' => [
+                'back' => 'Back to list',
+                'edit' => 'Edit tag',
+            ],
+            'fields' => [
+                'name' => 'Tag name',
+                'sort_order' => 'Display order',
+                'description' => 'Description',
+                'created_at' => 'Created at',
+                'updated_at' => 'Last updated',
+            ],
+            'empty' => [
+                'description' => 'No description provided',
+            ],
         ],
     ],
     'attachments' => [

@@ -1,0 +1,330 @@
+{
+    "resources/js/app.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/app.tsx",
+        "isEntry": true,
+        "css": [
+            "css/app.css"
+        ]
+    },
+    "resources/js/pages/auth/confirm-password.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/confirm-password.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/forgot-password.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/forgot-password.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/login.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/login.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/register.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/register.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/reset-password.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/reset-password.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/styles.ts": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/styles.ts",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/auth/verify-email.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/auth/verify-email.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/bulletins/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/bulletins/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/bulletins/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/bulletins/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/labs/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/labs/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/labs/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/labs/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/staff/create.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/staff/create.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/staff/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/staff/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/staff/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/staff/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/staff/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/staff/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/tags/create.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/tags/create.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/tags/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/tags/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/tags/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/tags/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/tags/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/tags/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teacher/create.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teacher/create.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teacher/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teacher/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teacher/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teacher/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teacher/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teacher/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teachers/create.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teachers/create.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teachers/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teachers/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/admin/teachers/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/admin/teachers/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/attachments/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/attachments/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/dashboard.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/dashboard.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/posts/components/post-form.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/posts/components/post-form.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/posts/create.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/posts/create.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/posts/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/posts/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/posts/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/posts/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/posts/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/posts/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/settings/password.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/settings/password.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/settings/profile.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/settings/profile.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/users/edit.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/users/edit.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/manage/users/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/manage/users/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/people/index.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/people/index.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/people/show.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/people/show.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    },
+    "resources/js/pages/welcome.tsx": {
+        "file": "js/app.js",
+        "src": "resources/js/pages/welcome.tsx",
+        "isDynamicEntry": true,
+        "imports": [
+            "resources/js/app.tsx"
+        ]
+    }
+}
