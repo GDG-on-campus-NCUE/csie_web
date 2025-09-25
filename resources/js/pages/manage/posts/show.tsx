@@ -11,6 +11,7 @@ interface AttachmentSummary {
     type: 'image' | 'document' | 'link';
     title: string | null;
     file_url: string | null;
+    download_url: string | null;
     external_url: string | null;
     mime_type: string | null;
 }
@@ -161,25 +162,29 @@ export default function ShowPost({ post }: ShowPostProps) {
                             <CardTitle className="text-lg font-semibold text-slate-900">附件與連結</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 p-6">
-                            {post.attachments.map((attachment) => (
-                                <div
-                                    key={attachment.id}
-                                    className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
-                                >
-                                    <div className="space-y-1">
-                                        <span className="text-sm font-semibold text-slate-800">
-                                            {attachment.title ?? '未命名附件'}
-                                        </span>
-                                        {attachment.file_url && (
-                                            <a
-                                                className="inline-flex items-center gap-1 text-sm text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
-                                                href={attachment.file_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                <FileText className="h-4 w-4" /> 檢視檔案
-                                            </a>
-                                        )}
+                            {post.attachments.map((attachment) => {
+                                const previewUrl = attachment.download_url ?? attachment.file_url;
+
+                                return (
+                                    <div
+                                        key={attachment.id}
+                                        className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <div className="space-y-1">
+                                            <span className="text-sm font-semibold text-slate-800">
+                                                {attachment.title ?? '未命名附件'}
+                                            </span>
+                                            {previewUrl && (
+                                                <a
+                                                    className="inline-flex items-center gap-1 text-sm text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+                                                    href={previewUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    <FileText className="h-4 w-4" /> 檢視檔案
+                                                </a>
+                                            )}
+                                        </div>
                                         {attachment.external_url && (
                                             <a
                                                 className="inline-flex items-center gap-1 text-sm text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
@@ -191,8 +196,8 @@ export default function ShowPost({ post }: ShowPostProps) {
                                             </a>
                                         )}
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </CardContent>
                     </Card>
                 )}

@@ -9,6 +9,7 @@ interface BulletinAttachment {
     type: 'image' | 'document' | 'link';
     title?: string | null;
     file_url?: string | null;
+    download_url?: string | null;
     external_url?: string | null;
     mime_type?: string | null;
     size?: number | null;
@@ -173,7 +174,7 @@ export default function BulletinShow({ post }: BulletinShowProps) {
                                         const isLink = attachment.type === 'link';
                                         const href = isLink
                                             ? attachment.external_url ?? '#'
-                                            : attachment.file_url ?? attachment.external_url ?? '#';
+                                            : attachment.download_url ?? attachment.file_url ?? attachment.external_url ?? '#';
                                         const icon =
                                             attachment.type === 'image'
                                                 ? <ImageIcon className="size-4" />
