@@ -173,6 +173,15 @@ export default function BulkImportDialog({
     };
 
     /**
+     * 觸發檔案選擇視窗
+     */
+    const openFilePicker = () => {
+        if (!form.processing) {
+            fileInputRef.current?.click();
+        }
+    };
+
+    /**
      * 移除已選擇的檔案
      */
     const removeFile = (index: number) => {
@@ -371,17 +380,32 @@ export default function BulkImportDialog({
                     {/* 檔案上傳區域 */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">
+                            <label className="block text-sm font-medium mb-2" htmlFor="bulk-import-files">
                                 {getText('選擇 CSV 檔案', 'Select CSV Files')}
                             </label>
-
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-center gap-2 sm:w-auto"
+                                    onClick={openFilePicker}
+                                    disabled={form.processing}
+                                >
+                                    <Upload className="h-4 w-4" />
+                                    {getText('選擇檔案', 'Choose files')}
+                                </Button>
+                                <span className="text-xs text-gray-500">
+                                    {getText('可一次選擇多個 CSV 檔案（單檔 5MB 以內）', 'Select multiple CSV files (up to 5MB each)')}
+                                </span>
+                            </div>
                             <input
                                 ref={fileInputRef}
                                 type="file"
                                 accept=".csv,.txt"
                                 multiple
                                 onChange={handleFileChange}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                className="sr-only"
+                                id="bulk-import-files"
                                 disabled={form.processing}
                             />
                         </div>
