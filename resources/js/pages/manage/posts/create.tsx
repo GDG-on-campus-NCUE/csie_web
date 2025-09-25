@@ -57,6 +57,7 @@ export default function CreatePost({ categories, statusOptions, availableTags }:
     const handleSubmit: PostFormSubmitHandler = (form) => {
         form.post('/manage/posts', {
             preserveScroll: true,
+            forceFormData: true,
         });
     };
 
