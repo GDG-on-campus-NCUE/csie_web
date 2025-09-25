@@ -59,6 +59,7 @@ export default function EditPost({ post, categories, statusOptions, availableTag
     const handleSubmit: PostFormSubmitHandler = (form) => {
         form.put(`/manage/posts/${post.id}`, {
             preserveScroll: true,
+            forceFormData: true,
         });
     };
 
