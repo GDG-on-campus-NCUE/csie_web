@@ -7,7 +7,7 @@ export function Breadcrumbs({ breadcrumbs }: { breadcrumbs: BreadcrumbItemType[]
     return (
         <>
             {breadcrumbs.length > 0 && (
-                <Breadcrumb className="min-w-0 overflow-hidden">
+                <Breadcrumb className="min-w-0">
                     <BreadcrumbList>
                         {breadcrumbs.map((item, index) => {
                             const isLast = index === breadcrumbs.length - 1;
