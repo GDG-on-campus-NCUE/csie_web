@@ -215,12 +215,27 @@ export default function PostForm({
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        // 檢查必填欄位 - 在提交前確保內容不為空
+        const trimmedContent = (data.content || '').trim();
+        if (!trimmedContent) {
+            form.setError('content', t(
+                'posts.form.fields.content_zh.required',
+                '公告內容為必填項目'
+            ));
+            return;
+        }
+
         form.transform((formData) => ({
             ...formData,
+            // 確保內容欄位不為空並去除前後空白
+            content: trimmedContent,
+            content_en: (formData.content_en || '').trim(),
             attachments: {
                 ...formData.attachments,
                 links: linkInputs,
             },
+            ...(mode === 'edit' ? { _method: 'put' as const } : {}),
         }));
         onSubmit(form);
     };

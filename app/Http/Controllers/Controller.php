@@ -32,6 +32,9 @@ abstract class Controller extends BaseController
         $clean = preg_replace('/\son[a-z]+="[^"]*"/i', '', $clean ?? '');
         $clean = preg_replace('/javascript:/i', '', $clean ?? '');
 
+        // 確保清理後的內容不為空
+        $clean = trim($clean ?? '');
+
         return $clean === '' ? null : $clean;
     }
 }

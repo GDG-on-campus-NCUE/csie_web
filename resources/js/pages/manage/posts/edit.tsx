@@ -57,7 +57,7 @@ export default function EditPost({ post, categories, statusOptions, availableTag
     const backToDetail = t('posts.form.header.back_to_detail', '返回公告詳情');
 
     const handleSubmit: PostFormSubmitHandler = (form) => {
-        form.put(`/manage/posts/${post.id}`, {
+        form.post(`/manage/posts/${post.id}`, {
             preserveScroll: true,
             forceFormData: true,
         });

@@ -331,7 +331,7 @@ class PostController extends Controller
             'category_id' => ['required', 'exists:post_categories,id'],
             'excerpt' => 'nullable|string|max:1000',
             'excerpt_en' => 'nullable|string|max:1000',
-            'content' => 'required|string',
+            'content' => 'required|string|min:1',
             'content_en' => 'nullable|string',
             'status' => ['required', Rule::in($statusOptions)],
             'publish_at' => [Rule::requiredIf(fn () => $request->input('status') === 'scheduled'), 'nullable', 'date'],
@@ -349,9 +349,16 @@ class PostController extends Controller
 
         [$resolvedStatus, $publishAt] = $this->resolvePublishState($validated['status'], $validated['publish_at'] ?? null);
 
+        // 調試：記錄接收到的 content 數據
+        Log::info('Post update content:', [
+            'raw_content' => $validated['content'],
+            'content_length' => strlen($validated['content'] ?? ''),
+            'is_empty' => empty($validated['content']),
+        ]);
+
         $content = $this->sanitizeRichText($validated['content']);
-        if ($content === null) {
-            return back()->withErrors(['content' => '公告內容不得為空'])->withInput();
+        if ($content === null || trim($content) === '') {
+            return back()->withErrors(['content' => '公告內容不得為空或僅包含無效字符'])->withInput();
         }
 
         $excerpt = $this->sanitizePlainText($validated['excerpt'] ?? null);
