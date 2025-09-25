@@ -352,14 +352,14 @@ export function PostTable({
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex flex-1 justify-end gap-2">
-                                                <Button asChild variant="outline" size="sm">
+                                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+                                                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                                                     <Link href={`/manage/posts/${post.id}`}>
                                                         <Eye className="mr-1 h-4 w-4" />
                                                         {t('posts.index.actions.view_label', fallbackText('檢視公告內容', 'View details'))}
                                                     </Link>
                                                 </Button>
-                                                <Button asChild variant="outline" size="sm">
+                                                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                                                     <Link href={`/manage/posts/${post.id}/edit`}>
                                                         <Pen className="mr-1 h-4 w-4" />
                                                         {t('posts.index.actions.edit_label', fallbackText('編輯公告內容', 'Edit this announcement'))}
