@@ -18,13 +18,16 @@ interface AttachmentSummary {
 interface PostDetail {
     id: number;
     title: string;
+    title_en?: string | null;
     slug: string;
     status: 'draft' | 'published' | 'scheduled';
     publish_at: string | null;
     category: { id: number; name: string; slug: string } | null;
     author: { id: number; name: string; email: string } | null;
     excerpt: string | null;
+    excerpt_en?: string | null;
     content: string;
+    content_en?: string | null;
     tags: string[];
     views: number;
     featured_image_url: string | null;

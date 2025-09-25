@@ -40,10 +40,13 @@ type RawTagOption = TagOption | TagOption[];
 export interface PostResource {
     id?: number;
     title?: string;
+    title_en?: string | null;
     slug?: string | null;
     category_id?: number | null;
     excerpt?: string | null;
+    excerpt_en?: string | null;
     content?: string | null;
+    content_en?: string | null;
     status?: 'draft' | 'published' | 'scheduled';
     publish_at?: string | null;
     tags?: string[] | null;
@@ -71,10 +74,13 @@ interface AttachmentLinkInput {
 
 interface PostFormForm {
     title: string;
+    title_en: string;
     slug: string;
     category_id: string;
     excerpt: string;
+    excerpt_en: string;
     content: string;
+    content_en: string;
     status: 'draft' | 'published' | 'scheduled';
     publish_at: string;
     tags: string;
@@ -146,10 +152,13 @@ export default function PostForm({
 
     const form = useForm<PostFormForm>({
         title: post?.title ?? '',
+        title_en: post?.title_en ?? '',
         slug: post?.slug ?? '',
         category_id: post?.category_id ? String(post.category_id) : '',
         excerpt: post?.excerpt ?? '',
+        excerpt_en: post?.excerpt_en ?? '',
         content: post?.content ?? '',
+        content_en: post?.content_en ?? '',
         status: initialStatus,
         publish_at: formatDateTime(post?.publish_at),
         tags: Array.isArray(post?.tags) ? post?.tags.join(', ') : '',
@@ -300,6 +309,25 @@ export default function PostForm({
                     </div>
 
                     <div className="space-y-2">
+                        <Label htmlFor="post-title-en">
+                            {t(
+                                'posts.form.fields.title_en.label',
+                                fallbackText('公告標題（英文）', 'Announcement title (English)')
+                            )}
+                        </Label>
+                        <Input
+                            id="post-title-en"
+                            value={data.title_en}
+                            onChange={(event) => setData('title_en', event.target.value)}
+                            placeholder={t(
+                                'posts.form.fields.title_en.placeholder',
+                                fallbackText('請輸入英文標題', 'Enter announcement title in English')
+                            )}
+                        />
+                        <InputError message={errors.title_en as string | undefined} />
+                    </div>
+
+                    <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="post-slug">
                                 {t(
@@ -417,41 +445,87 @@ export default function PostForm({
                     </div>
 
                     <div className="lg:col-span-2 space-y-2">
-                        <Label htmlFor="post-excerpt">
-                            {t('posts.form.fields.excerpt.label', fallbackText('摘要', 'Summary'))}
-                        </Label>
-                        <Textarea
-                            id="post-excerpt"
-                            value={data.excerpt}
-                            onChange={(event) => setData('excerpt', event.target.value)}
-                            rows={3}
-                            placeholder={t(
-                                'posts.form.fields.excerpt.placeholder',
-                                fallbackText('簡短摘要，方便在列表顯示', 'Short summary for list display')
-                            )}
-                        />
-                        <InputError message={errors.excerpt} />
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="post-excerpt">
+                                    {t('posts.form.fields.excerpt.label', fallbackText('摘要', 'Summary'))}
+                                </Label>
+                                <Textarea
+                                    id="post-excerpt"
+                                    value={data.excerpt}
+                                    onChange={(event) => setData('excerpt', event.target.value)}
+                                    rows={3}
+                                    placeholder={t(
+                                        'posts.form.fields.excerpt.placeholder',
+                                        fallbackText('簡短摘要，方便在列表顯示', 'Short summary for list display')
+                                    )}
+                                />
+                                <InputError message={errors.excerpt} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="post-excerpt-en">
+                                    {t(
+                                        'posts.form.fields.excerpt_en.label',
+                                        fallbackText('摘要（英文）', 'Summary (English)')
+                                    )}
+                                </Label>
+                                <Textarea
+                                    id="post-excerpt-en"
+                                    value={data.excerpt_en}
+                                    onChange={(event) => setData('excerpt_en', event.target.value)}
+                                    rows={3}
+                                    placeholder={t(
+                                        'posts.form.fields.excerpt_en.placeholder',
+                                        fallbackText('請輸入英文摘要', 'Enter summary in English')
+                                    )}
+                                />
+                                <InputError message={errors.excerpt_en as string | undefined} />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="lg:col-span-2 space-y-2">
-                        <Label htmlFor="post-content">
-                            {t(
-                                'posts.form.fields.content_zh.label',
-                                fallbackText('公告內容', 'Announcement content')
-                            )}
-                            <span className="text-rose-500"> *</span>
-                        </Label>
-                        <Textarea
-                            id="post-content"
-                            value={data.content}
-                            onChange={(event) => setData('content', event.target.value)}
-                            rows={12}
-                            placeholder={t(
-                                'posts.form.fields.content_zh.placeholder',
-                                fallbackText('支援 HTML 片段，將自動進行安全清理', 'HTML snippets are supported and will be sanitized automatically')
-                            )}
-                        />
-                        <InputError message={errors.content} />
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="post-content">
+                                    {t(
+                                        'posts.form.fields.content_zh.label',
+                                        fallbackText('公告內容', 'Announcement content')
+                                    )}
+                                    <span className="text-rose-500"> *</span>
+                                </Label>
+                                <Textarea
+                                    id="post-content"
+                                    value={data.content}
+                                    onChange={(event) => setData('content', event.target.value)}
+                                    rows={12}
+                                    placeholder={t(
+                                        'posts.form.fields.content_zh.placeholder',
+                                        fallbackText('支援 HTML 片段，將自動進行安全清理', 'HTML snippets are supported and will be sanitized automatically')
+                                    )}
+                                />
+                                <InputError message={errors.content} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="post-content-en">
+                                    {t(
+                                        'posts.form.fields.content_en.label',
+                                        fallbackText('公告內容（英文）', 'Announcement content (English)')
+                                    )}
+                                </Label>
+                                <Textarea
+                                    id="post-content-en"
+                                    value={data.content_en}
+                                    onChange={(event) => setData('content_en', event.target.value)}
+                                    rows={12}
+                                    placeholder={t(
+                                        'posts.form.fields.content_en.placeholder',
+                                        fallbackText('請輸入英文內容，將同樣進行安全清理', 'Enter the English content; HTML snippets will also be sanitized')
+                                    )}
+                                />
+                                <InputError message={errors.content_en as string | undefined} />
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

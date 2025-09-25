@@ -62,10 +62,13 @@ export default function CreatePost({ categories, statusOptions, availableTags }:
 
     const emptyPost: PostResource = {
         title: '',
+        title_en: '',
         slug: '',
         category_id: undefined,
         excerpt: '',
+        excerpt_en: '',
         content: '',
+        content_en: '',
         status: 'draft',
         publish_at: null,
         tags: [],
