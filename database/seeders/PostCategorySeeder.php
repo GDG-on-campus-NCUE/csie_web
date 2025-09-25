@@ -55,6 +55,31 @@ class PostCategorySeeder extends Seeder
                 $upsert($slug, $name, $nameEn, $announcementsId, $i);
             }
 
+            // Academics tree
+            $academicsId = $upsert('academics', '課程修業', 'Academics');
+            $academicsChildren = [
+                ['academics-undergraduate', '學士班', 'Undergraduate Program'],
+                ['academics-graduate', '碩士班', 'Graduate Program'],
+                ['academics-ai-inservice', '人工智慧應用服務碩士在職專班', 'AI Service Master Program'],
+                ['academics-dual-degree', '雙聯學制', 'Dual Degree Program'],
+            ];
+
+            foreach ($academicsChildren as $i => [$slug, $name, $nameEn]) {
+                $upsert($slug, $name, $nameEn, $academicsId, $i);
+            }
+
+            // Research tree
+            $researchId = $upsert('research', '學術研究', 'Research');
+            $researchChildren = [
+                ['research-labs', '實驗室', 'Labs'],
+                ['research-projects', '研究計畫', 'Research Projects'],
+                ['research-publications', '研究論文', 'Research Publications'],
+            ];
+
+            foreach ($researchChildren as $i => [$slug, $name, $nameEn]) {
+                $upsert($slug, $name, $nameEn, $researchId, $i);
+            }
+
             // Admissions tree
             $admissionsId = $upsert('admissions', '招生專區', 'Admissions');
             $adChildren = [

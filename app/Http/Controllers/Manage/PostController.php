@@ -156,10 +156,13 @@ class PostController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
             'category_id' => ['required', 'exists:post_categories,id'],
             'excerpt' => 'nullable|string|max:1000',
+            'excerpt_en' => 'nullable|string|max:1000',
             'content' => 'required|string',
+            'content_en' => 'nullable|string',
             'status' => ['required', Rule::in($statusOptions)],
             'publish_at' => [Rule::requiredIf(fn () => $request->input('status') === 'scheduled'), 'nullable', 'date'],
             'tags' => 'nullable',
@@ -179,18 +182,21 @@ class PostController extends Controller
         }
 
         $excerpt = $this->sanitizePlainText($validated['excerpt'] ?? null);
+        $titleEn = $this->sanitizePlainText($request->input('title_en')) ?? $validated['title'];
+        $excerptEn = $this->sanitizePlainText($request->input('excerpt_en')) ?? $excerpt;
+        $contentEn = $this->sanitizeRichText($request->input('content_en')) ?? $content;
 
         $tags = $this->prepareTags($request->input('tags'));
 
         $post = new Post([
             'category_id' => (int) $validated['category_id'],
             'title' => $validated['title'],
-            'title_en' => $validated['title'],
+            'title_en' => $titleEn,
             'slug' => $this->prepareSlug($validated['slug'] ?? '', $validated['title']),
             'summary' => $excerpt,
-            'summary_en' => $excerpt,
+            'summary_en' => $excerptEn,
             'content' => $content,
-            'content_en' => $content,
+            'content_en' => $contentEn,
             'status' => $resolvedStatus,
             'publish_at' => $publishAt,
             'pinned' => false,
@@ -224,13 +230,16 @@ class PostController extends Controller
             'post' => [
                 'id' => $post->id,
                 'title' => $post->title,
+                'title_en' => $post->title_en,
                 'slug' => $post->slug,
                 'status' => $post->status,
                 'publish_at' => optional($post->publish_at)?->toIso8601String(),
                 'category' => $post->category?->only(['id', 'name', 'name_en', 'slug']),
                 'author' => $post->creator?->only(['id', 'name', 'email']),
                 'excerpt' => $post->summary,
+                'excerpt_en' => $post->summary_en,
                 'content' => $post->content,
+                'content_en' => $post->content_en,
                 'tags' => $post->tags ?? [],
                 'views' => $post->views,
                 'featured_image_url' => $post->cover_image_url,
@@ -258,10 +267,13 @@ class PostController extends Controller
             'post' => [
                 'id' => $post->id,
                 'title' => $post->title,
+                'title_en' => $post->title_en,
                 'slug' => $post->slug,
                 'category_id' => $post->category_id,
                 'excerpt' => $post->summary,
+                'excerpt_en' => $post->summary_en,
                 'content' => $post->content,
+                'content_en' => $post->content_en,
                 'status' => $post->status,
                 'publish_at' => optional($post->publish_at)?->toIso8601String(),
                 'tags' => $post->tags ?? [],
@@ -314,10 +326,13 @@ class PostController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
             'category_id' => ['required', 'exists:post_categories,id'],
             'excerpt' => 'nullable|string|max:1000',
+            'excerpt_en' => 'nullable|string|max:1000',
             'content' => 'required|string',
+            'content_en' => 'nullable|string',
             'status' => ['required', Rule::in($statusOptions)],
             'publish_at' => [Rule::requiredIf(fn () => $request->input('status') === 'scheduled'), 'nullable', 'date'],
             'tags' => 'nullable',
@@ -340,18 +355,21 @@ class PostController extends Controller
         }
 
         $excerpt = $this->sanitizePlainText($validated['excerpt'] ?? null);
+        $titleEn = $this->sanitizePlainText($request->input('title_en')) ?? $validated['title'];
+        $excerptEn = $this->sanitizePlainText($request->input('excerpt_en')) ?? $excerpt;
+        $contentEn = $this->sanitizeRichText($request->input('content_en')) ?? $content;
 
         $tags = $this->prepareTags($request->input('tags'));
 
         $post->fill([
             'category_id' => (int) $validated['category_id'],
             'title' => $validated['title'],
-            'title_en' => $validated['title'],
+            'title_en' => $titleEn,
             'slug' => $this->prepareSlug($validated['slug'] ?? '', $validated['title'], $post->id),
             'summary' => $excerpt,
-            'summary_en' => $excerpt,
+            'summary_en' => $excerptEn,
             'content' => $content,
-            'content_en' => $content,
+            'content_en' => $contentEn,
             'status' => $resolvedStatus,
             'publish_at' => $publishAt,
             'tags' => $tags,
