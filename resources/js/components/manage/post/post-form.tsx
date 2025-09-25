@@ -413,19 +413,27 @@ export default function PostForm({
                             value={data.tags}
                             onChange={(next) => setData('tags', next)}
                             options={tagOptions}
+                            placeholder={t(
+                                'posts.form.fields.tags.placeholder',
+                                fallbackText('輸入後按 Enter 新增，或從下方清單挑選。', 'Type and press Enter to add, or pick from the list below.')
+                            )}
                             helperText={tagOptions.length > 0
                                 ? t(
                                     'posts.form.fields.tags.helper',
-                                    fallbackText('按住 Ctrl 或 ⌘ 可多選標籤。', 'Hold Ctrl (or ⌘) to select multiple tags.')
+                                    fallbackText('輸入後按 Enter 建立標籤，或從建議列表點擊加入。', 'Press Enter to add custom tags, or click suggestions to include them.')
                                 )
                                 : undefined}
                             emptyOptionLabel={t(
                                 'posts.form.fields.tags.empty_option',
-                                fallbackText('目前沒有可用的標籤。', 'No tags available yet.')
+                                fallbackText('目前沒有建議標籤，您可以直接輸入新增。', 'No suggestions yet — feel free to type and add new tags.')
                             )}
                             emptyMessage={t(
                                 'posts.form.fields.tags.empty_message',
-                                fallbackText('請先至標籤管理頁面建立標籤。', 'Please create tags from the tag management page first.')
+                                fallbackText('尚未設定常用標籤，也可以直接輸入建立新標籤。', 'There are no suggested tags yet, but you can still type to add new ones.')
+                            )}
+                            createHint={t(
+                                'posts.form.fields.tags.create_hint',
+                                fallbackText('按 Enter 可新增「:keyword」。', 'Press Enter to create ":keyword".')
                             )}
                             disabled={processing}
                         />
