@@ -409,10 +409,13 @@ return [
                 ],
                 'tags' => [
                     'label' => '標籤',
-                    'placeholder' => '以逗號分隔，如：系所公告, 活動',
-                    'helper' => '使用逗號分隔多個標籤。',
+                    'placeholder' => '輸入後按 Enter 新增，或從下方清單挑選。',
+                    'helper' => '輸入後按 Enter 建立標籤，或從建議列表點擊加入。',
                     'suggestions_title' => '常用標籤',
-                    'suggestions_hint' => '點擊即可加入或移除。',
+                    'suggestions_hint' => '點擊建議標籤即可加入或移除。',
+                    'empty_option' => '目前沒有建議標籤，您可以直接輸入新增。',
+                    'empty_message' => '尚未設定常用標籤，也可以直接輸入建立新標籤。',
+                    'create_hint' => '按 Enter 可新增「:keyword」。',
                 ],
                 'pinned' => [
                     'label' => '是否置頂',

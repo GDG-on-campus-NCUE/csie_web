@@ -409,10 +409,13 @@ return [
                 ],
                 'tags' => [
                     'label' => 'Tags',
-                    'placeholder' => 'Separate with commas, e.g. Department, Event',
-                    'helper' => 'Use commas to separate multiple tags.',
+                    'placeholder' => 'Type and press Enter to add, or choose from the list below.',
+                    'helper' => 'Press Enter to add custom tags, or click a suggestion to include it.',
                     'suggestions_title' => 'Suggested tags',
-                    'suggestions_hint' => 'Click to add or remove.',
+                    'suggestions_hint' => 'Click a suggested tag to add or remove it.',
+                    'empty_option' => 'No suggestions yet — feel free to type and add new tags.',
+                    'empty_message' => 'Suggested tags are not set yet, but you can still type to add new ones.',
+                    'create_hint' => 'Press Enter to create ":keyword".',
                 ],
                 'pinned' => [
                     'label' => 'Pin announcement',
