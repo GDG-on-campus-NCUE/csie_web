@@ -64,8 +64,11 @@ export default function PostsIndex({ posts, categories, authors, filters, status
     const locale = page.props.locale ?? 'zh-TW';
 
     const { t } = useTranslator('manage');
-    const fallbackLanguage: 'zh' | 'en' = locale.toLowerCase() === 'zh-tw' ? 'zh' : 'en';
-    const localeForDate: 'zh-TW' | 'en' = locale.toLowerCase() === 'zh-tw' ? 'zh-TW' : 'en';
+    // 以更彈性的語系判斷方式支援 zh_TW、zh-Hant 等格式，避免中英文切換失效。
+    const normalizedLocale = locale.toLowerCase().replace('_', '-');
+    const isTraditionalChinese = normalizedLocale.startsWith('zh');
+    const fallbackLanguage: 'zh' | 'en' = isTraditionalChinese ? 'zh' : 'en';
+    const localeForDate: 'zh-TW' | 'en' = isTraditionalChinese ? 'zh-TW' : 'en';
 
     const defaultPerPage = perPageOptions[0] ?? 15;
     const postData = posts?.data ?? [];
