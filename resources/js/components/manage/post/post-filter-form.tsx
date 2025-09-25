@@ -37,6 +37,7 @@ export function PostFilterForm({
 }: PostFilterFormProps) {
     // 依語系提供對應預設文案，避免英文介面顯示中文字。
     const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
+    const dateInputLocale = fallbackLanguage === 'zh' ? 'zh-Hant-TW' : 'en';
 
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
@@ -126,6 +127,7 @@ export function PostFilterForm({
                             type="date"
                             value={filterState.date_from}
                             onChange={(event) => onChange('date_from', event.target.value)}
+                            lang={dateInputLocale}
                         />
                     </div>
 
@@ -138,6 +140,7 @@ export function PostFilterForm({
                             type="date"
                             value={filterState.date_to}
                             onChange={(event) => onChange('date_to', event.target.value)}
+                            lang={dateInputLocale}
                         />
                     </div>
 

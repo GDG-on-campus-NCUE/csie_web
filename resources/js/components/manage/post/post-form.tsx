@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
 import { Calendar, FileText, Image as ImageIcon, Link2, Loader2, Paperclip, Plus, Trash2 } from 'lucide-react';
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from 'react';
 import { useTranslator } from '@/hooks/use-translator';
 
 interface CategoryOption {
@@ -141,6 +141,7 @@ export default function PostForm({
 }: PostFormProps) {
     const { t, localeKey } = useTranslator('manage');
     const fallbackLanguage: 'zh' | 'en' = localeKey === 'zh-TW' ? 'zh' : 'en';
+    const inputLocale = fallbackLanguage === 'zh' ? 'zh-Hant-TW' : 'en';
     // 依照當前語系提供對應的預設文字，避免英文介面出現中文字串。
     const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
     const initialStatus = useMemo(() => {
@@ -172,6 +173,9 @@ export default function PostForm({
     });
 
     const { data, setData, processing, errors } = form;
+
+    const featuredInputRef = useRef<HTMLInputElement | null>(null);
+    const attachmentsInputRef = useRef<HTMLInputElement | null>(null);
 
     const [linkInputs, setLinkInputs] = useState<AttachmentLinkInput[]>([]);
 
@@ -227,6 +231,9 @@ export default function PostForm({
             ...data.attachments,
             files,
         });
+        if (attachmentsInputRef.current) {
+            attachmentsInputRef.current.value = '';
+        }
     };
 
     const handleFeaturedChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -235,6 +242,17 @@ export default function PostForm({
         if (file) {
             setData('remove_featured_image', false);
         }
+        if (featuredInputRef.current) {
+            featuredInputRef.current.value = '';
+        }
+    };
+
+    const openFeaturedPicker = () => {
+        featuredInputRef.current?.click();
+    };
+
+    const openAttachmentPicker = () => {
+        attachmentsInputRef.current?.click();
     };
 
     const handleLinkInputChange = (id: string, key: 'title' | 'url', value: string) => {
@@ -590,6 +608,7 @@ export default function PostForm({
                                 className="pl-9"
                                 value={data.publish_at}
                                 onChange={(event) => setData('publish_at', event.target.value)}
+                                lang={inputLocale}
                             />
                         </div>
                         <p className="text-xs text-slate-500">
@@ -627,10 +646,35 @@ export default function PostForm({
                                     fallbackText('主視覺', 'Featured image')
                                 )}
                             </Label>
-                            <Input
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-center gap-2 sm:w-auto"
+                                    onClick={openFeaturedPicker}
+                                >
+                                    <ImageIcon className="h-4 w-4" />
+                                    {t(
+                                        'posts.form.attachments.featured.button',
+                                        fallbackText('選擇主圖', 'Select image')
+                                    )}
+                                </Button>
+                                {data.featured_image && (
+                                    <span className="text-xs text-slate-600">
+                                        {t(
+                                            'posts.form.attachments.featured.selected',
+                                            fallbackText('已選擇檔案：:name', 'Selected file: :name'),
+                                            { name: data.featured_image.name }
+                                        )}
+                                    </span>
+                                )}
+                            </div>
+                            <input
+                                ref={featuredInputRef}
                                 id="post-featured-image"
                                 type="file"
                                 accept="image/*"
+                                className="sr-only"
                                 onChange={handleFeaturedChange}
                             />
                             <p className="text-xs text-slate-500">
@@ -684,10 +728,35 @@ export default function PostForm({
                                     fallbackText('上傳附件', 'Upload attachments')
                                 )}
                             </Label>
-                            <Input
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-center gap-2 sm:w-auto"
+                                    onClick={openAttachmentPicker}
+                                >
+                                    <Paperclip className="h-4 w-4" />
+                                    {t(
+                                        'posts.form.attachments.select_files',
+                                        fallbackText('選擇檔案', 'Select files')
+                                    )}
+                                </Button>
+                                {data.attachments.files.length > 0 && (
+                                    <span className="text-xs text-slate-600">
+                                        {t(
+                                            'posts.form.attachments.pending_files',
+                                            fallbackText('即將上傳的檔案（:count）', 'Files to upload (:count)'),
+                                            { count: data.attachments.files.length }
+                                        )}
+                                    </span>
+                                )}
+                            </div>
+                            <input
+                                ref={attachmentsInputRef}
                                 id="post-attachments"
                                 type="file"
                                 multiple
+                                className="sr-only"
                                 onChange={handleFileChange}
                             />
                             <p className="text-xs text-slate-500">
