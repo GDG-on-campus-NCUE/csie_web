@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import TagSelector, { TagSelectorOption } from '@/components/manage/tag-selector';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -84,7 +85,7 @@ interface PostFormForm {
     content_en: string;
     status: 'draft' | 'published' | 'scheduled';
     publish_at: string;
-    tags: string;
+    tags: string[];
     featured_image: File | null;
     remove_featured_image: boolean;
     attachments: {
@@ -163,7 +164,7 @@ export default function PostForm({
         content_en: post?.content_en ?? '',
         status: initialStatus,
         publish_at: formatDateTime(post?.publish_at),
-        tags: Array.isArray(post?.tags) ? post?.tags.join(', ') : '',
+        tags: Array.isArray(post?.tags) ? [...post.tags] : [],
         featured_image: null,
         remove_featured_image: false,
         attachments: {
@@ -188,31 +189,13 @@ export default function PostForm({
             .filter((tag): tag is TagOption => Boolean(tag));
     }, [availableTags]);
 
-    const selectedTags = useMemo(() => {
-        const items = (data.tags ?? '')
-            .split(',')
-            .map((value) => value.trim())
-            .filter((value) => value.length > 0);
-
-        return Array.from(new Set(items));
-    }, [data.tags]);
-
-    const toggleTag = (tagName: string) => {
-        const value = tagName.trim();
-        if (value === '') {
-            return;
-        }
-
-        if (selectedTags.includes(value)) {
-            const next = selectedTags.filter((item) => item !== value);
-            setData('tags', next.join(', '));
-            return;
-        }
-
-        setData('tags', [...selectedTags, value].join(', '));
-    };
-
-    const isTagSelected = (tagName: string) => selectedTags.includes(tagName.trim());
+    const tagOptions = useMemo<TagSelectorOption[]>(() => {
+        return normalizedAvailableTags.map((tag) => ({
+            value: tag.name,
+            label: tag.name,
+            description: tag.description,
+        }));
+    }, [normalizedAvailableTags]);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -425,56 +408,27 @@ export default function PostForm({
                         <Label htmlFor="post-tags">
                             {t('posts.form.fields.tags.label', fallbackText('標籤', 'Tags'))}
                         </Label>
-                        <Input
+                        <TagSelector
                             id="post-tags"
                             value={data.tags}
-                            onChange={(event) => setData('tags', event.target.value)}
-                            placeholder={t(
-                                'posts.form.fields.tags.placeholder',
-                                fallbackText('以逗號分隔，如：系所公告, 活動', 'Separate with commas, e.g. Department, Event')
+                            onChange={(next) => setData('tags', next)}
+                            options={tagOptions}
+                            helperText={tagOptions.length > 0
+                                ? t(
+                                    'posts.form.fields.tags.helper',
+                                    fallbackText('按住 Ctrl 或 ⌘ 可多選標籤。', 'Hold Ctrl (or ⌘) to select multiple tags.')
+                                )
+                                : undefined}
+                            emptyOptionLabel={t(
+                                'posts.form.fields.tags.empty_option',
+                                fallbackText('目前沒有可用的標籤。', 'No tags available yet.')
                             )}
+                            emptyMessage={t(
+                                'posts.form.fields.tags.empty_message',
+                                fallbackText('請先至標籤管理頁面建立標籤。', 'Please create tags from the tag management page first.')
+                            )}
+                            disabled={processing}
                         />
-                        <p className="text-xs text-slate-500">
-                            {t(
-                                'posts.form.fields.tags.helper',
-                                fallbackText('使用逗號分隔多個標籤。', 'Use commas to separate multiple tags.')
-                            )}
-                        </p>
-                        {normalizedAvailableTags.length > 0 && (
-                            <div className="space-y-2">
-                                <p className="text-xs font-medium text-slate-500">
-                                    {t(
-                                        'posts.form.fields.tags.suggestions_title',
-                                        fallbackText('常用標籤', 'Suggested tags')
-                                    )}{' '}
-                                    <span className="font-normal text-slate-400">
-                                        {t(
-                                            'posts.form.fields.tags.suggestions_hint',
-                                            fallbackText('點擊即可加入或移除。', 'Click to add or remove.')
-                                        )}
-                                    </span>
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {normalizedAvailableTags.map((tag) => {
-                                        const selected = isTagSelected(tag.name);
-                                        return (
-                                            <Button
-                                                key={tag.id}
-                                                type="button"
-                                                size="sm"
-                                                variant={selected ? 'default' : 'outline'}
-                                                className={selected ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}
-                                                aria-pressed={selected}
-                                                title={tag.description ?? undefined}
-                                                onClick={() => toggleTag(tag.name)}
-                                            >
-                                                #{tag.name}
-                                            </Button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
                         <InputError message={errors.tags as string | undefined} />
                     </div>
 
