@@ -278,41 +278,44 @@ export function PostTable({
                             const publishDate = formatDateTime(post.publish_at, localeForDate);
 
                             return (
-                                <div key={`mobile-post-${post.id}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div
+                                    key={`mobile-post-${post.id}`}
+                                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                                >
                                     <div className="flex flex-col gap-3">
                                         <div className="flex flex-col gap-1">
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <div className="flex flex-wrap items-start justify-between gap-2">
                                                 <Link
                                                     href={`/manage/posts/${post.id}`}
-                                                    className="text-base font-semibold text-slate-900"
+                                                    className="text-base font-semibold text-slate-900 break-words"
                                                 >
                                                     {post.title}
                                                 </Link>
                                                 <Badge variant={statusVariant}>{statusLabel}</Badge>
                                             </div>
-                                            <span className="text-xs text-slate-500">
+                                            <span className="text-xs text-slate-500 break-all">
                                                 {`${t('posts.show.slug', fallbackText('網址 Slug', 'Slug'))}：${post.slug}`}
                                             </span>
                                         </div>
 
-                                        <div className="grid gap-2 text-sm text-slate-600">
-                                            <div className="flex items-center justify-between gap-3">
+                                        <div className="grid gap-3 text-sm text-slate-600">
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-medium text-slate-700">
                                                     {t('posts.index.table.columns.category', fallbackText('分類', 'Category'))}
                                                 </span>
-                                                <span className="text-right">{categoryLabel}</span>
+                                                <span className="break-words text-slate-600">{categoryLabel}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3">
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-medium text-slate-700">
                                                     {t('posts.index.table.columns.author', fallbackText('作者', 'Author'))}
                                                 </span>
-                                                <span className="text-right">{authorLabel}</span>
+                                                <span className="break-words text-slate-600">{authorLabel}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3">
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-medium text-slate-700">
                                                     {t('posts.index.table.columns.published_at', fallbackText('發布時間', 'Published at'))}
                                                 </span>
-                                                <span className="text-right">
+                                                <span className="text-slate-600">
                                                     {publishDate ??
                                                         t(
                                                             'posts.index.table.not_scheduled',
@@ -320,17 +323,18 @@ export function PostTable({
                                                         )}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3">
+        
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-medium text-slate-700">
                                                     {t('posts.index.table.columns.views', fallbackText('瀏覽數', 'Views'))}
                                                 </span>
-                                                <span className="text-right">{post.views}</span>
+                                                <span className="text-slate-600">{post.views}</span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3">
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-medium text-slate-700">
                                                     {t('posts.index.table.columns.attachments', fallbackText('附件', 'Attachments'))}
                                                 </span>
-                                                <span className="text-right">{post.attachments_count}</span>
+                                                <span className="text-slate-600">{post.attachments_count}</span>
                                             </div>
                                         </div>
 
