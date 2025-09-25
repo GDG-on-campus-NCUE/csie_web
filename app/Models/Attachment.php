@@ -14,6 +14,10 @@ class Attachment extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $appends = [
+        'download_url',
+    ];
+
     protected $fillable = [
         'attached_to_type',
         'attached_to_id',
@@ -70,6 +74,15 @@ class Attachment extends Model
                 Storage::disk('public')->delete($path);
             }
         }
+    }
+
+    public function getDownloadUrlAttribute(): ?string
+    {
+        if (! $this->exists || ! $this->getKey()) {
+            return null;
+        }
+
+        return route('public.attachments.download', $this);
     }
 }
 

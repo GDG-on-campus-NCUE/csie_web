@@ -24,6 +24,7 @@ interface AttachmentSummary {
     type: 'image' | 'document' | 'link';
     title: string | null;
     file_url: string | null;
+    download_url: string | null;
     external_url: string | null;
     mime_type: string | null;
 }
@@ -871,6 +872,7 @@ export default function PostForm({
                             <div className="space-y-2">
                                 {existingAttachments.map((attachment) => {
                                     const removeChecked = data.attachments.remove.includes(attachment.id);
+                                    const previewUrl = attachment.download_url ?? attachment.file_url;
                                     return (
                                         <label
                                             key={attachment.id}
@@ -889,10 +891,10 @@ export default function PostForm({
                                                             fallbackText('未命名附件', 'Untitled attachment')
                                                         )}
                                                 </span>
-                                                {attachment.file_url && (
+                                                {previewUrl && (
                                                     <a
                                                         className="text-xs text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
-                                                        href={attachment.file_url}
+                                                        href={previewUrl}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                     >
