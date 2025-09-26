@@ -7,38 +7,36 @@ import { Select } from '@/components/ui/select';
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
-interface OptionItem {
-    value: string;
-    label: string;
-}
-
-interface UserPayload {
-    id?: number;
-    name: string;
-    email: string;
-    role: 'admin' | 'teacher' | 'user';
-    status: 'active' | 'suspended';
-    email_verified_at?: string | null;
-}
+import type { OptionItem, UserFormPayload, UserRole, UserStatus } from './user-types';
 
 interface UserFormProps {
     mode: 'create' | 'edit';
-    user?: UserPayload | null;
+    user?: UserFormPayload | null;
     roleOptions: OptionItem[];
     statusOptions: OptionItem[];
 }
 
 export default function UserForm({ mode, user, roleOptions, statusOptions }: UserFormProps) {
-    const form = useForm({
+    // 使用 Inertia 表單管理狀態與驗證錯誤，統一處理送出流程。
+    const form = useForm<{
+        name: string;
+        email: string;
+        role: UserRole;
+        status: UserStatus;
+        password: string;
+        password_confirmation: string;
+        email_verified: boolean;
+    }>({
         name: user?.name ?? '',
         email: user?.email ?? '',
-        role: user?.role ?? (roleOptions[0]?.value ?? 'user'),
-        status: user?.status ?? (statusOptions[0]?.value ?? 'active'),
+        role: user?.role ?? ((roleOptions[0]?.value as UserRole) ?? 'user'),
+        status: user?.status ?? ((statusOptions[0]?.value as UserStatus) ?? 'active'),
         password: '',
         password_confirmation: '',
         email_verified: Boolean(user?.email_verified_at ?? false),
     });
 
+    // 表單送出時依模式決定呼叫新增或更新 API，並避免頁面重新整理。
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
