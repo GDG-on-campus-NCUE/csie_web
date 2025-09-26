@@ -23,9 +23,6 @@ class UpdateTeacherRequest extends FormRequest
         $teacherId = $this->route('teacher')->id ?? null;
 
         return [
-            // User relationship - optional but must exist if provided
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-
             // Basic contact information
             'email' => [
                 'nullable',
@@ -79,7 +76,6 @@ class UpdateTeacherRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'user_id' => __('manage.teacher.user'),
             'email' => __('manage.teacher.email'),
             'phone' => __('manage.teacher.phone'),
             'office' => __('manage.teacher.office'),

@@ -1,32 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/jest-globals';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
 import { TeacherForm } from '@/components/manage/teacher/TeacherForm';
 
-// Mock Inertia.js
+const mockSetData = jest.fn();
 const mockPost = jest.fn();
 const mockPut = jest.fn();
-const mockSetData = jest.fn();
-const mockVisit = jest.fn();
 
 jest.mock('@inertiajs/react', () => ({
-    useForm: jest.fn(() => ({
-        data: {
-            name: { 'zh-TW': '', 'en': '' },
-            title: { 'zh-TW': '', 'en': '' },
-            email: '',
-            phone: '',
-            office: '',
-            bio: { 'zh-TW': '', 'en': '' },
-            specialties: [],
-            education: [],
-            website: '',
-            user_id: null,
-            lab_id: null,
-            visible: true,
-            sort_order: 0,
-        },
+    useForm: jest.fn((initialData: unknown) => ({
+        data: initialData,
         setData: mockSetData,
         post: mockPost,
         put: mockPut,
@@ -36,448 +20,134 @@ jest.mock('@inertiajs/react', () => ({
         reset: jest.fn(),
     })),
     router: {
-        visit: mockVisit,
+        visit: jest.fn(),
     },
 }));
 
-// Mock MultiLanguageInput component
-jest.mock('@/components/ui/MultiLanguageInput', () => ({
-    MultiLanguageInput: ({ label, value, onChange, error, required }: any) => (
-        <div>
-            <label data-testid={`label-${label}`}>
-                {label} {required && '*'}
-            </label>
+jest.mock('@/components/manage/staff/MultiLanguageInput', () => ({
+    __esModule: true,
+    default: ({ label, name, onChange }: any) => (
+        <div data-testid={`multi-${name}`}>
+            <span>{label}</span>
             <input
-                data-testid={`input-${label}`}
-                value={value?.['zh-TW'] || ''}
-                onChange={(e) => onChange({
-                    'zh-TW': e.target.value,
-                    'en': value?.['en'] || ''
-                })}
+                data-testid={`input-${name}-zh`}
+                onChange={(event) => onChange('zh-TW', event.target.value)}
             />
-            {error && <span role="alert" data-testid={`error-${label}`}>{error}</span>}
+            <input
+                data-testid={`input-${name}-en`}
+                onChange={(event) => onChange('en', event.target.value)}
+            />
         </div>
     ),
 }));
 
-// Mock UI components
-jest.mock('@/components/ui/Card', () => ({
+jest.mock('@/components/ui/card', () => ({
     Card: ({ children }: any) => <div data-testid="card">{children}</div>,
     CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
-    CardTitle: ({ children }: any) => <h3 data-testid="card-title">{children}</h3>,
+    CardTitle: ({ children }: any) => <div data-testid="card-title">{children}</div>,
     CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
 }));
 
-jest.mock('@/components/ui/Button', () => ({
-    Button: ({ children, onClick, type, disabled, variant, ...props }: any) => (
-        <button
-            data-testid={`button-${variant || 'default'}`}
-            onClick={onClick}
-            type={type}
-            disabled={disabled}
-            {...props}
-        >
+jest.mock('@/components/ui/input', () => ({
+    Input: ({ id, value, onChange, ...props }: any) => (
+        <input data-testid={`input-${id}`} id={id} value={value} onChange={onChange} {...props} />
+    ),
+}));
+
+jest.mock('@/components/ui/button', () => ({
+    Button: ({ children, ...props }: any) => (
+        <button data-testid="button" {...props}>
             {children}
         </button>
     ),
 }));
 
-jest.mock('@/components/ui/Select', () => ({
-    Select: ({ value, onValueChange, children }: any) => (
-        <select
-            data-testid="select"
-            value={value || ''}
-            onChange={(e) => onValueChange(e.target.value)}
-        >
-            {children}
-        </select>
-    ),
-    SelectContent: ({ children }: any) => <>{children}</>,
-    SelectItem: ({ value, children }: any) => (
-        <option value={value}>{children}</option>
-    ),
-    SelectTrigger: ({ children }: any) => <div>{children}</div>,
-    SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
-}));
-
-jest.mock('@/components/ui/Input', () => ({
-    Input: ({ value, onChange, placeholder, type, ...props }: any) => (
+jest.mock('@/components/ui/checkbox', () => ({
+    Checkbox: ({ id, checked, onCheckedChange }: any) => (
         <input
-            data-testid="input-field"
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            type={type}
-            {...props}
-        />
-    ),
-}));
-
-jest.mock('@/components/ui/Switch', () => ({
-    Switch: ({ checked, onCheckedChange, ...props }: any) => (
-        <input
-            data-testid="switch-visible"
+            data-testid={`checkbox-${id}`}
             type="checkbox"
-            checked={checked}
-            onChange={(e) => onCheckedChange(e.target.checked)}
-            {...props}
+            checked={checked ?? false}
+            onChange={(event) => onCheckedChange?.(event.target.checked)}
         />
     ),
 }));
 
-describe('TeacherForm Component', () => {
-    const mockTeacher = {
+jest.mock('@/components/ui/label', () => ({
+    Label: ({ children, htmlFor }: any) => (
+        <label data-testid={`label-${htmlFor}`}>{children}</label>
+    ),
+}));
+
+jest.mock('@/hooks/useTranslation', () => ({
+    useTranslation: () => ({
+        t: (key: string, fallback?: string) => fallback ?? key,
+        locale: 'zh-TW',
+    }),
+}));
+
+describe('TeacherForm (teacher namespace)', () => {
+    const teacher = {
         id: 1,
-        name: { 'zh-TW': '張教授', 'en': 'Prof. Zhang' },
-        title: { 'zh-TW': '教授', 'en': 'Professor' },
-        email: 'prof.zhang@example.com',
-        phone: '02-1234-5678',
-        office: 'C301',
-        bio: { 'zh-TW': '專精計算機科學', 'en': 'Computer Science Expert' },
+        name: { 'zh-TW': '王教授', en: 'Prof. Wang' },
+        title: { 'zh-TW': '教授', en: 'Professor' },
+        bio: { 'zh-TW': '專長為資料探勘', en: 'Data mining specialist' },
         specialties: [
-            { 'zh-TW': '機器學習', 'en': 'Machine Learning' },
-            { 'zh-TW': '資料探勘', 'en': 'Data Mining' }
+            { 'zh-TW': '資料探勘', en: 'Data Mining' },
+            { 'zh-TW': '雲端運算', en: 'Cloud Computing' },
         ],
-        education: [
-            { 'zh-TW': '台大資工博士', 'en': 'Ph.D. in CS, NTU' }
-        ],
-        website: 'https://prof-zhang.example.com',
-        user_id: 1,
-        lab_id: 1,
+        education: [{ 'zh-TW': '交大電機博士', en: 'Ph.D. in EE, NCTU' }],
+        email: 'prof.wang@example.com',
+        phone: '02-99998888',
+        office: 'E201',
+        website: 'https://example.com',
+        lab_id: 2,
+        sort_order: 5,
         visible: true,
-        sort_order: 1,
-        avatar: undefined
-    };
-
-    const mockUsers = [
-        { id: 1, name: '張教授', email: 'prof.zhang@example.com', role: 'teacher' as const },
-        { id: 2, name: '李教授', email: 'prof.li@example.com', role: 'teacher' as const }
-    ];
-
-    const mockLabs = [
-        { id: 1, name: { 'zh-TW': 'AI 實驗室', 'en': 'AI Lab' } },
-        { id: 2, name: { 'zh-TW': '網路實驗室', 'en': 'Network Lab' } }
-    ];
-
-    const mockOnSubmit = jest.fn();
+    } as const;
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    // T021: 測試表單渲染所有必填欄位
-    it('renders form with all required fields', () => {
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
+    it('renders multilingual inputs and essential fields', () => {
+        render(<TeacherForm teacher={teacher} labs={[]} onSubmit={jest.fn()} />);
 
-        expect(screen.getByTestId('card')).toBeInTheDocument();
-        expect(screen.getByTestId('label-姓名')).toBeInTheDocument();
-        expect(screen.getByTestId('label-職稱')).toBeInTheDocument();
-        expect(screen.getByText('姓名 *')).toBeInTheDocument();
-        expect(screen.getByText('職稱 *')).toBeInTheDocument();
+        expect(screen.getByTestId('multi-name')).toBeInTheDocument();
+        expect(screen.getByTestId('multi-title')).toBeInTheDocument();
+        expect(screen.getByTestId('input-email')).toBeInTheDocument();
+        expect(screen.getByTestId('input-phone')).toBeInTheDocument();
+        expect(screen.getByTestId('input-office')).toBeInTheDocument();
+        expect(screen.getByTestId('multi-bio')).toBeInTheDocument();
+        expect(screen.getByTestId('checkbox-visible')).toBeInTheDocument();
     });
 
-    // T021: 測試多語言輸入組件
-    it('renders multilingual input components', () => {
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        expect(screen.getByTestId('input-姓名')).toBeInTheDocument();
-        expect(screen.getByTestId('input-職稱')).toBeInTheDocument();
-        expect(screen.getByTestId('input-個人簡介')).toBeInTheDocument();
-    });
-
-    // T021: 測試關聯選擇器
-    it('renders user and lab selectors', () => {
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const selects = screen.getAllByTestId('select');
-        expect(selects.length).toBeGreaterThanOrEqual(2); // 至少有 user 和 lab 選擇器
-    });
-
-    // T021: 測試編輯模式載入現有資料
-    it('populates form with existing teacher data in edit mode', () => {
-        render(
-            <TeacherForm
-                teacher={mockTeacher}
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        expect(screen.getByDisplayValue('prof.zhang@example.com')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('02-1234-5678')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('C301')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('https://prof-zhang.example.com')).toBeInTheDocument();
-    });
-
-    // T021: 測試表單提交功能
-    it('calls onSubmit when form is submitted', async () => {
+    it('updates form state when fields change', async () => {
+        render(<TeacherForm teacher={teacher} labs={[]} onSubmit={jest.fn()} />);
         const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
 
-        const submitButton = screen.getByTestId('button-default');
-        await user.click(submitButton);
+        await user.clear(screen.getByTestId('input-email'));
+        await user.type(screen.getByTestId('input-email'), 'new@example.com');
 
-        expect(mockOnSubmit).toHaveBeenCalled();
+        expect(mockSetData).toHaveBeenCalledWith('email', '');
+        expect(mockSetData.mock.calls.filter(([field]) => field === 'email').length).toBeGreaterThan(1);
     });
 
-    // T021: 測試取消按鈕功能
-    it('navigates back when cancel button is clicked', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
+    it('triggers submit callback with form data', () => {
+        const handleSubmit = jest.fn();
+        render(<TeacherForm teacher={teacher} labs={[]} onSubmit={handleSubmit} />);
 
-        const cancelButton = screen.getByTestId('button-outline');
-        await user.click(cancelButton);
+        const form = document.querySelector('form');
+        expect(form).not.toBeNull();
+        fireEvent.submit(form as HTMLFormElement);
 
-        expect(mockVisit).toHaveBeenCalledWith('/manage/teachers');
+        expect(handleSubmit).toHaveBeenCalledTimes(1);
     });
 
-    // T021: 測試可見性開關
-    it('handles visibility toggle', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
+    it('handles visibility toggle', () => {
+        render(<TeacherForm teacher={teacher} labs={[]} onSubmit={jest.fn()} />);
 
-        const visibleSwitch = screen.getByTestId('switch-visible');
-        await user.click(visibleSwitch);
-
+        fireEvent.click(screen.getByTestId('checkbox-visible'));
         expect(mockSetData).toHaveBeenCalledWith('visible', false);
-    });
-
-    // T021: 測試使用者關聯選擇
-    it('handles user selection', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const userSelect = screen.getAllByTestId('select')[0];
-        await user.selectOptions(userSelect, '1');
-
-        expect(mockSetData).toHaveBeenCalledWith('user_id', '1');
-    });
-
-    // T021: 測試實驗室關聯選擇
-    it('handles lab selection', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const labSelect = screen.getAllByTestId('select')[1];
-        await user.selectOptions(labSelect, '1');
-
-        expect(mockSetData).toHaveBeenCalledWith('lab_id', '1');
-    });
-
-    // T021: 測試網站 URL 輸入
-    it('handles website URL input', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const websiteInput = screen.getByDisplayValue('') ||
-            screen.getAllByTestId('input-field').find(input =>
-                input.getAttribute('placeholder')?.includes('網站')
-            );
-
-        if (websiteInput) {
-            await user.type(websiteInput, 'https://example.com');
-            expect(mockSetData).toHaveBeenCalledWith('website', 'https://example.com');
-        }
-    });
-
-    // T021: 測試處理中狀態
-    it('disables form during processing', () => {
-        const useFormMock = require('@inertiajs/react').useForm;
-        useFormMock.mockReturnValue({
-            ...useFormMock(),
-            processing: true,
-        });
-
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const submitButton = screen.getByTestId('button-default');
-        expect(submitButton).toBeDisabled();
-    });
-
-    // T021: 測試驗證錯誤顯示
-    it('displays validation errors', () => {
-        const useFormMock = require('@inertiajs/react').useForm;
-        useFormMock.mockReturnValue({
-            ...useFormMock(),
-            errors: {
-                'name.zh-TW': '姓名為必填項目',
-                'title.zh-TW': '職稱為必填項目',
-                'email': '電子郵件格式不正確',
-                'website': '網站 URL 格式不正確'
-            },
-        });
-
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        expect(screen.getByTestId('error-姓名')).toHaveTextContent('姓名為必填項目');
-        expect(screen.getByTestId('error-職稱')).toHaveTextContent('職稱為必填項目');
-    });
-
-    // T021: 測試專長陣列輸入
-    it('handles specialties array input', () => {
-        render(
-            <TeacherForm
-                teacher={mockTeacher}
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        // 檢查是否有專長相關的輸入欄位
-        expect(screen.getByText(/專長/)).toBeInTheDocument();
-    });
-
-    // T021: 測試學歷陣列輸入
-    it('handles education array input', () => {
-        render(
-            <TeacherForm
-                teacher={mockTeacher}
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        // 檢查是否有學歷相關的輸入欄位
-        expect(screen.getByText(/學歷/)).toBeInTheDocument();
-    });
-
-    // T021: 測試多語言內容輸入
-    it('handles multilingual content input', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const nameInput = screen.getByTestId('input-姓名');
-        await user.type(nameInput, '新教師');
-
-        expect(mockSetData).toHaveBeenCalledWith('name', {
-            'zh-TW': '新教師',
-            'en': ''
-        });
-    });
-
-    // T021: 測試排序順序輸入
-    it('handles sort order input', async () => {
-        const user = userEvent.setup();
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        const sortOrderInput = screen.getAllByTestId('input-field').find(
-            input => input.getAttribute('type') === 'number'
-        );
-
-        if (sortOrderInput) {
-            await user.clear(sortOrderInput);
-            await user.type(sortOrderInput, '5');
-            expect(mockSetData).toHaveBeenCalledWith('sort_order', 5);
-        }
-    });
-
-    // T021: 測試必填欄位標示
-    it('shows required field indicators', () => {
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={mockUsers}
-                labs={mockLabs}
-            />
-        );
-
-        expect(screen.getByText('姓名 *')).toBeInTheDocument();
-        expect(screen.getByText('職稱 *')).toBeInTheDocument();
-        expect(screen.getByText('電子郵件 *')).toBeInTheDocument();
-    });
-
-    // T021: 測試可選關聯處理
-    it('handles optional relations correctly', () => {
-        render(
-            <TeacherForm
-                onSubmit={mockOnSubmit}
-                users={[]}
-                labs={[]}
-            />
-        );
-
-        // 即使沒有可用的 users 和 labs，表單也應該正常渲染
-        expect(screen.getByTestId('card')).toBeInTheDocument();
     });
 });

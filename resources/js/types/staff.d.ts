@@ -25,7 +25,6 @@ export interface Staff {
 
 export interface Teacher {
     id: number;
-    user_id?: number;
     name: LocalizedContent;
     title: LocalizedContent;
     email: string;
@@ -39,7 +38,6 @@ export interface Teacher {
     lab_id?: number;
     visible: boolean;
     sort_order: number;
-    user?: User;
     lab?: Lab;
     created_at?: string;
     updated_at?: string;
@@ -81,7 +79,6 @@ export interface TeacherFormState {
     data: Partial<Teacher>;
     errors: Record<string, string>;
     processing: boolean;
-    availableUsers: User[];
     availableLabs: Lab[];
 }
 
@@ -118,7 +115,6 @@ export interface TeacherFormData {
     education?: LocalizedContent[];
     avatar?: File;
     website?: string;
-    user_id?: number;
     lab_id?: number;
     visible: boolean;
     sort_order: number;
@@ -159,8 +155,6 @@ export interface StaffEditProps {
 }
 
 export interface TeacherCreateProps {
-    users: User[];
-    labs: Lab[];
     translations: {
         manage: Record<string, string>;
     };
@@ -168,8 +162,6 @@ export interface TeacherCreateProps {
 
 export interface TeacherEditProps {
     teacher: Teacher;
-    users: User[];
-    labs: Lab[];
     translations: {
         manage: Record<string, string>;
     };
@@ -177,7 +169,6 @@ export interface TeacherEditProps {
 
 export interface TeacherShowProps {
     teacher: Teacher & {
-        user?: User;
         lab?: Lab;
         publications?: any[];
         projects?: any[];

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Teacher;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,7 +18,6 @@ class TeacherFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
             'office' => $this->faker->optional()->regexify('Room [0-9]{3}'),
             'phone' => $this->faker->optional()->phoneNumber(),
             'name' => $this->faker->name(),

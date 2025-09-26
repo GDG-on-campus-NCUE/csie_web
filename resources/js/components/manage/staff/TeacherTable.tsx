@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import {
     Table,
     TableBody,
@@ -147,11 +147,6 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                                         <div className="font-medium">
                                             {getDisplayName(teacher)}
                                         </div>
-                                        {teacher.user && (
-                                            <div className="text-sm text-gray-500">
-                                                用戶: {teacher.user.name}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </TableCell>

@@ -6,14 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MultiLanguageInput from '../staff/MultiLanguageInput';
-import { Lab, Teacher, TeacherFormData, User } from '@/types/staff';
+import { Lab, Teacher, TeacherFormData } from '@/types/staff';
 
 interface TeacherFormProps {
     teacher?: Teacher;
     onSubmit: (data: TeacherFormData) => void;
     submitLabel?: string;
     isSubmitting?: boolean;
-    users?: User[];
     labs?: Lab[];
 }
 
@@ -22,7 +21,6 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     onSubmit,
     submitLabel = '保存',
     isSubmitting = false,
-    users = [],
     labs = []
 }) => {
     const { data, setData, processing, errors, reset } = useForm<TeacherFormData>({
@@ -44,7 +42,6 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         phone: teacher?.phone || '',
         office: teacher?.office || '',
         website: teacher?.website || '',
-        user_id: teacher?.user_id,
         lab_id: teacher?.lab_id,
         sort_order: teacher?.sort_order || 0,
         visible: teacher?.visible ?? true

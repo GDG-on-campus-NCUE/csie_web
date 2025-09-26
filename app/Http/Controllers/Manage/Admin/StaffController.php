@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Manage\Admin\StoreStaffRequest;
 use App\Http\Requests\Manage\Admin\UpdateStaffRequest;
 use App\Http\Resources\StaffResource;
-use App\Http\Resources\TeacherResource;
 use App\Models\Staff;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -75,7 +74,6 @@ class StaffController extends Controller
         }
 
         $teachers = Teacher::with([
-                'user:id,name,email',
                 'labs:id,name,name_en',
             ])
             ->orderBy('sort_order')
@@ -102,11 +100,6 @@ class StaffController extends Controller
                 'education_en' => $teacher->education_en,
                 'sort_order' => $teacher->sort_order,
                 'visible' => $teacher->visible,
-                'user' => $teacher->user ? [
-                    'id' => $teacher->user->id,
-                    'name' => $teacher->user->name,
-                    'email' => $teacher->user->email,
-                ] : null,
                 'labs' => $teacher->labs->map(function ($lab) {
                     return [
                         'id' => $lab->id,
