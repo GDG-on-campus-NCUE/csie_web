@@ -747,6 +747,11 @@ return [
                 'retired' => '退休',
             ],
         ],
+        'toast' => [
+            'staff_deleted' => '職員資料已刪除',
+            'teacher_deleted' => '教師資料已刪除',
+            'delete_error' => '刪除失敗，請稍後再試。',
+        ],
         'form' => [
             'staff' => [
                 'title_create' => '新增職員',

@@ -747,6 +747,11 @@ return [
                 'retired' => 'Retired',
             ],
         ],
+        'toast' => [
+            'staff_deleted' => 'Staff record removed successfully.',
+            'teacher_deleted' => 'Faculty record removed successfully.',
+            'delete_error' => 'Unable to delete the record. Please try again later.',
+        ],
         'form' => [
             'staff' => [
                 'title_create' => 'Add Staff Member',

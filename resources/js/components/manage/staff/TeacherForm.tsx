@@ -106,7 +106,6 @@ interface TeacherFormData {
     education_en?: string;
     sort_order?: number;
     visible: boolean;
-    user_id?: number;
 }
 
 interface TeacherFormProps {
@@ -114,7 +113,6 @@ interface TeacherFormProps {
     onSubmit?: (data: TeacherFormData) => void;
     submitLabel?: string;
     isSubmitting?: boolean;
-    users?: Array<{ id: number; name: string; email: string }>;
     onCancel?: () => void;
     errors?: Record<string, string | string[]>;
     processing?: boolean;
@@ -125,7 +123,6 @@ export default function TeacherForm({
     onSubmit,
     submitLabel = '儲存',
     isSubmitting = false,
-    users = [],
     onCancel,
     errors: externalErrors,
     processing: externalProcessing
@@ -150,7 +147,6 @@ export default function TeacherForm({
         education_en: formatLocalizedList(educationSource, 'en'),
         sort_order: teacher?.sort_order ?? 0,
         visible: teacher?.visible ?? true,
-        user_id: teacher?.user_id ?? undefined,
     });
 
     const avatarUrl = resolveAvatarUrl(teacher?.photo_url ?? teacher?.avatar ?? null);
@@ -303,29 +299,6 @@ export default function TeacherForm({
                             )}
                         </div>
                     </div>
-
-                    {/* 使用者關聯 */}
-                    {users.length > 0 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="user_id">關聯使用者帳號</Label>
-                            <select
-                                id="user_id"
-                                value={data.user_id || ''}
-                                onChange={(e) => setData('user_id', e.target.value ? parseInt(e.target.value) : undefined)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                            >
-                                <option value="">請選擇...</option>
-                                {users.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name} ({user.email})
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.user_id && (
-                                <p className="text-sm text-red-600">{errors.user_id}</p>
-                            )}
-                        </div>
-                    )}
 
                     {/* 照片上傳 */}
                     <div className="space-y-2">

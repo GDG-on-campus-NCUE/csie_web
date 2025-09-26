@@ -16,7 +16,6 @@ class TeacherResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
             'email' => $this->email,
             'phone' => $this->phone,
             'office' => $this->office,
@@ -33,10 +32,6 @@ class TeacherResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             // Conditional relationships
-            $this->mergeWhen($this->relationLoaded('user'), [
-                'user' => $this->whenLoaded('user'),
-            ]),
-
             $this->mergeWhen($this->relationLoaded('links'), [
                 'links' => $this->whenLoaded('links'),
             ]),

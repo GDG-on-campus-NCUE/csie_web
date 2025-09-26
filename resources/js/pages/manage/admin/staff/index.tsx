@@ -1,15 +1,17 @@
-import { Head, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ManagePageHeader } from '@/components/manage/manage-page-header';
 import { StaffTable } from '@/components/manage/staff/StaffTable';
 import { TeacherTable } from '@/components/manage/staff/TeacherTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ToastContainer from '@/components/ui/toast-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ManageLayout from '@/layouts/manage/manage-layout';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { BreadcrumbItem } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+import type { BreadcrumbItem, SharedData } from '@/types';
 import type { Staff, Teacher } from '@/types/staff';
 
 /**
@@ -41,6 +43,13 @@ interface StaffIndexPageProps {
     perPageOptions?: number[];
 }
 
+type StaffFlashMessages = {
+    success?: string;
+    error?: string;
+    info?: string;
+    warning?: string;
+};
+
 /**
  * 後台教職員首頁，整合職員與教師兩個分頁，並提供建立、編輯與刪除操作。
  */
@@ -50,6 +59,13 @@ export default function StaffIndex({
     teachers,
 }: StaffIndexPageProps) {
     const { t, locale } = useTranslation('staff');
+    const page = usePage<SharedData & { flash?: StaffFlashMessages }>();
+    const flashMessages = page.props.flash ?? {};
+
+    // 通用 toast 管理，確保成功與失敗都有即時提示
+    const { toasts, showSuccess, showError, dismissToast } = useToast();
+    const skipFlashToastRef = useRef(false);
+    const previousFlashRef = useRef<StaffFlashMessages>({});
 
     // 以 state 紀錄使用者目前所在的分頁，確保 UI 與按鈕顯示一致。
     const [activeTab, setActiveTab] = useState<'staff' | 'teachers'>(initialTab);
@@ -101,7 +117,30 @@ export default function StaffIndex({
     };
 
     const handleStaffDelete = (staffMember: Staff) => {
-        router.delete(`/manage/staff/${staffMember.id}`);
+        const successMessage =
+            t?.('staff.toast.staff_deleted', '職員資料已刪除') ?? '職員資料已刪除';
+        const errorMessage =
+            t?.('staff.toast.delete_error', '刪除失敗，請稍後再試。') ?? '刪除失敗，請稍後再試。';
+
+        router.delete(`/manage/staff/${staffMember.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                skipFlashToastRef.current = true;
+                showSuccess(pageTitle, successMessage);
+            },
+            onError: (errors) => {
+                skipFlashToastRef.current = true;
+                const flattened = Object.values(errors)
+                    .flat()
+                    .map((value) => String(value))
+                    .filter((value) => value.length > 0);
+
+                showError(
+                    pageTitle,
+                    flattened.length > 0 ? flattened.join('\n') : errorMessage,
+                );
+            },
+        });
     };
 
     const handleTeacherEdit = (teacher: Teacher) => {
@@ -109,16 +148,59 @@ export default function StaffIndex({
     };
 
     const handleTeacherDelete = (teacher: Teacher) => {
-        router.delete(`/manage/teachers/${teacher.id}`);
+        const successMessage =
+            t?.('staff.toast.teacher_deleted', '教師資料已刪除') ?? '教師資料已刪除';
+        const errorMessage =
+            t?.('staff.toast.delete_error', '刪除失敗，請稍後再試。') ?? '刪除失敗，請稍後再試。';
+
+        router.delete(`/manage/teachers/${teacher.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                skipFlashToastRef.current = true;
+                showSuccess(pageTitle, successMessage);
+            },
+            onError: (errors) => {
+                skipFlashToastRef.current = true;
+                const flattened = Object.values(errors)
+                    .flat()
+                    .map((value) => String(value))
+                    .filter((value) => value.length > 0);
+
+                showError(
+                    pageTitle,
+                    flattened.length > 0 ? flattened.join('\n') : errorMessage,
+                );
+            },
+        });
     };
 
     const handleTabChange = (value: string) => {
         setActiveTab((value as 'staff' | 'teachers') ?? 'staff');
     };
 
+    useEffect(() => {
+        if (skipFlashToastRef.current) {
+            previousFlashRef.current = flashMessages;
+            skipFlashToastRef.current = false;
+            return;
+        }
+
+        if (flashMessages.success && flashMessages.success !== previousFlashRef.current.success) {
+            showSuccess(pageTitle, flashMessages.success);
+        }
+
+        if (flashMessages.error && flashMessages.error !== previousFlashRef.current.error) {
+            showError(pageTitle, flashMessages.error);
+        }
+
+        previousFlashRef.current = flashMessages;
+    }, [flashMessages, pageTitle, showSuccess, showError]);
+
     return (
         <ManageLayout role="admin" breadcrumbs={breadcrumbs}>
             <Head title={pageTitle} />
+
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} position="bottom-right" />
 
             <section className="container mx-auto flex flex-col gap-6">
                 <ManagePageHeader

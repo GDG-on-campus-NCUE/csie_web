@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Models\Teacher;
-use App\Models\User;
 use App\Models\Lab;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -56,22 +55,15 @@ class TeacherTest extends TestCase
     }
 
     /** @test */
-    public function it_can_belong_to_a_user()
+    public function it_has_null_user_relation_by_default()
     {
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.edu',
-        ]);
-
         $teacher = Teacher::create([
-            'user_id' => $user->id,
             'name' => json_encode(['zh-TW' => '王志明', 'en' => 'Chih-Ming Wang']),
             'title' => json_encode(['zh-TW' => '教授', 'en' => 'Professor']),
             'email' => 'chihming.wang@example.edu',
         ]);
 
-        $this->assertInstanceOf(User::class, $teacher->user);
-        $this->assertEquals($user->id, $teacher->user->id);
+        $this->assertNull($teacher->user);
     }
 
     /** @test */

@@ -20,9 +20,6 @@ class StoreTeacherRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // User relationship - optional but must exist if provided
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-
             // Basic contact information
             'email' => ['nullable', 'email', 'max:255', 'unique:teachers,email'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -71,7 +68,6 @@ class StoreTeacherRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'user_id' => __('manage.teacher.user'),
             'email' => __('manage.teacher.email'),
             'phone' => __('manage.teacher.phone'),
             'office' => __('manage.teacher.office'),

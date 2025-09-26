@@ -7,7 +7,6 @@ use App\Http\Requests\Manage\Admin\StoreTeacherRequest;
 use App\Http\Requests\Manage\Admin\UpdateTeacherRequest;
 use App\Http\Resources\TeacherResource;
 use App\Models\Teacher;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -30,9 +29,7 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/teachers/create', [
-            'users' => User::where('role', 'teacher')->whereDoesntHave('teacher')->get(),
-        ]);
+        return Inertia::render('manage/admin/teachers/create');
     }
 
     /**
@@ -58,7 +55,7 @@ class TeacherController extends Controller
     public function show(Teacher $teacher)
     {
         return Inertia::render('manage/admin/teachers/show', [
-            'teacher' => new TeacherResource($teacher->load(['user', 'links', 'projects', 'publications'])),
+            'teacher' => new TeacherResource($teacher->load(['links', 'projects', 'publications'])),
         ]);
     }
 
@@ -68,12 +65,7 @@ class TeacherController extends Controller
     public function edit(Teacher $teacher)
     {
         return Inertia::render('manage/admin/teachers/edit', [
-            'teacher' => new TeacherResource($teacher->load(['user', 'links'])),
-            'users' => User::where('role', 'teacher')
-                ->where(function($query) use ($teacher) {
-                    $query->whereDoesntHave('teacher')
-                          ->orWhere('id', $teacher->user_id);
-                })->get(),
+            'teacher' => new TeacherResource($teacher->load(['links'])),
         ]);
     }
 
