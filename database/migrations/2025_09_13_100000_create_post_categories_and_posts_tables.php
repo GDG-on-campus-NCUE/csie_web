@@ -24,8 +24,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained('post_categories')->cascadeOnDelete();
             $table->string('slug')->unique();
-            $table->enum('status', ['draft','scheduled','published','archived'])->default('draft')->index();
-            $table->enum('source_type', ['manual', 'link'])
+            $table->string('status', 32)->default('draft')->index();
+            $table->enum('source_type', ['manual', 'import', 'link'])
                 ->default('manual')
                 ->index();
             $table->string('source_url')
@@ -38,8 +38,10 @@ return new class extends Migration
             $table->string('title_en');
             $table->text('summary')->nullable();
             $table->text('summary_en')->nullable();
+            $table->json('tags')->nullable();
             $table->longText('content');
             $table->longText('content_en');
+            $table->unsignedBigInteger('views')->default(0);
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->constrained('users');
             $table->softDeletes();

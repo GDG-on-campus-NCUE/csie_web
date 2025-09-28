@@ -1,0 +1,6 @@
+[
+  {
+    "type": "sqlite",
+    "path": "/var/www/html/csie_fk/database/database.sqlite"
+  }
+]

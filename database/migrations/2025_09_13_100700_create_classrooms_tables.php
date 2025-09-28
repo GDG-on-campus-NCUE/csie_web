@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('equipment_summary')->nullable();
             $table->longText('description')->nullable();
             $table->longText('description_en')->nullable();
+            $table->json('tags')->nullable();
             $table->integer('sort_order')->default(0)->index();
             $table->boolean('visible')->default(true)->index();
             $table->softDeletes();
