@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Attachment;
+use App\Models\Classroom;
 use App\Models\Lab;
 use App\Models\Post;
 use App\Models\Publication;
@@ -10,6 +11,7 @@ use App\Models\Staff;
 use App\Models\Tag;
 use App\Models\User;
 use App\Policies\AttachmentPolicy;
+use App\Policies\ClassroomPolicy;
 use App\Policies\LabPolicy;
 use App\Policies\PostPolicy;
 use App\Policies\PublicationPolicy;
@@ -28,6 +30,8 @@ class AuthServiceProvider extends ServiceProvider
         Staff::class => StaffPolicy::class,
         // 實驗室授權政策
         Lab::class => LabPolicy::class,
+        // 教室授權政策
+        Classroom::class => ClassroomPolicy::class,
         // 使用者管理授權政策
         User::class => UserPolicy::class,
         // 貼文授權政策

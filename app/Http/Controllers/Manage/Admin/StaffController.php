@@ -135,12 +135,19 @@ class StaffController extends Controller
     {
         $data = $request->validated();
 
+        $classroomIds = collect($data['classroom_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        unset($data['classroom_ids']);
+
         if ($request->hasFile('avatar')) {
             // 儲存上傳圖片路徑
             $data['photo_url'] = $request->file('avatar')->store('staff', 'public');
         }
 
         $staff = Staff::create($data);
+        $staff->classrooms()->sync($classroomIds);
 
         return redirect()->route('manage.staff.index')
             ->with('success', __('manage.success.created', ['item' => __('manage.staff.title')]));
@@ -159,11 +166,18 @@ class StaffController extends Controller
     {
         $data = $request->validated();
 
+        $classroomIds = collect($data['classroom_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        unset($data['classroom_ids']);
+
         if ($request->hasFile('avatar')) {
             $data['photo_url'] = $request->file('avatar')->store('staff', 'public');
         }
 
         $staff->update($data);
+        $staff->classrooms()->sync($classroomIds);
 
         return redirect()->route('manage.staff.index')
             ->with('success', __('manage.success.updated', ['item' => __('manage.staff.title')]));

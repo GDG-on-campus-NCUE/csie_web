@@ -155,5 +155,13 @@ class Staff extends Model
               ->orWhere('email', 'like', "%{$term}%");
         });
     }
+
+    /**
+     * 多對多關聯：職員可對應多間教室，以支援教室維護時的同步設定。
+     */
+    public function classrooms()
+    {
+        return $this->belongsToMany(Classroom::class, 'classroom_staff');
+    }
 }
 

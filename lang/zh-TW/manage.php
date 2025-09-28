@@ -45,6 +45,7 @@ return [
             'tags' => '標籤管理',
             'staff' => '師資與職員',
             'labs' => '實驗室管理',
+            'classrooms' => '教室管理',
             'academics' => '課程與學程',
             'users' => '使用者管理',
             'messages' => '聯絡訊息',
@@ -71,6 +72,39 @@ return [
             'settings' => '系統設定',
             'docs' => '說明文件',
             'repo' => '原始碼庫',
+        ],
+    ],
+    'success' => [
+        'created' => ':item 建立成功',
+        'updated' => ':item 更新完成',
+        'deleted' => ':item 已刪除',
+    ],
+    'lab' => [
+        'title' => '實驗室',
+        'index' => [
+            'title' => '實驗室管理',
+            'description' => '維護系所研究實驗室資訊，包含成員、聯絡資訊與顯示排序。',
+            'create' => '新增實驗室',
+        ],
+        'form' => [
+            'basic' => '基本資訊',
+            'relations' => '師資連動',
+            'display' => '顯示設定',
+            'update' => '儲存變更',
+        ],
+    ],
+    'classroom' => [
+        'title' => '教室',
+        'index' => [
+            'title' => '教室管理',
+            'description' => '維護教室設備、容量與負責職員，支援多對多綁定。',
+            'create' => '新增教室',
+        ],
+        'form' => [
+            'basic' => '基本資訊',
+            'relations' => '職員連動',
+            'display' => '顯示設定',
+            'update' => '儲存變更',
         ],
     ],
     'settings' => [

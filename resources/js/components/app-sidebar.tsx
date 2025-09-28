@@ -9,6 +9,7 @@ import {
     Users,
     UserCheck,
     Beaker,
+    School,
     GraduationCap,
     Megaphone,
     FileText,
@@ -54,6 +55,11 @@ export function AppSidebar() {
             title: t('sidebar.admin.labs'),
             href: '/manage/labs',
             icon: Beaker,
+        },
+        {
+            title: t('sidebar.admin.classrooms'),
+            href: '/manage/classrooms',
+            icon: School,
         },
         {
             title: t('sidebar.admin.academics'),
