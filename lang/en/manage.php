@@ -45,6 +45,7 @@ return [
             'tags' => 'Tag management',
             'staff' => 'Faculty & Staff',
             'labs' => 'Laboratories',
+            'classrooms' => 'Classrooms',
             'academics' => 'Courses & Programs',
             'users' => 'Users',
             'messages' => 'Messages',
@@ -71,6 +72,39 @@ return [
             'settings' => 'System settings',
             'docs' => 'Documentation',
             'repo' => 'Repository',
+        ],
+    ],
+    'success' => [
+        'created' => ':item created successfully',
+        'updated' => ':item updated successfully',
+        'deleted' => ':item removed successfully',
+    ],
+    'lab' => [
+        'title' => 'Laboratory',
+        'index' => [
+            'title' => 'Laboratory management',
+            'description' => 'Maintain research lab profiles, linked faculty members, and display order.',
+            'create' => 'Create laboratory',
+        ],
+        'form' => [
+            'basic' => 'Basic information',
+            'relations' => 'Faculty assignment',
+            'display' => 'Visibility settings',
+            'update' => 'Save changes',
+        ],
+    ],
+    'classroom' => [
+        'title' => 'Classroom',
+        'index' => [
+            'title' => 'Classroom management',
+            'description' => 'Manage classroom capacity, equipment, and assigned staff members.',
+            'create' => 'Create classroom',
+        ],
+        'form' => [
+            'basic' => 'Basic information',
+            'relations' => 'Staff assignment',
+            'display' => 'Visibility settings',
+            'update' => 'Save changes',
         ],
     ],
     'settings' => [

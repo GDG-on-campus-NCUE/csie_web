@@ -49,6 +49,8 @@ class UpdateStaffRequest extends FormRequest
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'visible' => 'boolean',
             'sort_order' => 'integer|min:0',
+            'classroom_ids' => 'array',
+            'classroom_ids.*' => 'integer|exists:classrooms,id',
         ];
     }
 
@@ -70,6 +72,7 @@ class UpdateStaffRequest extends FormRequest
             'avatar' => '頭像',
             'visible' => '顯示狀態',
             'sort_order' => '排序',
+            'classroom_ids' => '教室指派',
         ];
     }
 

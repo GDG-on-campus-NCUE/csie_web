@@ -11,11 +11,12 @@ class Lab extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code','website_url','email','phone','cover_image_url','name','name_en','description','description_en','sort_order','visible',
+        'code','website_url','email','phone','cover_image_url','name','name_en','description','description_en','tags','sort_order','visible',
     ];
 
     protected $casts = [
         'visible' => 'boolean',
+        'tags' => 'array',
     ];
 
     public function teachers()

@@ -15,6 +15,7 @@ class Tag extends Model
         'staff' => '職員管理',
         'teachers' => '教師管理',
         'labs' => '研究室管理',
+        'classrooms' => '教室管理',
         'projects' => '計畫專區管理',
         'publications' => '學術成果管理',
         'programs' => '學程管理',

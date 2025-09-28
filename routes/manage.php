@@ -9,6 +9,7 @@ use App\Http\Controllers\Manage\PostController;
 use App\Http\Controllers\Manage\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Manage\Admin\LabController as AdminLabController;
 use App\Http\Controllers\Manage\Admin\TeacherController as AdminTeacherController;
+use App\Http\Controllers\Manage\Admin\ClassroomController as AdminClassroomController;
 use App\Http\Controllers\Manage\Admin\PostCategoryController as AdminPostCategoryController;
 use App\Http\Controllers\Manage\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Manage\Admin\ProgramController as AdminProgramController;
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'role:admin|teacher'])
 
         // 學術研究管理
         Route::resource('labs', AdminLabController::class);
+        Route::resource('classrooms', AdminClassroomController::class);
         Route::resource('projects', AdminProjectController::class);
         Route::resource('publications', AdminPublicationController::class);
 

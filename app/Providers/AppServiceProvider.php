@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Post;
 use App\Models\Teacher;
+use App\Models\Classroom;
 use App\Models\Lab;
 use App\Models\Project;
 use App\Models\Publication;
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
             'Program' => Program::class,
             'Course' => Course::class,
             'Staff' => Staff::class,
+            'Classroom' => Classroom::class,
         ]);
 
         $this->ensureDefaultPostCategories();
