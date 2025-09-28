@@ -28,4 +28,5 @@ yarn-error.log
 /.vscode
 /.zed
 # git spec kit
-./specify
+.specify
+.idx
