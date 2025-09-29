@@ -16,12 +16,13 @@ export function NavMain({ items = [], label }: { items: NavItem[]; label?: strin
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
+                            className="justify-between"
                             isActive={page.url.startsWith(typeof item.href === 'string' ? item.href : item.href.url)}
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={item.href}>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
+                            <Link href={item.href} className="flex w-full items-center justify-between gap-2">
+                                {item.icon && <item.icon className="shrink-0" />}
+                                <span className="truncate">{item.title}</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
