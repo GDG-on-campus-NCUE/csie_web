@@ -19,7 +19,7 @@ class PostCategoryController extends Controller
             ->orderBy('name->zh-TW')
             ->get();
 
-        return Inertia::render('manage/admin/post-categories/index', [
+        return Inertia::render('manage/post-categories/index', [
             'categories' => $categories,
         ]);
     }
@@ -29,7 +29,7 @@ class PostCategoryController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/post-categories/create', [
+        return Inertia::render('manage/post-categories/create', [
             'parent_categories' => PostCategory::whereNull('parent_id')->get(),
         ]);
     }
@@ -61,7 +61,7 @@ class PostCategoryController extends Controller
      */
     public function show(PostCategory $postCategory)
     {
-        return Inertia::render('manage/admin/post-categories/show', [
+        return Inertia::render('manage/post-categories/show', [
             'category' => $postCategory->load(['posts', 'children', 'parent']),
         ]);
     }
@@ -71,7 +71,7 @@ class PostCategoryController extends Controller
      */
     public function edit(PostCategory $postCategory)
     {
-        return Inertia::render('manage/admin/post-categories/edit', [
+        return Inertia::render('manage/post-categories/edit', [
             'category' => $postCategory,
             'parent_categories' => PostCategory::whereNull('parent_id')
                 ->where('id', '!=', $postCategory->id)

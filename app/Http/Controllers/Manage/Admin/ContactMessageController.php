@@ -44,7 +44,7 @@ class ContactMessageController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return Inertia::render('manage/admin/contact-messages/index', [
+        return Inertia::render('manage/contact-messages/index', [
             'messages' => $messages,
             'filters' => $request->only(['search', 'status', 'per_page']),
             'statusOptions' => [
@@ -80,7 +80,7 @@ class ContactMessageController extends Controller
      */
     public function show(ContactMessage $contactMessage)
     {
-        return Inertia::render('manage/admin/contact-messages/show', [
+        return Inertia::render('manage/contact-messages/show', [
             'message' => $contactMessage->load(['processedBy']),
         ]);
     }
@@ -90,7 +90,7 @@ class ContactMessageController extends Controller
      */
     public function edit(ContactMessage $contactMessage)
     {
-        return Inertia::render('manage/admin/contact-messages/edit', [
+        return Inertia::render('manage/contact-messages/edit', [
             'message' => $contactMessage,
         ]);
     }

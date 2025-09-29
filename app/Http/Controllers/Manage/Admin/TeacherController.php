@@ -29,7 +29,7 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/teachers/create');
+        return Inertia::render('manage/teachers/create');
     }
 
     /**
@@ -54,7 +54,7 @@ class TeacherController extends Controller
      */
     public function show(Teacher $teacher)
     {
-        return Inertia::render('manage/admin/teachers/show', [
+        return Inertia::render('manage/teachers/show', [
             'teacher' => new TeacherResource($teacher->load(['links', 'projects', 'publications'])),
         ]);
     }
@@ -64,7 +64,7 @@ class TeacherController extends Controller
      */
     public function edit(Teacher $teacher)
     {
-        return Inertia::render('manage/admin/teachers/edit', [
+        return Inertia::render('manage/teachers/edit', [
             'teacher' => new TeacherResource($teacher->load(['links'])),
         ]);
     }

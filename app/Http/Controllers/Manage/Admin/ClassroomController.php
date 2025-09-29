@@ -99,7 +99,7 @@ class ClassroomController extends Controller
                 'position_en' => $member->position_en,
             ]);
 
-        return Inertia::render('manage/admin/classrooms/index', [
+        return Inertia::render('manage/classrooms/index', [
             'classrooms' => $classrooms,
             'staff' => $staff,
             'filters' => [
@@ -130,7 +130,7 @@ class ClassroomController extends Controller
                 'position_en' => $member->position_en,
             ]);
 
-        return Inertia::render('manage/admin/classrooms/create', [
+        return Inertia::render('manage/classrooms/create', [
             'staff' => $staff,
             'tagSuggestions' => $this->buildTagSuggestions('classrooms'),
         ]);
@@ -201,7 +201,7 @@ class ClassroomController extends Controller
                 'position_en' => $member->position_en,
             ]);
 
-        return Inertia::render('manage/admin/classrooms/edit', [
+        return Inertia::render('manage/classrooms/edit', [
             'classroom' => [
                 'id' => $classroom->id,
                 'code' => $classroom->code,

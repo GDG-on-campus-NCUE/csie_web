@@ -104,7 +104,7 @@ describe('TeacherForm (teacher namespace)', () => {
         lab_id: 2,
         sort_order: 5,
         visible: true,
-    } as const;
+    } as any; // Use any to avoid readonly type issues
 
     beforeEach(() => {
         jest.clearAllMocks();

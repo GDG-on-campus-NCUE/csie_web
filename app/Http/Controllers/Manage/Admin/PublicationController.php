@@ -32,7 +32,7 @@ class PublicationController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return Inertia::render('manage/admin/publications/index', [
+        return Inertia::render('manage/publications/index', [
             'publications' => $publications,
             'perPage' => $perPage,
             'perPageOptions' => [15, 30, 50, 100, 200],
@@ -45,7 +45,7 @@ class PublicationController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/publications/create');
+        return Inertia::render('manage/publications/create');
     }
 
     /**
@@ -98,7 +98,7 @@ class PublicationController extends Controller
      */
     public function show(Publication $publication)
     {
-        return Inertia::render('manage/admin/publications/show', [
+        return Inertia::render('manage/publications/show', [
             'publication' => $publication,
         ]);
     }
@@ -108,7 +108,7 @@ class PublicationController extends Controller
      */
     public function edit(Publication $publication)
     {
-        return Inertia::render('manage/admin/publications/edit', [
+        return Inertia::render('manage/publications/edit', [
             'publication' => $publication,
         ]);
     }

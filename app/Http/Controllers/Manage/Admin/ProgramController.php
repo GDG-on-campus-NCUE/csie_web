@@ -25,7 +25,7 @@ class ProgramController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/programs/create');
+        return Inertia::render('manage/programs/create');
     }
 
     /**
@@ -58,7 +58,7 @@ class ProgramController extends Controller
      */
     public function show(Program $program)
     {
-        return Inertia::render('manage/admin/programs/show', [
+        return Inertia::render('manage/programs/show', [
             'program' => $program->load(['courses']),
         ]);
     }
@@ -68,7 +68,7 @@ class ProgramController extends Controller
      */
     public function edit(Program $program)
     {
-        return Inertia::render('manage/admin/programs/edit', [
+        return Inertia::render('manage/programs/edit', [
             'program' => $program,
         ]);
     }

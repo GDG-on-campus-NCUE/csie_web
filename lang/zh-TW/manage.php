@@ -55,7 +55,7 @@ return [
             'dashboard' => '教學首頁',
             'posts' => '公告管理',
             'labs' => '研究管理',
-            'courses' => '課程與活動',
+            'academics' => '學程管理',
             'profile' => '個人設定',
             'guide' => '教學資源指南',
             'nav_label' => '教學管理',
@@ -269,9 +269,9 @@ return [
                     'label' => '研究管理',
                     'description' => '更新實驗室介紹與研究成果。',
                 ],
-                'courses' => [
-                    'label' => '課程與活動',
-                    'description' => '管理課程資訊與活動時程。',
+                'academics' => [
+                    'label' => '學程管理',
+                    'description' => '管理學程架構與相關文件。',
                 ],
                 'profile' => [
                     'label' => '個人設定',

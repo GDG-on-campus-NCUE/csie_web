@@ -113,7 +113,7 @@ describe('TeacherForm (staff version)', () => {
         sort_order: 3,
         visible: true,
         photo_url: null,
-    } as const;
+    } as any; // Use any to avoid readonly type issues
 
     beforeEach(() => {
         jest.clearAllMocks();

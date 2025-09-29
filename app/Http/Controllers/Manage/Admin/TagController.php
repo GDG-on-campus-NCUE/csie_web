@@ -45,7 +45,7 @@ class TagController extends Controller
                 ->all()
             : [];
 
-        return Inertia::render('manage/admin/tags/index', [
+        return Inertia::render('manage/tags/index', [
             'contextOptions' => collect(Tag::CONTEXTS)
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
@@ -56,7 +56,7 @@ class TagController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('manage/admin/tags/create', [
+        return Inertia::render('manage/tags/create', [
             'contextOptions' => collect(Tag::CONTEXTS)
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
@@ -97,7 +97,7 @@ class TagController extends Controller
 
     public function show(Tag $tag): Response
     {
-        return Inertia::render('manage/admin/tags/show', [
+        return Inertia::render('manage/tags/show', [
             'tag' => [
                 'id' => $tag->id,
                 'context' => $tag->context,
@@ -117,7 +117,7 @@ class TagController extends Controller
 
     public function edit(Tag $tag): Response
     {
-        return Inertia::render('manage/admin/tags/edit', [
+        return Inertia::render('manage/tags/edit', [
             'tag' => [
                 'id' => $tag->id,
                 'context' => $tag->context,

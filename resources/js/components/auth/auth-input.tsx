@@ -40,7 +40,7 @@ export function AuthInput({
     return (
         <div className={cn('space-y-2', containerClassName)}>
             <div className="flex items-center justify-between gap-3">
-                <Label htmlFor={id} className="text-sm font-semibold text-slate-700">
+                <Label htmlFor={id} className="text-sm font-semibold text-slate-700 cursor-pointer transition-colors duration-200 hover:text-slate-900">
                     {label}
                 </Label>
                 {labelSecondary}
@@ -52,8 +52,8 @@ export function AuthInput({
                 readOnly={readOnly}
                 disabled={disabled}
                 className={cn(
-                    'h-12 rounded-2xl border border-slate-200 bg-white/90 px-4 text-base text-slate-900 shadow-sm transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus-visible:outline-none placeholder:text-slate-400',
-                    disabled || readOnly ? 'cursor-not-allowed bg-slate-100 text-slate-500' : '',
+                    'h-12 rounded-2xl border border-slate-200 bg-white/90 px-4 text-base text-slate-900 shadow-sm transition-all duration-300 ease-out cursor-text hover:border-slate-300 hover:shadow-md hover:bg-white hover:-translate-y-0.5 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus-visible:outline-none placeholder:text-slate-400',
+                    disabled || readOnly ? 'cursor-not-allowed bg-slate-100 text-slate-500 hover:transform-none hover:shadow-sm' : '',
                     className,
                 )}
                 {...props}
@@ -79,7 +79,7 @@ export function AuthPasswordInput({
     return (
         <div className={cn('space-y-2', containerClassName)}>
             <div className="flex items-center justify-between gap-3">
-                <Label htmlFor={id} className="text-sm font-semibold text-slate-700">
+                <Label htmlFor={id} className="text-sm font-semibold text-slate-700 cursor-pointer transition-colors duration-200 hover:text-slate-900">
                     {label}
                 </Label>
                 {labelSecondary}
@@ -89,7 +89,7 @@ export function AuthPasswordInput({
                 aria-describedby={errorId}
                 aria-invalid={Boolean(error)}
                 className={cn(
-                    'rounded-2xl border border-slate-200 bg-white/90 px-4 text-base text-slate-900 shadow-sm transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus-visible:outline-none placeholder:text-slate-400',
+                    'rounded-2xl border border-slate-200 bg-white/90 px-4 text-base text-slate-900 shadow-sm transition-all duration-300 ease-out cursor-text hover:border-slate-300 hover:shadow-md hover:bg-white hover:-translate-y-0.5 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus-visible:outline-none placeholder:text-slate-400',
                     className,
                 )}
                 {...props}

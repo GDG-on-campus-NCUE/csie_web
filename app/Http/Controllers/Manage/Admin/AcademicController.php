@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Manage\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
 use App\Models\Post;
 use App\Models\Program;
 use Illuminate\Http\Request;
@@ -43,26 +42,15 @@ class AcademicController extends Controller
         ],
     ];
 
-    /**
-     * 顯示課程與學程整合列表頁。
+        /**
+     * 顯示學程管理首頁
      */
     public function index(Request $request): Response
     {
-        $this->ensureDefaultPrograms();
+        // 確保預設學程存在
+        $this->ensureDefaultProgramsExist();
 
-        $activeTab = $request->string('tab')->toString();
-        if (! in_array($activeTab, ['courses', 'programs'], true)) {
-            $activeTab = 'courses';
-        }
-
-        $courseFilters = [
-            'search' => $request->input('course_search'),
-            'program' => $request->input('course_program'),
-            'level' => $request->input('course_level'),
-            'visible' => $request->input('course_visible'),
-            'per_page' => $request->input('course_per_page'),
-        ];
-
+        // 處理學程篩選
         $programFilters = [
             'search' => $request->input('program_search'),
             'level' => $request->input('program_level'),
@@ -70,58 +58,19 @@ class AcademicController extends Controller
             'per_page' => $request->input('program_per_page'),
         ];
 
-        $courseQuery = Course::with(['programs:id,name,name_en']);
-
-        if ($courseFilters['search']) {
-            $search = $courseFilters['search'];
-            $courseQuery->where(function ($query) use ($search) {
-                $query->where('code', 'like', "%{$search}%")
-                    ->orWhere('name->zh-TW', 'like', "%{$search}%")
-                    ->orWhere('name->en', 'like', "%{$search}%");
-            });
-        }
-
-        if ($courseFilters['program']) {
-            $courseQuery->whereHas('programs', function ($query) use ($courseFilters) {
-                $query->where('programs.id', $courseFilters['program']);
-            });
-        }
-
-        if ($courseFilters['level']) {
-            $courseQuery->where('level', $courseFilters['level']);
-        }
-
-        if ($courseFilters['visible'] !== null && $courseFilters['visible'] !== '') {
-            if ($courseFilters['visible'] === '1' || $courseFilters['visible'] === 1 || $courseFilters['visible'] === true) {
-                $courseQuery->where('visible', true);
-            } elseif ($courseFilters['visible'] === '0' || $courseFilters['visible'] === 0 || $courseFilters['visible'] === false) {
-                $courseQuery->where('visible', false);
-            }
-        }
-
-        $coursePerPage = (int) ($courseFilters['per_page'] ?? 15);
-        if ($coursePerPage < 1) {
-            $coursePerPage = 15;
-        }
-
-        if ($coursePerPage > 200) {
-            $coursePerPage = 200;
-        }
-
-        $courses = $courseQuery
-            ->orderBy('code')
-            ->paginate($coursePerPage, ['*'], 'course_page')
-            ->withQueryString();
-
-        $programQuery = Program::withCount('courses')
-            ->with(['posts:id,title,status,publish_at']);
+        $programQuery = Program::withCount('posts')
+            ->with(['posts' => function ($query) {
+                $query->select('posts.id', 'posts.title', 'posts.status', 'posts.publish_at')
+                      ->where('posts.status', 'published')
+                      ->orderBy('pivot_sort_order');
+            }]);
 
         if ($programFilters['search']) {
             $search = $programFilters['search'];
             $programQuery->where(function ($query) use ($search) {
-                $query->where('name->zh-TW', 'like', "%{$search}%")
-                    ->orWhere('name->en', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+                $query->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('name_en', 'like', "%{$search}%");
             });
         }
 
@@ -130,98 +79,70 @@ class AcademicController extends Controller
         }
 
         if ($programFilters['visible'] !== null && $programFilters['visible'] !== '') {
-            if ($programFilters['visible'] === '1' || $programFilters['visible'] === 1 || $programFilters['visible'] === true) {
-                $programQuery->where('visible', true);
-            } elseif ($programFilters['visible'] === '0' || $programFilters['visible'] === 0 || $programFilters['visible'] === false) {
-                $programQuery->where('visible', false);
+            $visible = filter_var($programFilters['visible'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($visible !== null) {
+                $programQuery->where('visible', $visible);
             }
         }
 
         $programPerPage = (int) ($programFilters['per_page'] ?? 15);
-        if ($programPerPage < 1) {
-            $programPerPage = 15;
-        }
-
-        if ($programPerPage > 200) {
-            $programPerPage = 200;
-        }
+        $programPerPage = max(1, min(200, $programPerPage));
 
         $programs = $programQuery
             ->orderBy('sort_order')
-            ->orderBy('name->zh-TW')
-            ->paginate($programPerPage, ['*'], 'program_page')
+            ->orderBy('name')
+            ->paginate($programPerPage)
             ->through(fn (Program $program) => [
                 'id' => $program->id,
                 'code' => $program->code,
                 'name' => $program->name,
                 'name_en' => $program->name_en,
                 'level' => $program->level,
+                'level_name' => $program->level_name,
+                'description' => $program->description,
+                'description_en' => $program->description_en,
+                'website_url' => $program->website_url,
                 'visible' => $program->visible,
                 'sort_order' => $program->sort_order,
-                'courses_count' => $program->courses_count,
-                'updated_at' => optional($program->updated_at)->toIso8601String(),
-                'website_url' => $program->website_url,
-                'posts' => $program->posts->map(fn (Post $post) => [
+                'posts_count' => $program->posts_count,
+                'updated_at' => $program->updated_at?->toISOString(),
+                'posts' => $program->posts->map(fn ($post) => [
                     'id' => $post->id,
                     'title' => $post->title,
                     'status' => $post->status,
-                    'publish_at' => optional($post->publish_at)->toIso8601String(),
+                    'publish_at' => $post->publish_at?->toISOString(),
+                    'post_type' => $post->pivot->post_type,
+                    'sort_order' => $post->pivot->sort_order,
                 ]),
             ])
             ->withQueryString();
 
-        $programOptions = Program::orderBy('name->zh-TW')->get(['id', 'name', 'name_en']);
-
-        $topPostIds = Post::query()
-            ->select('id')
-            ->orderByDesc('publish_at')
-            ->orderByDesc('created_at')
-            ->limit(300)
-            ->pluck('id');
-
-        $linkedPostIds = Program::query()
-            ->with(['posts:id'])
-            ->get()
-            ->flatMap(fn (Program $program) => $program->posts->pluck('id'))
-            ->filter()
-            ->unique();
-
+        // 取得可用的公告選項（已發布的公告）
         $postOptions = Post::query()
-            ->select('id', 'title', 'status', 'publish_at', 'created_at')
-            ->whereIn('id', $topPostIds->merge($linkedPostIds)->unique()->values())
+            ->select('id', 'title', 'status', 'publish_at')
+            ->where('status', 'published')
             ->orderByDesc('publish_at')
             ->orderByDesc('created_at')
+            ->limit(500)
             ->get()
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,
                 'status' => $post->status,
-                'publish_at' => optional($post->publish_at)->toIso8601String(),
-                'created_at' => optional($post->created_at)->toIso8601String(),
+                'publish_at' => $post->publish_at?->toISOString(),
             ]);
 
-        $query = [];
-        foreach ($request->query() as $key => $value) {
-            if (is_scalar($value)) {
-                $query[$key] = (string) $value;
-            }
-        }
-
-        return Inertia::render('manage/admin/academics/index', [
-            'courses' => $courses,
-            'courseProgramOptions' => $programOptions,
-            'courseFilters' => $courseFilters,
-            'coursePerPageOptions' => [15, 30, 50, 100, 200],
+        return Inertia::render('manage/academics/index', [
             'programs' => $programs,
             'programFilters' => $programFilters,
             'programPerPageOptions' => [15, 30, 50, 100, 200],
-            'activeTab' => $activeTab,
-            'query' => $query,
+            'programLevelOptions' => Program::getLevelOptions(),
+            'postTypeOptions' => Program::getPostTypeOptions(),
             'postOptions' => $postOptions,
         ]);
     }
 
-    private function ensureDefaultPrograms(): void
+    private function ensureDefaultProgramsExist(): void
     {
         foreach (self::DEFAULT_PROGRAMS as $program) {
             Program::firstOrCreate(

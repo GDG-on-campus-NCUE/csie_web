@@ -100,7 +100,7 @@ class LabController extends Controller
                 'title_en' => $teacher->title_en,
             ]);
 
-        return Inertia::render('manage/admin/labs/index', [
+        return Inertia::render('manage/labs/index', [
             'labs' => $labs,
             'teachers' => $teachers,
             'filters' => [
@@ -131,7 +131,7 @@ class LabController extends Controller
                 'title_en' => $teacher->title_en,
             ]);
 
-        return Inertia::render('manage/admin/labs/create', [
+        return Inertia::render('manage/labs/create', [
             'teachers' => $teachers,
             'tagSuggestions' => $this->buildTagSuggestions('labs'),
         ]);
@@ -207,7 +207,7 @@ class LabController extends Controller
                 'title_en' => $teacher->title_en,
             ]);
 
-        return Inertia::render('manage/admin/labs/edit', [
+        return Inertia::render('manage/labs/edit', [
             'lab' => [
                 'id' => $lab->id,
                 'code' => $lab->code,

@@ -103,7 +103,7 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
                             <Select
                                 id="role"
                                 value={form.data.role}
-                                onChange={(event) => form.setData('role', event.target.value as UserPayload['role'])}
+                                onChange={(event) => form.setData('role', event.target.value as UserFormPayload['role'])}
                                 aria-invalid={Boolean(form.errors.role)}
                             >
                                 {roleOptions.map((option) => (
@@ -122,7 +122,7 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
                             <Select
                                 id="status"
                                 value={form.data.status}
-                                onChange={(event) => form.setData('status', event.target.value as UserPayload['status'])}
+                                onChange={(event) => form.setData('status', event.target.value as UserFormPayload['status'])}
                                 aria-invalid={Boolean(form.errors.status)}
                             >
                                 {statusOptions.map((option) => (
@@ -199,8 +199,8 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
                             {form.processing
                                 ? '處理中…'
                                 : mode === 'create'
-                                  ? '建立使用者'
-                                  : '儲存變更'}
+                                    ? '建立使用者'
+                                    : '儲存變更'}
                         </Button>
                     </div>
                 </form>

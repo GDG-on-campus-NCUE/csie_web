@@ -1,4 +1,4 @@
-import AdminDashboard from '@/components/manage/admin/dashboard/admin-dashboard';
+import AdminDashboard from '@/components/manage/dashboard/dashboard';
 import DashboardHeroCard from '@/components/manage/dashboard/dashboard-hero-card';
 import {
     DashboardQuickAction,
@@ -203,9 +203,9 @@ export default function Dashboard() {
                     icon: NotebookPen,
                 },
                 {
-                    href: '/manage/teacher/courses',
-                    label: t('dashboard.teacher.actions.courses.label'),
-                    description: t('dashboard.teacher.actions.courses.description'),
+                    href: '/manage/academics',
+                    label: t('dashboard.admin.actions.academics.label'),
+                    description: t('dashboard.admin.actions.academics.description'),
                     icon: BookOpen,
                 },
                 {

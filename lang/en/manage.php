@@ -55,7 +55,7 @@ return [
             'dashboard' => 'Teaching Home',
             'posts' => 'Announcements',
             'labs' => 'Research',
-            'courses' => 'Courses & Activities',
+            'academics' => 'Program Management',
             'profile' => 'Profile Settings',
             'guide' => 'Teaching Guide',
             'nav_label' => 'Teaching',
@@ -269,9 +269,9 @@ return [
                     'label' => 'Research overview',
                     'description' => 'Update lab profiles and research highlights.',
                 ],
-                'courses' => [
-                    'label' => 'Courses & events',
-                    'description' => 'Organise course details and timelines.',
+                'academics' => [
+                    'label' => 'Program Management',
+                    'description' => 'Manage academic programs and documents.',
                 ],
                 'profile' => [
                     'label' => 'Profile settings',

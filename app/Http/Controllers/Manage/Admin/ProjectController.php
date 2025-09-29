@@ -29,7 +29,7 @@ class ProjectController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return Inertia::render('manage/admin/projects/index', [
+        return Inertia::render('manage/projects/index', [
             'projects' => $projects,
             'perPage' => $perPage,
             'perPageOptions' => [15, 30, 50, 100, 200],
@@ -42,7 +42,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        return Inertia::render('manage/admin/projects/create', [
+        return Inertia::render('manage/projects/create', [
             'teachers' => Teacher::orderBy('name->zh-TW')->get(),
         ]);
     }
@@ -88,7 +88,7 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        return Inertia::render('manage/admin/projects/show', [
+        return Inertia::render('manage/projects/show', [
             'project' => $project->load(['teachers']),
         ]);
     }
@@ -98,7 +98,7 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
-        return Inertia::render('manage/admin/projects/edit', [
+        return Inertia::render('manage/projects/edit', [
             'project' => $project->load(['teachers']),
             'teachers' => Teacher::orderBy('name->zh-TW')->get(),
         ]);

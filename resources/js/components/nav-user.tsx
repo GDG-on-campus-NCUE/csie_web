@@ -17,7 +17,7 @@ export function NavUser() {
             <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton size="lg" className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent">
+                        <SidebarMenuButton size="lg" className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent transition-all duration-300 ease-out cursor-pointer hover:drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 hover:bg-sidebar-accent/50">
                             <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>

@@ -12,7 +12,6 @@ use App\Models\Lab;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Program;
-use App\Models\Course;
 use App\Models\Staff;
 use App\Models\PostCategory;
 use Database\Seeders\PostCategorySeeder;
@@ -39,7 +38,6 @@ class AppServiceProvider extends ServiceProvider
             'Project' => Project::class,
             'Publication' => Publication::class,
             'Program' => Program::class,
-            'Course' => Course::class,
             'Staff' => Staff::class,
             'Classroom' => Classroom::class,
         ]);

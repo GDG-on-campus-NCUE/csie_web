@@ -112,7 +112,7 @@ class StaffController extends Controller
 
         $teachers->withQueryString();
 
-        return Inertia::render('manage/admin/staff/index', [
+        return Inertia::render('manage/staff/index', [
             'initialTab' => $activeTab,
             'staff' => [
                 'active' => $staff,
@@ -127,7 +127,7 @@ class StaffController extends Controller
     // 顯示新增職員表單
     public function create()
     {
-        return Inertia::render('manage/admin/staff/create');
+        return Inertia::render('manage/staff/create');
     }
 
     // 儲存新的職員
@@ -156,7 +156,7 @@ class StaffController extends Controller
     // 顯示編輯表單
     public function edit(Staff $staff)
     {
-        return Inertia::render('manage/admin/staff/edit', [
+        return Inertia::render('manage/staff/edit', [
             'staff' => new StaffResource($staff),
         ]);
     }

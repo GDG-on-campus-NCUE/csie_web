@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 ease-out cursor-pointer disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 hover:drop-shadow-[0_4px_12px_rgba(29,78,216,0.25)]",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20",
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 hover:shadow-md hover:-translate-y-0.5 hover:drop-shadow-[0_4px_12px_rgba(225,29,72,0.25)] focus-visible:ring-destructive/20",
         outline:
-          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground hover:shadow-sm hover:-translate-y-0.5 hover:border-primary/30",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 hover:shadow-md hover:-translate-y-0.5 hover:drop-shadow-[0_4px_12px_rgba(252,163,17,0.25)]",
+        ghost: "hover:bg-accent hover:text-accent-foreground hover:drop-shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:-translate-y-0.5",
+        link: "text-primary underline-offset-4 hover:underline hover:drop-shadow-[0_2px_6px_rgba(29,78,216,0.2)] hover:-translate-y-0.5",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

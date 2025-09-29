@@ -214,17 +214,19 @@
     }
 
     a {
-        @apply text-primary transition-colors duration-200;
+        @apply text-primary transition-all duration-300 ease-out cursor-pointer;
         text-decoration: none;
         text-underline-offset: 0.35em;
         text-decoration-thickness: 2px;
-        transition: color 200ms ease, box-shadow 200ms ease;
+        transition: color 300ms ease, box-shadow 300ms ease, transform 300ms ease, filter 300ms ease;
     }
 
     a:hover {
         @apply text-primary/80;
         text-decoration: none;
         box-shadow: 0 12px 22px -18px rgba(29, 59, 184, 0.45);
+        transform: translateY(-1px);
+        filter: drop-shadow(0 2px 8px rgba(29, 78, 216, 0.2));
     }
 }
 

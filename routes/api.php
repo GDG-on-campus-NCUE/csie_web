@@ -12,7 +12,6 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\PublicationController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\ProgramController;
-use App\Http\Controllers\Api\CourseController;
 
 
 Route::prefix('v1')->group(function () {
@@ -31,6 +30,5 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('contact-messages', ContactMessageController::class)->only(['index','show','store','update','destroy']);
 
     Route::apiResource('programs', ProgramController::class);
-    Route::apiResource('courses', CourseController::class);
 });
 

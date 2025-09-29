@@ -29,7 +29,7 @@ class EnsureManageRole
                 abort(Response::HTTP_FORBIDDEN);
             }
 
-            return redirect()->route('manage.dashboard');
+            return redirect()->route('home');
         }
 
         return $next($request);

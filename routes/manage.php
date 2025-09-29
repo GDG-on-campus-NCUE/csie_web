@@ -11,7 +11,6 @@ use App\Http\Controllers\Manage\Admin\LabController as AdminLabController;
 use App\Http\Controllers\Manage\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Manage\Admin\ClassroomController as AdminClassroomController;
 use App\Http\Controllers\Manage\Admin\PostCategoryController as AdminPostCategoryController;
-use App\Http\Controllers\Manage\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Manage\Admin\ProgramController as AdminProgramController;
 use App\Http\Controllers\Manage\Admin\AcademicController as AdminAcademicController;
 use App\Http\Controllers\Manage\Admin\ProjectController as AdminProjectController;
@@ -20,7 +19,8 @@ use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMe
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
 use App\Http\Controllers\Manage\Admin\TagController as AdminTagController;
 
-Route::middleware(['auth', 'role:admin|teacher'])
+// 基本的管理後台功能，允許所有已驗證的角色訪問
+Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
     ->prefix('manage')->name('manage.')
     ->group(function () {
         Route::get('/', function () {
@@ -28,6 +28,12 @@ Route::middleware(['auth', 'role:admin|teacher'])
         });
 
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    });
+
+// 進階管理功能，僅限管理員和教師
+Route::middleware(['auth', 'role:admin|teacher'])
+    ->prefix('manage')->name('manage.')
+    ->group(function () {
 
         // 公告管理
         Route::resource('posts', PostController::class);
@@ -44,7 +50,6 @@ Route::middleware(['auth', 'role:admin|teacher'])
         Route::prefix('teacher')->name('teacher.')->group(function () {
             Route::get('posts', [PostController::class, 'index'])->name('posts');
             Route::get('labs', [AdminLabController::class, 'index'])->name('labs');
-            Route::get('courses', [AdminCourseController::class, 'index'])->name('courses');
         });
 
         // 師資與職員管理
@@ -64,7 +69,6 @@ Route::middleware(['auth', 'role:admin|teacher'])
         // 課程修業管理
         Route::get('academics', [AdminAcademicController::class, 'index'])->name('academics.index');
         Route::resource('programs', AdminProgramController::class);
-        Route::resource('courses', AdminCourseController::class);
 
         // 聯絡我們管理
         Route::resource('contact-messages', AdminContactMessageController::class);

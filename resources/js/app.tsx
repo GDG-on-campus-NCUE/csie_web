@@ -5,6 +5,17 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
+// 過濾 Radix UI Dialog inert 屬性的警告
+const originalWarn = console.warn;
+console.warn = (...args) => {
+    const message = args.join(' ');
+    // 忽略 Radix UI Dialog inert 屬性的警告
+    if (message.includes("inert") && message.includes("'true'") && message.includes("boolean")) {
+        return;
+    }
+    originalWarn(...args);
+};
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
