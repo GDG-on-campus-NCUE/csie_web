@@ -358,7 +358,6 @@
     }
 
     .hover-lift:hover {
-        transform: translateY(-6px);
         filter: saturate(115%);
     }
 

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { MenuIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import LanguageSwitcher from '@/components/language-switcher';
 import { useTranslator } from '@/hooks/use-translator';
 
 type NavItem = { key: string; href: string; label?: string };
@@ -10,7 +9,7 @@ type NavItem = { key: string; href: string; label?: string };
 export default function FloatingNav({ nav }: { nav: NavItem[] }) {
     const { t } = useTranslator('common');
     const [open, setOpen] = useState(false);
-    const [pos, setPos] = useState<{ x: number; y: number }>(() => ({ x: 16, y: 120 }));
+    const [pos, setPos] = useState<{ x: number; y: number }>(() => ({ x: 16, y: 200 }));
     const moved = useRef(false);
     const start = useRef<{ x: number; y: number } | null>(null);
 
@@ -73,11 +72,10 @@ export default function FloatingNav({ nav }: { nav: NavItem[] }) {
 
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetContent side="bottom" className="max-h-[75vh] w-full rounded-t-3xl border-none bg-white/95 p-0 shadow-2xl backdrop-blur">
-                    <SheetHeader className="flex items-center justify-between border-b border-neutral-200 px-6 pb-3 pt-4">
+                    <SheetHeader className="border-b border-neutral-200 px-6 pb-3 pt-4">
                         <SheetTitle className="text-lg font-semibold text-neutral-900">
                             {t('floating_nav.sheet_title', '選單')}
                         </SheetTitle>
-                        <LanguageSwitcher />
                     </SheetHeader>
                     <nav className="grid grid-cols-2 gap-3 px-6 py-6 text-base">
                         {nav.map((item) => (

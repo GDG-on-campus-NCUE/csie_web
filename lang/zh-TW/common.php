@@ -41,4 +41,17 @@ return [
         'sheet_title' => '選單',
         'open_navigation' => '開啟導覽',
     ],
+    'settings' => [
+        'floating_button' => '語言設置',
+        'title' => '網站設置',
+        'language' => [
+            'title' => '語言設置',
+            'description' => '選擇您偏好的語言',
+        ],
+        'appearance' => [
+            'title' => '外觀主題',
+            'description' => '選擇明亮或暗色主題',
+        ],
+        'quick_actions' => '快速操作',
+    ],
 ];

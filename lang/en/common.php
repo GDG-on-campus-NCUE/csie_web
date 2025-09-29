@@ -41,4 +41,17 @@ return [
         'sheet_title' => 'Menu',
         'open_navigation' => 'Open navigation',
     ],
+    'settings' => [
+        'floating_button' => 'Language Settings',
+        'title' => 'Website Settings',
+        'language' => [
+            'title' => 'Language Settings',
+            'description' => 'Choose your preferred language',
+        ],
+        'appearance' => [
+            'title' => 'Appearance Theme',
+            'description' => 'Choose light or dark theme',
+        ],
+        'quick_actions' => 'Quick Actions',
+    ],
 ];

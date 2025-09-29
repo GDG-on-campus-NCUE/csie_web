@@ -18,7 +18,7 @@ export function NavFooter({
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100 transition-all duration-300 ease-out cursor-pointer hover:drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)] hover:-translate-y-0.5"
+                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100 transition-all duration-300 ease-out cursor-pointer hover:drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
                             >
                                 <a href={typeof item.href === 'string' ? item.href : item.href.url} target="_blank" rel="noopener noreferrer">
                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}

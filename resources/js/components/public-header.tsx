@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
 import LanguageSwitcher from './language-switcher';
 import FloatingNav from '@/components/floating-nav';
+import MobileFloatingSettings from '@/components/mobile-floating-settings';
 import { Mail, MapPin, Phone, Search, ArrowRight, GraduationCap, Users } from 'lucide-react';
 import {
     NavigationMenu,
@@ -147,7 +148,10 @@ export default function PublicHeader() {
                                 aria-label={t('search', '搜尋')}
                             />
                         </div>
-                        <LanguageSwitcher className="text-white/75" />
+                        {/* 保留桌面版語言切換器 */}
+                        <div className="hidden md:block">
+                            <LanguageSwitcher className="text-white/75" />
+                        </div>
                         {isAuthenticated ? (
                             <Link
                                 href="/dashboard"
@@ -275,6 +279,9 @@ export default function PublicHeader() {
             <div className="lg:hidden">
                 <FloatingNav nav={mobileNav} />
             </div>
+
+            {/* 手機版浮動語言設置按鈕 */}
+            <MobileFloatingSettings />
         </header>
     );
 }
