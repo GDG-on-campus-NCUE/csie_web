@@ -37,6 +37,8 @@ export function UserFilterForm({
 }: UserFilterFormProps) {
     // 依語系提供預設字串，確保中英文介面都有合適提示。
     const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
+    // 依語系設定日期輸入語言，避免英文介面顯示中文的年/月/日。
+    const dateInputLocale = fallbackLanguage === 'zh' ? 'zh-Hant-TW' : 'en-CA';
 
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
@@ -108,6 +110,7 @@ export function UserFilterForm({
                             type="date"
                             value={filterState.created_from}
                             onChange={(event) => onChange('created_from', event.target.value)}
+                            lang={dateInputLocale}
                         />
                     </div>
 
@@ -120,6 +123,7 @@ export function UserFilterForm({
                             type="date"
                             value={filterState.created_to}
                             onChange={(event) => onChange('created_to', event.target.value)}
+                            lang={dateInputLocale}
                         />
                     </div>
 

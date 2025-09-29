@@ -37,7 +37,8 @@ export function PostFilterForm({
 }: PostFilterFormProps) {
     // 依語系提供對應預設文案，避免英文介面顯示中文字。
     const fallbackText = (zh: string, en: string) => (fallbackLanguage === 'zh' ? zh : en);
-    const dateInputLocale = fallbackLanguage === 'zh' ? 'zh-Hant-TW' : 'en';
+    // 以對應語系設定日期輸入的語言，確保英文介面不會顯示中文的年/月/日字樣。
+    const dateInputLocale = fallbackLanguage === 'zh' ? 'zh-Hant-TW' : 'en-CA';
 
     return (
         <Card className="border border-slate-200 bg-white shadow-sm">
