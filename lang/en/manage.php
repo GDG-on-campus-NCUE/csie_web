@@ -46,7 +46,7 @@ return [
             'staff' => 'Faculty & Staff',
             'labs' => 'Laboratories',
             'classrooms' => 'Classrooms',
-            'academics' => 'Courses & Programs',
+            'academics' => 'Program management',
             'users' => 'Users',
             'messages' => 'Messages',
             'attachments' => 'Attachments',
@@ -54,8 +54,8 @@ return [
         'teacher' => [
             'dashboard' => 'Teaching Home',
             'posts' => 'Announcements',
-            'labs' => 'Research',
-            'academics' => 'Program Management',
+            'labs' => 'Laboratories',
+            'projects' => 'Research projects',
             'profile' => 'Profile Settings',
             'guide' => 'Teaching Guide',
             'nav_label' => 'Teaching',
@@ -259,19 +259,19 @@ return [
         ],
         'teacher' => [
             'title' => 'Teaching workspace',
-            'description' => 'Access announcements, research updates, and course tools in one place.',
+            'description' => 'Access announcements, lab updates, and research tools in one place.',
             'actions' => [
                 'posts' => [
                     'label' => 'Announcements',
                     'description' => 'Publish and maintain department updates.',
                 ],
                 'labs' => [
-                    'label' => 'Research overview',
+                    'label' => 'Laboratory management',
                     'description' => 'Update lab profiles and research highlights.',
                 ],
-                'academics' => [
-                    'label' => 'Program Management',
-                    'description' => 'Manage academic programs and documents.',
+                'projects' => [
+                    'label' => 'Research projects',
+                    'description' => 'Manage research plans and published results.',
                 ],
                 'profile' => [
                     'label' => 'Profile settings',

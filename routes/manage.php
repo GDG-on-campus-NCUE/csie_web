@@ -66,9 +66,11 @@ Route::middleware(['auth', 'role:admin|teacher'])
         Route::resource('projects', AdminProjectController::class);
         Route::resource('publications', AdminPublicationController::class);
 
-        // 課程修業管理
-        Route::get('academics', [AdminAcademicController::class, 'index'])->name('academics.index');
-        Route::resource('programs', AdminProgramController::class);
+        // 學制管理僅限管理員使用
+        Route::middleware('role:admin')->group(function () {
+            Route::get('academics', [AdminAcademicController::class, 'index'])->name('academics.index');
+            Route::resource('programs', AdminProgramController::class);
+        });
 
         // 聯絡我們管理
         Route::resource('contact-messages', AdminContactMessageController::class);

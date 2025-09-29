@@ -46,7 +46,7 @@ return [
             'staff' => '師資與職員',
             'labs' => '實驗室管理',
             'classrooms' => '教室管理',
-            'academics' => '課程與學程',
+            'academics' => '學制管理',
             'users' => '使用者管理',
             'messages' => '聯絡訊息',
             'attachments' => '附件管理',
@@ -54,8 +54,8 @@ return [
         'teacher' => [
             'dashboard' => '教學首頁',
             'posts' => '公告管理',
-            'labs' => '研究管理',
-            'academics' => '學程管理',
+            'labs' => '實驗室管理',
+            'projects' => '研究專案',
             'profile' => '個人設定',
             'guide' => '教學資源指南',
             'nav_label' => '教學管理',
@@ -259,19 +259,19 @@ return [
         ],
         'teacher' => [
             'title' => '教學管理首頁',
-            'description' => '快速掌握公告、研究與課程工具。',
+            'description' => '快速掌握公告、實驗室與研究工具。',
             'actions' => [
                 'posts' => [
                     'label' => '公告管理',
                     'description' => '發布與維護系上公告與資訊。',
                 ],
                 'labs' => [
-                    'label' => '研究管理',
+                    'label' => '實驗室管理',
                     'description' => '更新實驗室介紹與研究成果。',
                 ],
-                'academics' => [
-                    'label' => '學程管理',
-                    'description' => '管理學程架構與相關文件。',
+                'projects' => [
+                    'label' => '研究專案',
+                    'description' => '維護研究計畫與成果資訊。',
                 ],
                 'profile' => [
                     'label' => '個人設定',

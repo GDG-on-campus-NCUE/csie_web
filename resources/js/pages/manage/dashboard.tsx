@@ -203,9 +203,9 @@ export default function Dashboard() {
                     icon: NotebookPen,
                 },
                 {
-                    href: '/manage/academics',
-                    label: t('dashboard.admin.actions.academics.label'),
-                    description: t('dashboard.admin.actions.academics.description'),
+                    href: '/manage/projects',
+                    label: t('dashboard.teacher.actions.projects.label'),
+                    description: t('dashboard.teacher.actions.projects.description'),
                     icon: BookOpen,
                 },
                 {
