@@ -2,6 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import ManageSidebar from '@/components/manage/sidebar/manage-sidebar';
 import AdminFooter from '@/components/admin-footer';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type PropsWithChildren } from 'react';
 import { usePage } from '@inertiajs/react';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -37,12 +38,22 @@ export default function ManageLayout({
                 className="relative overflow-x-hidden bg-[#f5f7fb] text-neutral-900"
             >
                 <div className="flex min-h-svh flex-col">
-                    {/* 管理頁面標題欄，包含麵包屑導航 */}
-                    <ManageHeader breadcrumbs={breadcrumbs} role={role} />
+                    {/* 管理頁面標題欄 */}
+                    <ManageHeader role={role} />
 
                     {/* 主要內容區域 */}
                     <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
-                        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">{children}</div>
+                        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+                            {/* 麵包屑導航 */}
+                            {breadcrumbs.length > 0 && (
+                                <div className="-mb-2">
+                                    <div className="text-neutral-600">
+                                        <Breadcrumbs breadcrumbs={breadcrumbs} />
+                                    </div>
+                                </div>
+                            )}
+                            {children}
+                        </div>
                     </main>
 
                     {/* 頁腳 */}

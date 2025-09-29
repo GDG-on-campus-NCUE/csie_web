@@ -9,7 +9,7 @@ export function Breadcrumbs({ breadcrumbs }: { breadcrumbs: BreadcrumbItemType[]
         <>
             {breadcrumbs.length > 0 && (
                 <Breadcrumb className="min-w-0 overflow-hidden">
-                    <BreadcrumbList className="flex-col items-start gap-x-1.5 gap-y-2 sm:flex-row sm:items-center sm:gap-y-1 md:flex-nowrap">
+                    <BreadcrumbList className="flex-col items-start gap-x-1.5 gap-y-2 sm:flex-row sm:items-center sm:gap-y-1 md:flex-nowrap text-neutral-600">
                         {breadcrumbs.map((item, index) => {
                             const isLast = index === breadcrumbs.length - 1;
                             const isFirst = index === 0;
@@ -26,15 +26,15 @@ export function Breadcrumbs({ breadcrumbs }: { breadcrumbs: BreadcrumbItemType[]
                                         isFirst && "sm:flex-shrink-0 sm:max-w-24"
                                     )}>
                                         {isLast ? (
-                                            <BreadcrumbPage className="truncate text-left">{item.title}</BreadcrumbPage>
+                                            <BreadcrumbPage className="truncate text-left text-neutral-700 font-medium">{item.title}</BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink asChild className="truncate text-left">
+                                            <BreadcrumbLink asChild className="truncate text-left text-neutral-500 hover:text-neutral-700">
                                                 <Link href={item.href} title={item.title}>{item.title}</Link>
                                             </BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
                                     {!isLast && (
-                                        <BreadcrumbSeparator className="flex-shrink-0 hidden sm:flex" />
+                                        <BreadcrumbSeparator className="flex-shrink-0 hidden sm:flex text-neutral-400" />
                                     )}
                                 </Fragment>
                             );
