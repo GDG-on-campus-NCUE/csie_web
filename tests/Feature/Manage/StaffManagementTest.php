@@ -3,6 +3,7 @@
 namespace Tests\Feature\Manage;
 
 use App\Models\Staff;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -11,24 +12,61 @@ class StaffManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    // T007: 職員列表頁面可以正確顯示並支援分頁
-    public function test_staff_index_displays_paginated_staff_list(): void
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
+    // T007: 職員列表頁面會回傳包含新欄位的統一結構，並同時載入教師資料
+    public function test_staff_index_returns_structured_staff_and_teacher_payload(): void
     {
         $admin = User::factory()->admin()->create();
 
-        // 建立測試資料
-        Staff::factory()->count(15)->create();
+        $staffUser = User::factory()->create(['role' => 'user']);
+        $teacherUser = User::factory()->teacher()->create();
+
+        $staffMember = Staff::factory()
+            ->for($staffUser)
+            ->create([
+                'employment_status' => 'active',
+                'employment_started_at' => now()->subYears(2),
+                'employment_ended_at' => null,
+                'visible' => true,
+            ]);
+
+        $teacher = Teacher::factory()
+            ->for($teacherUser)
+            ->create([
+                'employment_status' => 'inactive',
+                'employment_started_at' => now()->subYears(5),
+                'employment_ended_at' => now()->subYear(),
+                'visible' => false,
+            ]);
 
         $response = $this
             ->actingAs($admin)
             ->get(route('manage.staff.index'));
 
-        $response->assertSuccessful();
-        $response->assertInertia(function ($page) {
-            $page->component('Manage/Staff/Index')
-                ->has('staff.data', 10) // 預設分頁大小
-                ->has('staff.meta')
-                ->where('staff.meta.total', 15);
+        $response->assertOk();
+        $response->assertInertia(function ($page) use ($staffMember, $teacher, $staffUser, $teacherUser) {
+            $page->component('manage/staff/index')
+                ->has('staff.active', 1)
+                ->where('staff.active.0.id', $staffMember->id)
+                ->where('staff.active.0.employment_status', 'active')
+                ->where('staff.active.0.user.email', $staffUser->email)
+                ->has('staff.active.0.employment_started_at')
+                ->has('staff.active.0.visible')
+                ->has('staff.trashed', 0)
+                ->has('teachers.data', 1)
+                ->where('teachers.data.0.id', $teacher->id)
+                ->where('teachers.data.0.employment_status', 'inactive')
+                ->where('teachers.data.0.user.email', $teacherUser->email)
+                ->where('teachers.data.0.visible', false)
+                ->has('teachers.trashed', 0)
+                ->has('filters')
+                ->where('filters.per_page', 15);
         });
     }
 
@@ -43,7 +81,7 @@ class StaffManagementTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertInertia(function ($page) {
-            $page->component('Manage/Staff/Create')
+            $page->component('manage/staff/create')
                 ->has('staff'); // 應該包含空的 staff 物件
         });
     }
@@ -130,6 +168,7 @@ class StaffManagementTest extends TestCase
         $admin = User::factory()->admin()->create();
         $staff = Staff::factory()->create([
             'name' => ['zh-TW' => '測試職員', 'en' => 'Test Staff'],
+            'name_en' => 'Test Staff',
             'position' => ['zh-TW' => '測試職位', 'en' => 'Test Position']
         ]);
 
@@ -139,7 +178,7 @@ class StaffManagementTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertInertia(function ($page) use ($staff) {
-            $page->component('Manage/Staff/Edit')
+            $page->component('manage/staff/edit')
                 ->where('staff.id', $staff->id)
                 ->where('staff.name.zh-TW', '測試職員')
                 ->where('staff.name.en', 'Test Staff');
@@ -198,7 +237,56 @@ class StaffManagementTest extends TestCase
 
         $response->assertRedirect(route('manage.staff.index'));
 
-        $this->assertDatabaseMissing('staff', ['id' => $staff->id]);
+        $this->assertSoftDeleted('staff', ['id' => $staff->id]);
+    }
+
+    // T013-1: 職員在職狀態可以在列表中切換
+    public function test_staff_employment_status_can_be_toggled(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $staff = Staff::factory()->create([
+            'employment_status' => 'active',
+            'visible' => true,
+        ]);
+
+        $this
+            ->from(route('manage.staff.index'))
+            ->actingAs($admin)
+            ->patch(route('manage.staff.toggle-status', $staff))
+            ->assertRedirect(route('manage.staff.index'));
+
+        $staff->refresh();
+        $this->assertSame('inactive', $staff->employment_status);
+        $this->assertFalse($staff->visible); // 停用時預設會自動隱藏
+
+        $this
+            ->from(route('manage.staff.index'))
+            ->actingAs($admin)
+            ->patch(route('manage.staff.toggle-status', $staff), [
+                'status' => 'retired',
+                'sync_visibility' => false,
+            ])
+            ->assertRedirect(route('manage.staff.index'));
+
+        $staff->refresh();
+        $this->assertSame('retired', $staff->employment_status);
+        $this->assertFalse($staff->visible, '停用後手動切換狀態且不同步顯示時應維持原狀。');
+    }
+
+    // T013-2: 職員可直接切換前台顯示狀態
+    public function test_staff_visibility_can_be_toggled(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $staff = Staff::factory()->create(['visible' => true]);
+
+        $this
+            ->from(route('manage.staff.index'))
+            ->actingAs($admin)
+            ->patch(route('manage.staff.toggle-visibility', $staff))
+            ->assertRedirect(route('manage.staff.index'));
+
+        $staff->refresh();
+        $this->assertFalse($staff->visible);
     }
 
     // 額外測試：職員詳情頁面顯示完整資訊
@@ -207,6 +295,7 @@ class StaffManagementTest extends TestCase
         $admin = User::factory()->admin()->create();
         $staff = Staff::factory()->create([
             'name' => ['zh-TW' => '詳情測試', 'en' => 'Detail Test'],
+            'name_en' => 'Detail Test',
             'position' => ['zh-TW' => '測試職位', 'en' => 'Test Position'],
             'bio' => ['zh-TW' => '詳細簡介', 'en' => 'Detailed Bio']
         ]);
@@ -217,7 +306,7 @@ class StaffManagementTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertInertia(function ($page) use ($staff) {
-            $page->component('Manage/Staff/Show')
+            $page->component('manage/staff/show')
                 ->where('staff.id', $staff->id)
                 ->where('staff.name.zh-TW', '詳情測試')
                 ->where('staff.bio.zh-TW', '詳細簡介');
@@ -245,7 +334,7 @@ class StaffManagementTest extends TestCase
                 ->actingAs($user)
                 ->get(route($routeName, ...$routeParams));
 
-            $response->assertForbidden();
+            $response->assertRedirect(route('home'));
         }
     }
 }

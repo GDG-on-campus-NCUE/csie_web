@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\Lab;
 use App\Models\Post;
 use App\Models\Publication;
+use App\Models\Teacher;
 use App\Models\Staff;
 use App\Models\Tag;
 use App\Models\User;
@@ -17,6 +18,7 @@ use App\Policies\PostPolicy;
 use App\Policies\PublicationPolicy;
 use App\Policies\StaffPolicy;
 use App\Policies\TagPolicy;
+use App\Policies\TeacherPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -40,6 +42,8 @@ class AuthServiceProvider extends ServiceProvider
         Publication::class => PublicationPolicy::class,
         // 標籤授權政策
         Tag::class => TagPolicy::class,
+        // 教師授權政策
+        Teacher::class => TeacherPolicy::class,
     ];
 
     public function boot(): void

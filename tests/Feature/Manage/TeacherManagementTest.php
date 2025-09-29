@@ -18,6 +18,7 @@ class TeacherManagementTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutVite();
         $this->admin = User::factory()->admin()->create();
     }
 
@@ -26,20 +27,26 @@ class TeacherManagementTest extends TestCase
      */
     public function test_staff_index_displays_teachers_and_staff(): void
     {
-        $staff = Staff::factory()->create(['name' => '行政專員']);
-        $teacher = Teacher::factory()->create(['name' => '張老師', 'name_en' => 'Mr. Chang']);
+        $staff = Staff::factory()->create([
+            'name' => ['zh-TW' => '行政專員', 'en' => 'Admin Officer'],
+            'employment_status' => 'active',
+        ]);
+        $teacher = Teacher::factory()->create([
+            'name' => ['zh-TW' => '張老師', 'en' => 'Mr. Chang'],
+            'employment_status' => 'retired',
+        ]);
 
         $response = $this
             ->actingAs($this->admin)
             ->get(route('manage.staff.index'));
 
         $response->assertOk();
-        $response->assertInertia(fn ($page) =>
-            $page->component('manage/admin/staff/index')
-                ->where('staff.active.0.name', '行政專員')
+        $response->assertInertia(function ($page) {
+            $page->component('manage/staff/index')
+                ->where('staff.active.0.name.zh-TW', '行政專員')
                 ->where('teachers.data.0.name.zh-TW', '張老師')
-                ->where('teachers.data.0.name.en', 'Mr. Chang')
-        );
+                ->where('teachers.data.0.employment_status', 'retired');
+        });
     }
 
     /**
@@ -70,5 +77,56 @@ class TeacherManagementTest extends TestCase
 
         $response->assertRedirect(route('manage.staff.index'));
         $this->assertSoftDeleted('staff', ['id' => $staff->id]);
+    }
+
+    /**
+     * 切換教師在職狀態會更新 employment_status 與顯示狀態。
+     */
+    public function test_toggle_teacher_status_from_index(): void
+    {
+        $teacher = Teacher::factory()->create([
+            'employment_status' => 'active',
+            'visible' => true,
+        ]);
+
+        $this
+            ->from(route('manage.staff.index', ['tab' => 'teachers']))
+            ->actingAs($this->admin)
+            ->patch(route('manage.teachers.toggle-status', $teacher))
+            ->assertRedirect(route('manage.staff.index', ['tab' => 'teachers']));
+
+        $teacher->refresh();
+        $this->assertSame('inactive', $teacher->employment_status);
+        $this->assertFalse($teacher->visible);
+
+        $this
+            ->from(route('manage.staff.index', ['tab' => 'teachers']))
+            ->actingAs($this->admin)
+            ->patch(route('manage.teachers.toggle-status', $teacher), [
+                'status' => 'active',
+                'restore_visibility' => true,
+            ])
+            ->assertRedirect(route('manage.staff.index', ['tab' => 'teachers']));
+
+        $teacher->refresh();
+        $this->assertSame('active', $teacher->employment_status);
+        $this->assertTrue($teacher->visible);
+    }
+
+    /**
+     * 切換教師顯示狀態。
+     */
+    public function test_toggle_teacher_visibility_from_index(): void
+    {
+        $teacher = Teacher::factory()->create(['visible' => false]);
+
+        $this
+            ->from(route('manage.staff.index', ['tab' => 'teachers']))
+            ->actingAs($this->admin)
+            ->patch(route('manage.teachers.toggle-visibility', $teacher))
+            ->assertRedirect(route('manage.staff.index', ['tab' => 'teachers']));
+
+        $teacher->refresh();
+        $this->assertTrue($teacher->visible);
     }
 }
