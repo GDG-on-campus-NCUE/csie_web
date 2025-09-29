@@ -29,7 +29,7 @@ export default function LanguageSwitcher({
         }
 
         // 適度提前在中小尺寸畫面就切換為單一按鈕，避免繁體字造成的排版擁擠
-        const mediaQuery = window.matchMedia('(max-width: 520px)');
+        const mediaQuery = window.matchMedia('(max-width: 1024px)');
 
         const updateCompactMode = (event: MediaQueryList | MediaQueryListEvent) => {
             setIsCompact(event.matches);
