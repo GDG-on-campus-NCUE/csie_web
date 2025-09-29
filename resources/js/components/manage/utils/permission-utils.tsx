@@ -22,9 +22,9 @@ export const MANAGE_PERMISSIONS = {
     // 學術管理
     MANAGE_LABS: ['admin', 'teacher'] as ManageRole[],
     MANAGE_CLASSROOMS: ['admin'] as ManageRole[],
-    MANAGE_ACADEMICS: ['admin', 'teacher'] as ManageRole[],
+    MANAGE_ACADEMICS: ['admin'] as ManageRole[],
     MANAGE_PROGRAMS: ['admin'] as ManageRole[],
-    MANAGE_PROJECTS: ['admin'] as ManageRole[],
+    MANAGE_PROJECTS: ['admin', 'teacher'] as ManageRole[],
     MANAGE_PUBLICATIONS: ['admin'] as ManageRole[],
 
     // 個人設定

@@ -99,27 +99,27 @@ export default function ManageSidebar({ role: roleOverride }: ManageSidebarProps
         {
             title: t('sidebar.teacher.dashboard'),
             href: '/manage/dashboard',
-            icon: LayoutGrid
+            icon: LayoutGrid,
         },
         {
             title: t('sidebar.teacher.posts'),
             href: '/manage/teacher/posts',
-            icon: Megaphone
+            icon: Megaphone,
         },
         {
             title: t('sidebar.teacher.labs'),
             href: '/manage/teacher/labs',
-            icon: Beaker
+            icon: Beaker,
         },
         {
-            title: t('sidebar.admin.academics'),
-            href: '/manage/academics',
-            icon: NotebookPen
+            title: t('sidebar.teacher.projects'),
+            href: '/manage/projects',
+            icon: NotebookPen,
         },
         {
             title: t('sidebar.teacher.profile'),
             href: '/manage/settings/profile',
-            icon: Settings
+            icon: Settings,
         },
     ], [t]);
 
