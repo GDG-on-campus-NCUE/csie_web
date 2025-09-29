@@ -47,7 +47,7 @@ export default function AuthLayout({
                     <div className="relative space-y-10 text-left">
                         <Link
                             href={home()}
-                            className="flex items-center gap-4 text-slate-900"
+                            className="group flex items-center gap-4 text-slate-900 transition-colors hover:translate-y-0 hover:filter-none hover:shadow-none hover:text-slate-900"
                             aria-label={siteTitle}
                         >
                             <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -58,8 +58,8 @@ export default function AuthLayout({
                                 />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-2xl font-semibold text-slate-900">{siteTitle}</p>
-                                <p className="text-sm text-slate-500">{siteUniversity}</p>
+                                <p className="text-2xl font-semibold text-slate-900 transition-colors group-hover:text-blue-700">{siteTitle}</p>
+                                <p className="text-sm text-slate-500 transition-colors group-hover:text-blue-600/80">{siteUniversity}</p>
                             </div>
                         </Link>
 
@@ -87,7 +87,7 @@ export default function AuthLayout({
                         <div className="flex items-center justify-between gap-4 lg:justify-end">
                             <Link
                                 href={home()}
-                                className="flex items-center gap-3 text-slate-900 lg:hidden"
+                                className="group flex items-center gap-3 text-slate-900 transition-colors hover:translate-y-0 hover:filter-none hover:shadow-none hover:text-slate-900 lg:hidden"
                                 aria-label={siteTitle}
                             >
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -98,8 +98,8 @@ export default function AuthLayout({
                                     />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <p className="text-lg font-semibold text-slate-900">{siteTitle}</p>
-                                    <p className="text-xs text-slate-500">{siteUniversity}</p>
+                                    <p className="text-lg font-semibold text-slate-900 transition-colors group-hover:text-blue-700">{siteTitle}</p>
+                                    <p className="text-xs text-slate-500 transition-colors group-hover:text-blue-600/80">{siteUniversity}</p>
                                 </div>
                             </Link>
 
