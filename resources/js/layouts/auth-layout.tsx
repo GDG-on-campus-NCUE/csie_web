@@ -58,8 +58,12 @@ export default function AuthLayout({
                                 />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-2xl font-semibold text-slate-900 transition-colors group-hover:text-blue-700">{siteTitle}</p>
-                                <p className="text-sm text-slate-500 transition-colors group-hover:text-blue-600/80">{siteUniversity}</p>
+                                <p className="text-2xl font-semibold text-slate-900 transition-colors duration-300 ease-out motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5 group-hover:text-blue-700">
+                                    {siteTitle}
+                                </p>
+                                <p className="text-sm text-slate-500 transition-colors duration-300 ease-out motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5 group-hover:text-blue-600/80">
+                                    {siteUniversity}
+                                </p>
                             </div>
                         </Link>
 
@@ -98,8 +102,12 @@ export default function AuthLayout({
                                     />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <p className="text-lg font-semibold text-slate-900 transition-colors group-hover:text-blue-700">{siteTitle}</p>
-                                    <p className="text-xs text-slate-500 transition-colors group-hover:text-blue-600/80">{siteUniversity}</p>
+                                    <p className="text-lg font-semibold text-slate-900 transition-colors duration-300 ease-out motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5 group-hover:text-blue-700">
+                                        {siteTitle}
+                                    </p>
+                                    <p className="text-xs text-slate-500 transition-colors duration-300 ease-out motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5 group-hover:text-blue-600/80">
+                                        {siteUniversity}
+                                    </p>
                                 </div>
                             </Link>
 
