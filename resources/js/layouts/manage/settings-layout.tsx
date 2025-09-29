@@ -37,7 +37,7 @@ export default function ManageSettingsLayout({ children, active }: ManageSetting
                         {t('settings.badge')}
                     </span>
                     <h1 className="text-3xl font-semibold text-[#151f54]">{t('settings.title')}</h1>
-                    <p className="max-w-2xl text-sm text-neutral-600">{t('settings.description')}</p>
+                    <p className="max-w-2xl text-sm text-neutral-700">{t('settings.description')}</p>
                 </div>
             </div>
 
@@ -54,7 +54,7 @@ export default function ManageSettingsLayout({ children, active }: ManageSetting
                                         'flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition-colors',
                                         active === item.key
                                             ? 'bg-[#151f54] text-white shadow-sm'
-                                            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                                     )}
                                 >
                                     {item.label}

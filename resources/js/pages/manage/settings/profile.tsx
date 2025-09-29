@@ -79,12 +79,12 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                                 {mustVerifyEmail && auth.user.email_verified_at === null && (
                                     <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
+                                        <p className="-mt-4 text-sm text-neutral-700">
                                             {t('settings.profile.verification.notice')}{' '}
                                             <Link
                                                 href={send()}
                                                 as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
+                                                className="text-neutral-900 underline decoration-neutral-400 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current hover:text-neutral-700 dark:decoration-neutral-500"
                                             >
                                                 {t('settings.profile.verification.action')}
                                             </Link>
@@ -108,7 +108,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">{t('settings.profile.actions.saved')}</p>
+                                        <p className="text-sm text-neutral-700 font-medium">{t('settings.profile.actions.saved')}</p>
                                     </Transition>
                                 </div>
                             </>
