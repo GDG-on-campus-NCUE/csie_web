@@ -181,6 +181,17 @@
         background-image: none;
     }
 
+    /* 自動填入欄位改為柔和藍色背景，降低灰色壓迫感 */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        box-shadow: 0 0 0px 1000px rgba(236, 244, 255, 0.92) inset;
+        -webkit-text-fill-color: #1f2937;
+        transition: background-color 5000s ease-in-out 0s;
+        caret-color: #1f2937;
+    }
+
     /* Headings: larger and bolder for stronger hierarchy */
     h1 {
         @apply font-serif font-extrabold text-5xl leading-tight text-foreground;
