@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,7 +24,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'teacher_id',
         'locale',
         'status',
     ];
@@ -36,6 +36,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'teacher',
+        'staff',
     ];
 
     /**
@@ -97,9 +99,48 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // Relationships
-    public function teacher()
+    /**
+     * 與教師資料的一對一關聯。
+     */
+    public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class, 'user_id');
+    }
+
+    /**
+     * 與職員資料的一對一關聯。
+     */
+    public function staff(): HasOne
+    {
+        return $this->hasOne(Staff::class, 'user_id');
+    }
+
+    /**
+     * 判斷是否擁有在職教師檔案。
+     */
+    public function hasActiveTeacherProfile(): bool
+    {
+        if ($this->relationLoaded('teacher')) {
+            $teacher = $this->getRelation('teacher');
+
+            return (bool) $teacher && $teacher->employment_status === 'active';
+        }
+
+        return $this->teacher()->where('employment_status', 'active')->exists();
+    }
+
+    /**
+     * 判斷是否擁有在職職員檔案。
+     */
+    public function hasActiveStaffProfile(): bool
+    {
+        if ($this->relationLoaded('staff')) {
+            $staff = $this->getRelation('staff');
+
+            return (bool) $staff && $staff->employment_status === 'active';
+        }
+
+        return $this->staff()->where('employment_status', 'active')->exists();
     }
 
     public function settings()

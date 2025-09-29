@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Staff;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Staff>
@@ -11,19 +12,21 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class StaffFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
+     * 指定對應的模型。
      *
-     * @var string
+     * @var class-string<\App\Models\Staff>
      */
     protected $model = Staff::class;
 
     /**
-     * Define the model's default state.
+     * 定義預設狀態。
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
+        $startedAt = Carbon::instance($this->faker->dateTimeBetween('-5 years', 'now'));
+
         return [
             'email' => $this->faker->unique()->email(),
             'phone' => $this->faker->phoneNumber(),
@@ -36,11 +39,15 @@ class StaffFactory extends Factory
             'bio_en' => $this->faker->paragraph(3),
             'sort_order' => $this->faker->numberBetween(1, 100),
             'visible' => true,
+            'user_id' => null,
+            'employment_status' => 'active',
+            'employment_started_at' => $startedAt,
+            'employment_ended_at' => null,
         ];
     }
 
     /**
-     * Indicate that the staff is not visible.
+     * 標記為隱藏。
      */
     public function invisible(): static
     {
@@ -50,7 +57,7 @@ class StaffFactory extends Factory
     }
 
     /**
-     * Indicate that the staff is visible.
+     * 標記為顯示。
      */
     public function visible(): static
     {
@@ -60,9 +67,9 @@ class StaffFactory extends Factory
     }
 
     /**
-     * Create a staff with specific position.
+     * 指定職稱（含英文）。
      */
-    public function withPosition(string $position, string $positionEn = null): static
+    public function withPosition(string $position, ?string $positionEn = null): static
     {
         return $this->state(fn (array $attributes) => [
             'position' => $position,
@@ -71,7 +78,7 @@ class StaffFactory extends Factory
     }
 
     /**
-     * Create complete staff profile with all fields.
+     * 產生完整資料（含圖片與雙語簡介）。
      */
     public function complete(): static
     {
@@ -80,5 +87,23 @@ class StaffFactory extends Factory
             'bio' => $this->faker->paragraphs(3, true),
             'bio_en' => $this->faker->paragraphs(3, true),
         ]);
+    }
+
+    /**
+     * 標記為已離職或非在職狀態。
+     */
+    public function former(string $status = 'left'): static
+    {
+        return $this->state(function (array $attributes) use ($status) {
+            $endedAt = Carbon::instance($this->faker->dateTimeBetween('-1 year', 'now'));
+
+            return [
+                'employment_status' => $status,
+                'employment_ended_at' => $endedAt,
+                'employment_started_at' => Carbon::instance(
+                    $this->faker->dateTimeBetween('-10 years', $endedAt->copy()->subMonths(1))
+                ),
+            ];
+        });
     }
 }
