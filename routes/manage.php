@@ -54,11 +54,23 @@ Route::middleware(['auth', 'role:admin|teacher'])
 
         // 師資與職員管理
         Route::resource('staff', AdminStaffController::class);
+        Route::patch('staff/{staff}/status', [AdminStaffController::class, 'toggleStatus'])
+            ->name('staff.toggle-status');
+        Route::patch('staff/{staff}/visibility', [AdminStaffController::class, 'toggleVisibility'])
+            ->name('staff.toggle-visibility');
         Route::patch('staff/{staff}/restore', [AdminStaffController::class, 'restore'])
             ->name('staff.restore');
         Route::delete('staff/{staff}/force', [AdminStaffController::class, 'forceDelete'])
             ->name('staff.force-delete');
         Route::resource('teachers', AdminTeacherController::class);
+        Route::patch('teachers/{teacher}/status', [AdminTeacherController::class, 'toggleStatus'])
+            ->name('teachers.toggle-status');
+        Route::patch('teachers/{teacher}/visibility', [AdminTeacherController::class, 'toggleVisibility'])
+            ->name('teachers.toggle-visibility');
+        Route::patch('teachers/{teacher}/restore', [AdminTeacherController::class, 'restore'])
+            ->name('teachers.restore');
+        Route::delete('teachers/{teacher}/force', [AdminTeacherController::class, 'forceDelete'])
+            ->name('teachers.force-delete');
 
         // 學術研究管理
         Route::resource('labs', AdminLabController::class);
