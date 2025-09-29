@@ -7,6 +7,7 @@ use App\Http\Requests\Manage\User\StoreUserRequest;
 use App\Http\Requests\Manage\User\UpdateUserRequest;
 use App\Http\Resources\Manage\UserResource;
 use App\Models\User;
+use App\Services\UserRoleProfileSynchronizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,7 @@ class UserController extends Controller
     /** @var list<int> */
     private array $perPageOptions = [15, 30, 50, 100, 200];
 
-    public function __construct()
+    public function __construct(private UserRoleProfileSynchronizer $profileSynchronizer)
     {
         $this->authorizeResource(User::class, 'user');
     }
@@ -90,6 +91,8 @@ class UserController extends Controller
         $user->email_verified_at = $request->boolean('email_verified') ? now() : null;
         $user->save();
 
+        $this->profileSynchronizer->sync($user);
+
         return redirect()
             ->route('manage.users.index')
             ->with('success', '使用者建立成功');
@@ -131,7 +134,10 @@ class UserController extends Controller
             ? ($user->email_verified_at ?? now())
             : null;
 
-        $user->update($payload);
+        $user->fill($payload);
+        $user->save();
+
+        $this->profileSynchronizer->sync($user);
 
         return redirect()
             ->route('manage.users.index')
@@ -150,6 +156,7 @@ class UserController extends Controller
 
         DB::transaction(function () use ($user) {
             $user->forceFill(['status' => 'suspended'])->save();
+            $this->profileSynchronizer->handleDeletion($user);
             $user->delete();
         });
 
@@ -171,6 +178,7 @@ class UserController extends Controller
         DB::transaction(function () use ($user) {
             $user->restore();
             $user->forceFill(['status' => 'active'])->save();
+            $this->profileSynchronizer->handleRestoration($user);
         });
 
         return redirect()
@@ -225,6 +233,7 @@ class UserController extends Controller
                 foreach ($users as $target) {
                     if (! $target->trashed()) {
                         $target->forceFill(['status' => 'suspended'])->save();
+                        $this->profileSynchronizer->handleDeletion($target);
                         $target->delete();
                     }
                 }
