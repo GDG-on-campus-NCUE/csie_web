@@ -2,8 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Teacher extends Model
@@ -11,14 +16,33 @@ class Teacher extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'email','phone','office','job_title','photo_url',
-        'name','name_en','title','title_en','bio','bio_en',
-        'expertise','expertise_en','education','education_en',
-        'sort_order','visible',
+        'email',
+        'phone',
+        'office',
+        'job_title',
+        'photo_url',
+        'name',
+        'name_en',
+        'title',
+        'title_en',
+        'bio',
+        'bio_en',
+        'expertise',
+        'expertise_en',
+        'education',
+        'education_en',
+        'sort_order',
+        'visible',
+        'user_id',
+        'employment_status',
+        'employment_started_at',
+        'employment_ended_at',
     ];
 
     protected $casts = [
         'visible' => 'boolean',
+        'employment_started_at' => 'datetime',
+        'employment_ended_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -234,15 +258,23 @@ class Teacher extends Model
     /**
      * Relationship: Teacher belongs to a user
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
+     * 若教師同時是職員，透過 user_id 對應職員檔案。
+     */
+    public function staffProfile(): HasOne
+    {
+        return $this->hasOne(Staff::class, 'user_id', 'user_id');
+    }
+
+    /**
      * Relationship: Teacher has many links
      */
-    public function links()
+    public function links(): HasMany
     {
         return $this->hasMany(TeacherLink::class);
     }
@@ -250,7 +282,7 @@ class Teacher extends Model
     /**
      * Relationship: Teacher has many publications
      */
-    public function publications()
+    public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);
     }
@@ -258,7 +290,7 @@ class Teacher extends Model
     /**
      * Relationship: Teacher has many projects
      */
-    public function projects()
+    public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
@@ -266,7 +298,7 @@ class Teacher extends Model
     /**
      * Relationship: Teacher belongs to many labs
      */
-    public function labs()
+    public function labs(): BelongsToMany
     {
         return $this->belongsToMany(Lab::class, 'lab_teachers');
     }
@@ -277,6 +309,22 @@ class Teacher extends Model
     public function scopeVisible($query)
     {
         return $query->where('visible', true);
+    }
+
+    /**
+     * 範圍：僅取得在職狀態的教師。
+     */
+    public function scopeCurrentlyEmployed(Builder $query): Builder
+    {
+        return $query->where('employment_status', 'active');
+    }
+
+    /**
+     * 範圍：取得已離開或停職的教師。
+     */
+    public function scopeFormerlyEmployed(Builder $query): Builder
+    {
+        return $query->whereIn('employment_status', ['inactive', 'retired', 'left']);
     }
 
     /**

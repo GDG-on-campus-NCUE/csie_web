@@ -2,20 +2,39 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 class Staff extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'email','phone','photo_url','name','name_en','position','position_en','bio','bio_en','sort_order','visible',
+        'email',
+        'phone',
+        'photo_url',
+        'name',
+        'name_en',
+        'position',
+        'position_en',
+        'bio',
+        'bio_en',
+        'sort_order',
+        'visible',
+        'user_id',
+        'employment_status',
+        'employment_started_at',
+        'employment_ended_at',
     ];
 
     protected $casts = [
         'visible' => 'boolean',
+        'employment_started_at' => 'datetime',
+        'employment_ended_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -162,6 +181,38 @@ class Staff extends Model
     public function classrooms()
     {
         return $this->belongsToMany(Classroom::class, 'classroom_staff');
+    }
+
+    /**
+     * 與使用者帳號的關聯。
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 若教職員身兼教師，可透過 user_id 對應教師檔案。
+     */
+    public function teacherProfile(): HasOne
+    {
+        return $this->hasOne(Teacher::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * 範圍：只取得目前在職的職員。
+     */
+    public function scopeCurrentlyEmployed(Builder $query): Builder
+    {
+        return $query->where('employment_status', 'active');
+    }
+
+    /**
+     * 範圍：取得已離開或暫時不在職的職員。
+     */
+    public function scopeFormerlyEmployed(Builder $query): Builder
+    {
+        return $query->whereIn('employment_status', ['inactive', 'retired', 'left']);
     }
 }
 
