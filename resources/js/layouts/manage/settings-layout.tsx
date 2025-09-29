@@ -51,7 +51,7 @@ export default function ManageSettingsLayout({ children, active }: ManageSetting
                                     href={item.href}
                                     prefetch
                                     className={cn(
-                                        'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+                                        'flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition-colors',
                                         active === item.key
                                             ? 'bg-[#151f54] text-white shadow-sm'
                                             : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
