@@ -15,7 +15,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
-import LanguageSwitcher from './language-switcher';
+import LanguageSwitcher from './app-lang-switcher';
 
 const mainNavItems: NavItem[] = [
     {
