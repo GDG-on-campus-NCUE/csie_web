@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tests', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id()->comment('主鍵');
+            $table->timestamp('created_at')->nullable()->comment('建立時間');
+            $table->timestamp('updated_at')->nullable()->comment('最後更新時間');
         });
     }
 

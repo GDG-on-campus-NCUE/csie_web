@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('locale')->nullable();
-            $table->enum('status', ['active','suspended'])->default('active');
+            $table->unsignedTinyInteger('status')
+                ->default(1)
+                ->comment('使用者狀態：1=啟用、2=停用，於服務層轉換為對應名稱');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
