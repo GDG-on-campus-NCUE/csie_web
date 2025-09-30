@@ -60,10 +60,6 @@ export default function AppHeader() {
                     <Link href="/" className="flex items-center flex-shrink-0 gap-2">
                         <AppLogo />
                     </Link>
-
-                    {/* 桌面版導航選單 */}
-                    <AppNavbar className="flex-1 justify-center min-w-0" />
-
                     {/* 右側工具列 */}
                     <AppHeaderActions
                         isMobileMenuOpen={isMobileMenuOpen}
@@ -76,6 +72,8 @@ export default function AppHeader() {
                         onSearchSubmit={handleSearchSubmit}
                     />
                 </div>
+                {/* 桌面版導航選單 */}
+                    <AppNavbar className="flex-1 justify-center min-w-0" />
 
                 {/* 手機版選單 */}
                 <AppMobileNavbar
