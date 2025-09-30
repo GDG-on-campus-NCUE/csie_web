@@ -1,4 +1,4 @@
-import LanguageSwitcher from '@/components/app-lang-switcher';
+import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { useTranslator } from '@/hooks/use-translator';
 import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';

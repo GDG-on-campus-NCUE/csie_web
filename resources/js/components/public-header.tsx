@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
-import LanguageSwitcher from './app-lang-switcher';
+import LanguageSwitcher from './app/app-lang-switcher';
 import FloatingNav from '@/components/floating-nav';
 import MobileFloatingSettings from '@/components/mobile-floating-settings';
 import { Mail, MapPin, Phone, Search, ArrowRight, GraduationCap, Users } from 'lucide-react';

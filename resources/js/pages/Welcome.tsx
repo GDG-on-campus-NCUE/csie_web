@@ -1,11 +1,10 @@
 import { usePage } from '@inertiajs/react';
-import AppLangSwitcher from '@/components/app-lang-switcher';
-
+import AppHeader from '@/layouts/app/app-header';
 
 export default function Welcome() {
     return (
         <>
-            <AppLangSwitcher />
+            <AppHeader />
         </>
     )
 }
