@@ -28,6 +28,7 @@ createInertiaApp({
     },
     progress: {
         color: '#4B5563',
+        includeCSS: false, // 關閉預設樣式，使用自訂樣式
     },
 });
 

@@ -606,3 +606,29 @@
         transform: translateY(0);
     }
 }
+
+/* 自訂 Inertia.js 載入進度條樣式 */
+#nprogress {
+    pointer-events: none;
+}
+
+#nprogress .bar {
+    background: linear-gradient(to right, #ffb401 0%, #181f56 100%);
+    position: fixed;
+    z-index: 1031;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px; /* 原本是 2px，現在改成 4px 讓它更粗 */
+}
+
+#nprogress .peg {
+    display: block;
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    height: 100%;
+    box-shadow: 0 0 10px #181f56, 0 0 5px #ffb401;
+    opacity: 1.0;
+    transform: rotate(3deg) translate(0px, -4px);
+}
