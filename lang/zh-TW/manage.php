@@ -50,6 +50,7 @@ return [
             'users' => '使用者管理',
             'messages' => '聯絡訊息',
             'attachments' => '附件管理',
+            'nav_label' => '系統管理',
         ],
         'teacher' => [
             'dashboard' => '教學首頁',
@@ -73,6 +74,12 @@ return [
             'docs' => '說明文件',
             'repo' => '原始碼庫',
         ],
+    ],
+    'access' => [
+        'denied_title' => '沒有存取權限',
+        'denied_description' => '您沒有權限使用此功能，如需協助請聯絡系統管理員。',
+        'back_to_dashboard' => '返回管理首頁',
+        'denied_role' => '目前身分：:role',
     ],
     'success' => [
         'created' => ':item 建立成功',
