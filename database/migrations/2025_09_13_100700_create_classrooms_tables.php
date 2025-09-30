@@ -25,16 +25,16 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('classroom_staff', function (Blueprint $table) {
+        Schema::create('classroom_user', function (Blueprint $table) {
             $table->foreignId('classroom_id')->constrained('classrooms')->cascadeOnDelete();
-            $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
-            $table->unique(['classroom_id', 'staff_id']);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->unique(['classroom_id', 'user_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('classroom_staff');
+        Schema::dropIfExists('classroom_user');
         Schema::dropIfExists('classrooms');
     }
 };

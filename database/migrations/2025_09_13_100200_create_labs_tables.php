@@ -26,16 +26,16 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('lab_teachers', function (Blueprint $table) {
+        Schema::create('lab_user', function (Blueprint $table) {
             $table->foreignId('lab_id')->constrained('labs')->cascadeOnDelete();
-            $table->foreignId('teacher_profile_id')->constrained('teacher_profiles')->cascadeOnDelete();
-            $table->unique(['lab_id','teacher_profile_id']);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->unique(['lab_id', 'user_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('lab_teachers');
+        Schema::dropIfExists('lab_user');
         Schema::dropIfExists('labs');
     }
 };

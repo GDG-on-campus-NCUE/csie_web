@@ -8,7 +8,6 @@ export default function ProfileNavigationMenu() {
     // 取得使用者的所有角色
     const userRoles = user.roles || [];
     const hasTeacherRole = userRoles.includes('teacher');
-    const hasStaffRole = userRoles.includes('staff');
     const isAdmin = userRoles.includes('admin');
 
     return (
@@ -25,42 +24,14 @@ export default function ProfileNavigationMenu() {
                                 個人檔案總覽
                             </Link>
 
-                            {/* 教師檔案入口 */}
-                            {hasTeacherRole && (
+                            {/* 管理後台入口 */}
+                            {(isAdmin || hasTeacherRole) && (
                                 <Link
-                                    href={route('profile.teacher')}
+                                    href={route('manage.dashboard')}
                                     className="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent"
                                 >
-                                    教師檔案
+                                    管理後台
                                 </Link>
-                            )}
-
-                            {/* 職員檔案入口 */}
-                            {hasStaffRole && (
-                                <Link
-                                    href={route('profile.staff')}
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent"
-                                >
-                                    職員檔案
-                                </Link>
-                            )}
-
-                            {/* 管理員專用 */}
-                            {isAdmin && (
-                                <>
-                                    <Link
-                                        href={route('manage.people.index')}
-                                        className="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent"
-                                    >
-                                        師資管理
-                                    </Link>
-                                    <Link
-                                        href={route('manage.dashboard')}
-                                        className="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent"
-                                    >
-                                        管理後台
-                                    </Link>
-                                </>
                             )}
                         </div>
                     </div>
@@ -71,7 +42,6 @@ export default function ProfileNavigationMenu() {
                                 const roleNames = {
                                     'admin': '管理員',
                                     'teacher': '教師',
-                                    'staff': '職員',
                                     'user': '一般會員'
                                 };
                                 return roleNames[role] || role;

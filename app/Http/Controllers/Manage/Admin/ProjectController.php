@@ -4,25 +4,16 @@ namespace App\Http\Controllers\Manage\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
-use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $perPage = (int) $request->input('per_page', 15);
-        if ($perPage < 1) {
-            $perPage = 15;
-        }
-
-        if ($perPage > 200) {
-            $perPage = 200;
-        }
+        $perPage = max(1, min($perPage, 200));
 
         $projects = Project::with(['teachers'])
             ->orderBy('start_date', 'desc')
@@ -37,19 +28,13 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return Inertia::render('manage/projects/create', [
-            'teachers' => Teacher::orderBy('name->zh-TW')->get(),
+            'teachers' => $this->teacherOptions(),
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -67,7 +52,7 @@ class ProjectController extends Controller
             'website_url' => 'nullable|url',
             'visible' => 'boolean',
             'teacher_ids' => 'array',
-            'teacher_ids.*' => 'exists:teachers,id',
+            'teacher_ids.*' => 'exists:users,id',
         ]);
 
         $teacherIds = $validated['teacher_ids'] ?? [];
@@ -75,7 +60,7 @@ class ProjectController extends Controller
 
         $project = Project::create($validated);
 
-        if (!empty($teacherIds)) {
+        if (! empty($teacherIds)) {
             $project->teachers()->attach($teacherIds);
         }
 
@@ -83,9 +68,6 @@ class ProjectController extends Controller
             ->with('success', '研究計畫建立成功');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Project $project)
     {
         return Inertia::render('manage/projects/show', [
@@ -93,20 +75,14 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Project $project)
     {
         return Inertia::render('manage/projects/edit', [
             'project' => $project->load(['teachers']),
-            'teachers' => Teacher::orderBy('name->zh-TW')->get(),
+            'teachers' => $this->teacherOptions(),
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Project $project)
     {
         $validated = $request->validate([
@@ -124,7 +100,7 @@ class ProjectController extends Controller
             'website_url' => 'nullable|url',
             'visible' => 'boolean',
             'teacher_ids' => 'array',
-            'teacher_ids.*' => 'exists:teachers,id',
+            'teacher_ids.*' => 'exists:users,id',
         ]);
 
         $teacherIds = $validated['teacher_ids'] ?? [];
@@ -137,9 +113,6 @@ class ProjectController extends Controller
             ->with('success', '研究計畫更新成功');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Project $project)
     {
         $project->teachers()->detach();
@@ -147,5 +120,15 @@ class ProjectController extends Controller
 
         return redirect()->route('manage.projects.index')
             ->with('success', '研究計畫刪除成功');
+    }
+
+    private function teacherOptions()
+    {
+        return User::query()
+            ->whereHas('userRoles', function ($query) {
+                $query->where('status', 'active')->whereHas('role', fn ($role) => $role->where('name', 'teacher'));
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

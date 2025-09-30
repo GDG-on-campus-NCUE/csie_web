@@ -12,8 +12,6 @@ class Tag extends Model
 
     public const CONTEXTS = [
         'posts' => '公告管理',
-        'staff' => '職員管理',
-        'teachers' => '教師管理',
         'labs' => '研究室管理',
         'classrooms' => '教室管理',
         'projects' => '計畫專區管理',
@@ -21,6 +19,7 @@ class Tag extends Model
         'programs' => '學程管理',
         'courses' => '課程管理',
         'attachments' => '附件管理',
+        'research' => '研究紀錄',
     ];
 
     protected $fillable = [

@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class UserRole extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'role_id', 'person_id', 'status', 'assigned_at', 'deactivated_at'
+        'user_id',
+        'role_id',
+        'status',
+        'assigned_at',
+        'deactivated_at',
     ];
 
     protected $casts = [
@@ -22,7 +26,6 @@ class UserRole extends Model
         'status' => 'active',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,12 +36,6 @@ class UserRole extends Model
         return $this->belongsTo(Role::class);
     }
 
-    public function person()
-    {
-        return $this->belongsTo(Person::class);
-    }
-
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -56,13 +53,10 @@ class UserRole extends Model
 
     public function scopeForRole($query, $roleName)
     {
-        return $query->whereHas('role', function ($q) use ($roleName) {
-            $q->where('name', $roleName);
-        });
+        return $query->whereHas('role', fn ($q) => $q->where('name', $roleName));
     }
 
-    // Helper methods
-    public function activate()
+    public function activate(): void
     {
         $this->update([
             'status' => 'active',
@@ -70,7 +64,7 @@ class UserRole extends Model
         ]);
     }
 
-    public function deactivate()
+    public function deactivate(): void
     {
         $this->update([
             'status' => 'inactive',
@@ -78,7 +72,7 @@ class UserRole extends Model
         ]);
     }
 
-    public function isActive()
+    public function isActive(): bool
     {
         return $this->status === 'active';
     }

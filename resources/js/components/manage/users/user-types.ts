@@ -1,5 +1,5 @@
 // 集中管理使用者管理頁面會共用的型別，避免重複宣告造成維護負擔。
-export type UserRole = 'admin' | 'teacher' | 'staff' | 'user';
+export type UserRole = 'admin' | 'teacher' | 'user';
 
 export type UserStatus = 'active' | 'suspended';
 

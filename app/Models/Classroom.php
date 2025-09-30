@@ -11,9 +11,6 @@ class Classroom extends Model
     use HasFactory;
     use SoftDeletes;
 
-    /**
-     * 可大量指定的欄位，提供後台批次填寫的彈性。
-     */
     protected $fillable = [
         'code',
         'name',
@@ -28,9 +25,6 @@ class Classroom extends Model
         'visible',
     ];
 
-    /**
-     * 型別轉換，確保布林與整數欄位在程式端正確表現。
-     */
     protected $casts = [
         'visible' => 'boolean',
         'capacity' => 'integer',
@@ -39,10 +33,10 @@ class Classroom extends Model
     ];
 
     /**
-     * 多對多關聯：教室可綁定多位職員，對應 pivot classroom_staff。
+     * 多對多關聯：教室與使用者。
      */
-    public function staff()
+    public function users()
     {
-        return $this->belongsToMany(Staff::class, 'classroom_staff');
+        return $this->belongsToMany(User::class, 'classroom_user');
     }
 }

@@ -29,21 +29,17 @@ interface UserTableProps {
     locale: string;
 }
 
-// 角色標籤對照表，方便統一顯示中文角色名稱。
-const roleLabels: Record<Exclude<UserRole, never>, string> = {
+const roleLabels: Record<UserRole, string> = {
     admin: '管理員',
     teacher: '教師',
-    staff: '職員',
     user: '一般會員',
 };
 
-// 狀態標章設定，包含顏色與圖示，集中管理易於後續調整。
 const statusBadge: Record<UserRow['status'], { label: string; variant: 'default' | 'outline'; icon: typeof CircleCheck }> = {
     active: { label: '啟用', variant: 'default', icon: CircleCheck },
     suspended: { label: '停用', variant: 'outline', icon: CirclePause },
 };
 
-// 依據語系格式化日期時間，若解析失敗則回傳原字串避免錯誤。
 const formatDateTime = (value: string | null | undefined, locale: string) => {
     if (!value) {
         return '—';
@@ -59,7 +55,6 @@ const formatDateTime = (value: string | null | undefined, locale: string) => {
     }
 };
 
-// 產生縮寫作為頭像備援，避免缺少頭像時顯示空白方塊。
 const getInitials = (name: string) => {
     const trimmed = name.trim();
     if (trimmed === '') {
@@ -92,7 +87,6 @@ export default function UserTable({
 }: UserTableProps) {
     const allIds = useMemo(() => data.map((user) => user.id), [data]);
 
-    // 後端回傳的頁碼連結有時會嵌在 meta.links，因此統一轉換為陣列方便渲染。
     const paginationLinks = Array.isArray(links)
         ? links
         : Array.isArray(meta.links)
@@ -198,12 +192,12 @@ export default function UserTable({
                                                     {user.roles.length === 0 ? (
                                                         <span className="text-sm text-neutral-400">—</span>
                                                     ) : (
-                                                        <div className="flex flex-wrap gap-1.5">
+                                                        <div className="flex flex-wrap gap-2">
                                                             {user.roles.map((role) => (
                                                                 <Badge
-                                                                    key={`${user.id}-${role}`}
+                                                                    key={`${user.id}-role-${role}`}
                                                                     variant="outline"
-                                                                    className="font-medium text-neutral-700"
+                                                                    className="border-primary/30 bg-primary/5 text-primary"
                                                                 >
                                                                     {roleLabels[role] ?? role}
                                                                 </Badge>
@@ -212,41 +206,50 @@ export default function UserTable({
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <Badge
-                                                        variant={statusMeta.variant}
-                                                        className={cn('flex items-center gap-1.5 px-3 py-1 text-xs font-semibold', {
-                                                            'bg-emerald-50 text-emerald-700 ring-emerald-500/20': user.status === 'active',
-                                                            'bg-neutral-100 text-neutral-600 ring-neutral-400/20': user.status === 'suspended',
-                                                        })}
-                                                    >
-                                                        <StatusIcon className="size-3.5" />
+                                                    <Badge variant={statusMeta.variant} className="flex items-center gap-1">
+                                                        <StatusIcon className="h-3.5 w-3.5" />
                                                         {statusMeta.label}
                                                     </Badge>
                                                 </td>
-                                                <td className="px-4 py-3 text-neutral-600">{formatDateTime(user.created_at ?? null, locale)}</td>
+                                                <td className="px-4 py-3 text-sm text-neutral-500">
+                                                    {formatDateTime(user.created_at ?? null, locale)}
+                                                </td>
                                                 <td className="px-4 py-3">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => onToggleStatus(user)}
-                                                            disabled={!canManage || disableSelfAction}
+                                                    <div className="flex items-center gap-3">
+                                                        <Link
+                                                            href={`/manage/users/${user.id}/edit`}
+                                                            className={cn(
+                                                                'text-sm font-medium text-primary transition hover:text-primary/80',
+                                                                disableSelfAction && 'cursor-not-allowed opacity-40',
+                                                            )}
+                                                            onClick={(event) => {
+                                                                if (disableSelfAction) {
+                                                                    event.preventDefault();
+                                                                }
+                                                            }}
                                                         >
-                                                            {user.status === 'active' ? '停用' : '啟用'}
-                                                        </Button>
-                                                        <Button size="sm" variant="ghost" asChild>
-                                                            <Link href={`/manage/users/${user.id}/edit`}>編輯</Link>
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                            onClick={() => onDelete(user)}
-                                                            disabled={!canManage || disableSelfAction}
-                                                        >
-                                                            <Trash2 className="mr-1 size-4" />
-                                                            刪除
-                                                        </Button>
+                                                            編輯
+                                                        </Link>
+                                                        {canManage && (
+                                                            <button
+                                                                type="button"
+                                                                className="text-sm font-medium text-destructive transition hover:text-destructive/80"
+                                                                onClick={() => onToggleStatus(user)}
+                                                                disabled={disableSelfAction}
+                                                            >
+                                                                {user.status === 'active' ? '停用' : '啟用'}
+                                                            </button>
+                                                        )}
+                                                        {canManage && (
+                                                            <button
+                                                                type="button"
+                                                                className="text-sm font-medium text-destructive transition hover:text-destructive/80"
+                                                                onClick={() => onDelete(user)}
+                                                                disabled={disableSelfAction}
+                                                            >
+                                                                刪除
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -256,25 +259,48 @@ export default function UserTable({
                             </table>
                         </div>
 
-                        <div className="grid gap-3 xl:hidden">
+                        <div className="space-y-3 xl:hidden">
                             {data.map((user) => {
                                 const statusMeta = statusBadge[user.status];
                                 const StatusIcon = statusMeta.icon;
                                 const disableSelfAction = authUserId === user.id;
 
                                 return (
-                                    <div key={user.id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="size-12">
-                                                    <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
-                                                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="text-base font-semibold text-neutral-900">{user.name}</p>
-                                                    <p className="text-xs text-neutral-500">{user.email}</p>
-                                                </div>
+                                    <div
+                                        key={`mobile-${user.id}`}
+                                        className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="size-12">
+                                                <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
+                                                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold text-neutral-900">{user.name}</p>
+                                                <p className="text-xs text-neutral-500">{user.email}</p>
                                             </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {user.roles.map((role) => (
+                                                <Badge
+                                                    key={`${user.id}-mobile-role-${role}`}
+                                                    variant="outline"
+                                                    className="border-primary/30 bg-primary/5 text-primary"
+                                                >
+                                                    {roleLabels[role] ?? role}
+                                                </Badge>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-sm text-neutral-500">
+                                            <StatusIcon className="h-3.5 w-3.5 text-primary" />
+                                            {statusMeta.label}
+                                            <span className="mx-2 h-1 w-1 rounded-full bg-neutral-300" />
+                                            {formatDateTime(user.created_at ?? null, locale)}
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-3">
                                             {canManage && (
                                                 <Checkbox
                                                     checked={selected.includes(user.id)}
@@ -282,97 +308,68 @@ export default function UserTable({
                                                     aria-label={`選取 ${user.name}`}
                                                 />
                                             )}
-                                        </div>
-
-                                        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                                            {user.roles.length === 0 ? (
-                                                <Badge variant="outline" className="text-neutral-500">
-                                                    未指派角色
-                                                </Badge>
-                                            ) : (
-                                                user.roles.map((role) => (
-                                                    <Badge key={`${user.id}-${role}`} variant="outline">
-                                                        {roleLabels[role] ?? role}
-                                                    </Badge>
-                                                ))
+                                            <Link
+                                                href={`/manage/users/${user.id}/edit`}
+                                                className={cn(
+                                                    'text-sm font-medium text-primary transition hover:text-primary/80',
+                                                    disableSelfAction && 'cursor-not-allowed opacity-40',
+                                                )}
+                                                onClick={(event) => {
+                                                    if (disableSelfAction) {
+                                                        event.preventDefault();
+                                                    }
+                                                }}
+                                            >
+                                                編輯
+                                            </Link>
+                                            {canManage && (
+                                                <button
+                                                    type="button"
+                                                    className="text-sm font-medium text-destructive transition hover:text-destructive/80"
+                                                    onClick={() => onToggleStatus(user)}
+                                                    disabled={disableSelfAction}
+                                                >
+                                                    {user.status === 'active' ? '停用' : '啟用'}
+                                                </button>
                                             )}
-                                            <Badge
-                                                variant={statusMeta.variant}
-                                                className={cn('flex items-center gap-1.5 px-3 py-1', {
-                                                    'bg-emerald-50 text-emerald-700 ring-emerald-500/20': user.status === 'active',
-                                                    'bg-neutral-100 text-neutral-600 ring-neutral-400/20': user.status === 'suspended',
-                                                })}
-                                            >
-                                                <StatusIcon className="size-3.5" />
-                                                {statusMeta.label}
-                                            </Badge>
-                                        </div>
-
-                                        <dl className="mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-500">
-                                            <div className="flex items-center justify-between">
-                                                <dt>建立時間</dt>
-                                                <dd className="text-neutral-700">{formatDateTime(user.created_at ?? null, locale)}</dd>
-                                            </div>
-                                        </dl>
-
-                                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="flex-1"
-                                                onClick={() => onToggleStatus(user)}
-                                                disabled={!canManage || disableSelfAction}
-                                            >
-                                                {user.status === 'active' ? '停用' : '啟用'}
-                                            </Button>
-                                            <Button size="sm" variant="secondary" className="flex-1" asChild>
-                                                <Link href={`/manage/users/${user.id}/edit`}>編輯</Link>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                onClick={() => onDelete(user)}
-                                                disabled={!canManage || disableSelfAction}
-                                            >
-                                                刪除
-                                            </Button>
+                                            {canManage && (
+                                                <button
+                                                    type="button"
+                                                    className="text-sm font-medium text-destructive transition hover:text-destructive/80"
+                                                    onClick={() => onDelete(user)}
+                                                    disabled={disableSelfAction}
+                                                >
+                                                    刪除
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-neutral-600">
-                            <div>
-                                共 <span className="font-semibold text-neutral-900">{meta.total}</span> 筆資料
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {paginationLinks.map((link, index) => {
-                                    const label = link.label.replace('&laquo;', '«').replace('&raquo;', '»');
-                                    const isDisabled = !link.url;
-                                    return (
-                                        <Button
-                                            key={`${label}-${index}`}
-                                            size="sm"
-                                            variant={link.active ? 'default' : 'ghost'}
-                                            className={cn('min-w-[2.25rem]', {
-                                                'pointer-events-none opacity-40': isDisabled,
-                                            })}
-                                            asChild={!isDisabled}
-                                        >
-                                            {isDisabled ? (
-                                                <span dangerouslySetInnerHTML={{ __html: label }} />
+                        {paginationLinks.length > 0 && (
+                            <nav className="flex justify-end">
+                                <ul className="inline-flex items-center gap-1 text-sm text-neutral-600">
+                                    {paginationLinks.map((link, index) => (
+                                        <li key={`pagination-${index}`}>
+                                            {link.url ? (
+                                                <Link
+                                                    href={link.url}
+                                                    className={cn(
+                                                        'rounded-full px-3 py-1 transition hover:bg-primary/10 hover:text-primary',
+                                                        link.active && 'bg-primary text-white hover:bg-primary/90 hover:text-white',
+                                                    )}
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
                                             ) : (
-                                                <Link href={link.url!} preserveScroll preserveState>
-                                                    <span dangerouslySetInnerHTML={{ __html: label }} />
-                                                </Link>
+                                                <span className="rounded-full px-3 py-1 text-neutral-400" dangerouslySetInnerHTML={{ __html: link.label }} />
                                             )}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
+                        )}
                     </>
                 )}
             </CardContent>
