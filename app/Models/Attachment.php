@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+
+class Attachment extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+
+    /**
+     * 附件類型與數值的對應表。
+     *
+     * @var array<string, int>
+     */
+    public const TYPE_MAP = [
+        'image' => 1,
+        'document' => 2,
+        'link' => 3,
+    ];
+
+    /**
+     * 附件可見性與數值的對應表。
+     *
+     * @var array<string, int>
+     */
+    public const VISIBILITY_MAP = [
+        'public' => 1,
+        'private' => 2,
+    ];
+
+    /**
+     * 允許批次指定的欄位。
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'attached_to_type',
+        'attached_to_id',
+        'type',
+        'title',
+        'filename',
+        'disk',
+        'disk_path',
+        'file_url',
+        'external_url',
+        'mime_type',
+        'size',
+        'uploaded_by',
+        'visibility',
+        'alt_text',
+        'alt_text_en',
+        'sort_order',
+    ];
+
+    /**
+     * 自動轉型設定。
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'size' => 'integer',
+        'sort_order' => 'integer',
+    ];
+
+    /**
+     * 取得或設定附件類型。
+     */
+    protected function type(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): string => array_flip(self::TYPE_MAP)[$value] ?? 'document',
+            set: function ($value): int {
+                if (is_int($value)) {
+                    return $value;
+                }
+
+                $key = is_string($value) ? strtolower($value) : 'document';
+
+                return self::TYPE_MAP[$key] ?? self::TYPE_MAP['document'];
+            }
+        );
+    }
+
+    /**
+     * 取得或設定附件的可見性。
+     */
+    protected function visibility(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): string => array_flip(self::VISIBILITY_MAP)[$value] ?? 'public',
+            set: function ($value): int {
+                if (is_int($value)) {
+                    return $value;
+                }
+
+                $key = is_string($value) ? strtolower($value) : 'public';
+
+                return self::VISIBILITY_MAP[$key] ?? self::VISIBILITY_MAP['public'];
+            }
+        );
+    }
+
+    /**
+     * 多型關聯：附件所屬的模型。
+     */
+    public function attachable(): MorphTo
+    {
+        return $this->morphTo(null, 'attached_to_type', 'attached_to_id');
+    }
+
+    /**
+     * 附件上傳者。
+     */
+    public function uploader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * 從儲存空間刪除實體檔案。
+     */
+    public function deleteFileFromDisk(): void
+    {
+        if (! $this->disk || ! $this->disk_path) {
+            return;
+        }
+
+        if (Storage::disk($this->disk)->exists($this->disk_path)) {
+            Storage::disk($this->disk)->delete($this->disk_path);
+        }
+    }
+}
