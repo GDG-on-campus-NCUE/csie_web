@@ -14,7 +14,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * 可大量指定的欄位。
      *
      * @var list<string>
      */
@@ -27,7 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Additional attributes that should be appended to array casts.
+     * 附加屬性。
      *
      * @var list<string>
      */
@@ -37,7 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * 隱藏欄位。
      *
      * @var list<string>
      */
@@ -46,11 +46,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -60,7 +55,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // 角色相關方法 - 新系統
+    // ----- 角色相關工具 -----
+
     public function isAdmin(): bool
     {
         return $this->hasRole('admin');
@@ -71,11 +67,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasRole('teacher');
     }
 
-    public function isStaff(): bool
-    {
-        return $this->hasRole('staff');
-    }
-
     public function isUser(): bool
     {
         return $this->hasRole('user');
@@ -84,9 +75,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasRole(string $roleName): bool
     {
         return $this->userRoles()
-            ->whereHas('role', function ($q) use ($roleName) {
-                $q->where('name', $roleName);
-            })
+            ->whereHas('role', fn ($q) => $q->where('name', $roleName))
             ->where('status', 'active')
             ->exists();
     }
@@ -94,15 +83,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasRoleOrHigher(string $roleName): bool
     {
         $roleHierarchy = Role::getHierarchy();
-        $requiredPriority = array_search($roleName, $roleHierarchy);
+        $requiredPriority = array_search($roleName, $roleHierarchy, true);
 
         if ($requiredPriority === false) {
             return false;
         }
 
-        $userRoles = $this->getActiveRoles();
-        foreach ($userRoles as $userRole) {
-            $userPriority = array_search($userRole, $roleHierarchy);
+        foreach ($this->getActiveRoles() as $role) {
+            $userPriority = array_search($role, $roleHierarchy, true);
             if ($userPriority !== false && $userPriority >= $requiredPriority) {
                 return true;
             }
@@ -120,7 +108,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->pluck('role.name')
             ->unique()
             ->values()
-            ->toArray();
+            ->all();
     }
 
     public function getPrimaryRole(): ?string
@@ -130,10 +118,9 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        // 返回權限最高的角色
         $hierarchy = Role::getHierarchy();
-        foreach ($hierarchy as $priority => $roleName) {
-            if (in_array($roleName, $roles)) {
+        foreach ($hierarchy as $roleName) {
+            if (in_array($roleName, $roles, true)) {
                 return $roleName;
             }
         }
@@ -141,8 +128,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $roles[0];
     }
 
-    // 向後相容性：保留舊的 role 屬性取得器
-    public function getRoleAttribute()
+    public function getRoleAttribute(): string
     {
         return $this->getPrimaryRole() ?? 'user';
     }
@@ -157,32 +143,27 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->getPrimaryRole();
     }
 
-    /**
-     * 範圍：取得指定使用者可管理的帳號
-     */
     public function scopeCanBeManagedBy($query, $user)
     {
         if ($user->isAdmin()) {
-            // 管理員可管理所有非管理員帳號，且不得處理自己
             return $query->whereDoesntHave('userRoles', function ($q) {
-                $q->whereHas('role', function ($roleQuery) {
-                    $roleQuery->where('name', 'admin');
-                })->where('status', 'active');
+                $q->whereHas('role', fn ($roleQuery) => $roleQuery->where('name', 'admin'))
+                    ->where('status', 'active');
             })->where('id', '!=', $user->id);
-        } elseif ($user->isTeacher()) {
-            // 教師僅能管理一般會員
-            return $query->whereHas('userRoles', function ($q) {
-                $q->whereHas('role', function ($roleQuery) {
-                    $roleQuery->where('name', 'user');
-                })->where('status', 'active');
-            });
-        } else {
-            // 一般會員無法管理任何帳號
-            return $query->whereRaw('1 = 0');
         }
+
+        if ($user->isTeacher()) {
+            return $query->whereHas('userRoles', function ($q) {
+                $q->whereHas('role', fn ($roleQuery) => $roleQuery->where('name', 'user'))
+                    ->where('status', 'active');
+            });
+        }
+
+        return $query->whereRaw('1 = 0');
     }
 
-    // Relationships - 新系統
+    // ----- 關聯設定 -----
+
     public function userRoles()
     {
         return $this->hasMany(UserRole::class);
@@ -193,67 +174,23 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Role::class, 'user_roles')->wherePivot('status', 'active');
     }
 
-    public function people()
+    public function profile()
     {
-        return $this->belongsToMany(Person::class, 'user_roles')->wherePivot('status', 'active');
+        return $this->hasOne(UserProfile::class);
     }
 
-    // 向後相容性
-    public function teacher()
+    public function labs()
     {
-        return $this->hasOne(Teacher::class, 'user_id');
+        return $this->belongsToMany(Lab::class, 'lab_user');
     }
 
-    // 新的關聯方法
-    public function teacherProfile()
+    public function classrooms()
     {
-        return $this->hasOneThrough(
-            TeacherProfile::class,
-            UserRole::class,
-            'user_id',
-            'person_id',
-            'id',
-            'person_id'
-        )->whereHas('userRole', function ($q) {
-            $q->whereHas('role', function ($roleQuery) {
-                $roleQuery->where('name', 'teacher');
-            })->where('status', 'active');
-        });
+        return $this->belongsToMany(Classroom::class, 'classroom_user');
     }
 
-    public function staffProfile()
+    public function researchRecords()
     {
-        return $this->hasOneThrough(
-            StaffProfile::class,
-            UserRole::class,
-            'user_id',
-            'person_id',
-            'id',
-            'person_id'
-        )->whereHas('userRole', function ($q) {
-            $q->whereHas('role', function ($roleQuery) {
-                $roleQuery->where('name', 'staff');
-            })->where('status', 'active');
-        });
-    }
-
-    public function settings()
-    {
-        return $this->hasMany(Settings::class);
-    }
-
-    public function auditLogs()
-    {
-        return $this->hasMany(AuditLog::class, 'actor_id');
-    }
-
-    public function createdPosts()
-    {
-        return $this->hasMany(Post::class, 'created_by');
-    }
-
-    public function updatedPosts()
-    {
-        return $this->hasMany(Post::class, 'updated_by');
+        return $this->hasMany(ResearchRecord::class);
     }
 }

@@ -191,13 +191,13 @@ export default function Dashboard() {
         if (role === 'teacher') {
             const teacherActions: DashboardQuickAction[] = [
                 {
-                    href: '/manage/teacher/posts',
+                    href: '/manage/posts',
                     label: t('dashboard.teacher.actions.posts.label'),
                     description: t('dashboard.teacher.actions.posts.description'),
                     icon: Megaphone,
                 },
                 {
-                    href: '/manage/teacher/labs',
+                    href: '/manage/labs',
                     label: t('dashboard.teacher.actions.labs.label'),
                     description: t('dashboard.teacher.actions.labs.description'),
                     icon: NotebookPen,

@@ -3,28 +3,12 @@ import RoleGuard from '@/components/manage/guards/role-guard';
 import { usePermission, useRoleInfo } from '@/components/manage/utils/permission-utils';
 import { QuickActionSection, type QuickActionItem } from '@/components/manage/dashboard/quick-action-section';
 import { useTranslator } from '@/hooks/use-translator';
-import {
-    Users,
-    Megaphone,
-    Beaker,
-    School,
-    Settings,
-    FileText,
-    Mail,
-    UserCheck,
-    GraduationCap,
-    NotebookPen,
-} from 'lucide-react';
+import { Users, Megaphone, Beaker, School, Settings, FileText, Mail, GraduationCap, NotebookPen } from 'lucide-react';
 
-/**
- * 管理頁面快速操作組件
- * 根據使用者角色動態顯示可用的管理功能
- */
 export default function ManageQuickActions() {
     const { t } = useTranslator('manage');
     const { role } = useRoleInfo();
 
-    // 使用權限 Hook 檢查功能權限
     const canManageUsers = usePermission('MANAGE_USERS');
     const canManagePosts = usePermission('MANAGE_POSTS');
     const canManageLabs = usePermission('MANAGE_LABS');
@@ -38,12 +22,6 @@ export default function ManageQuickActions() {
             icon: Users,
             href: '/manage/users',
             permission: 'MANAGE_USERS',
-        },
-        {
-            label: t('sidebar.admin.staff'),
-            icon: UserCheck,
-            href: '/manage/staff',
-            permission: 'MANAGE_STAFF',
         },
         {
             label: t('sidebar.admin.classrooms'),
@@ -69,13 +47,13 @@ export default function ManageQuickActions() {
         {
             label: role === 'admin' ? t('sidebar.admin.posts') : t('sidebar.teacher.posts'),
             icon: Megaphone,
-            href: (currentRole) => (currentRole === 'admin' ? '/manage/posts' : '/manage/teacher/posts'),
+            href: '/manage/posts',
             permission: 'MANAGE_POSTS',
         },
         {
             label: role === 'admin' ? t('sidebar.admin.labs') : t('sidebar.teacher.labs'),
             icon: Beaker,
-            href: (currentRole) => (currentRole === 'admin' ? '/manage/labs' : '/manage/teacher/labs'),
+            href: '/manage/labs',
             permission: 'MANAGE_LABS',
         },
         ...(role === 'admin'
@@ -114,61 +92,46 @@ export default function ManageQuickActions() {
 
     return (
         <div className="space-y-6">
-            {/* 角色資訊卡片 */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Settings className="h-5 w-5" />
                         {t(`dashboard.${role}.title`)}
                     </CardTitle>
-                    <CardDescription>
-                        {t(`dashboard.${role}.description`)}
-                    </CardDescription>
+                    <CardDescription>{t(`dashboard.${role}.description`)}</CardDescription>
                 </CardHeader>
             </Card>
 
-            {/* 管理員專用功能 */}
             <RoleGuard allowedRoles={['admin']}>
-                <QuickActionSection
-                    role={role}
-                    title="管理功能"
-                    description="系統管理與維護功能"
-                    actions={adminActions}
-                />
+                <QuickActionSection role={role} title="管理功能" description="系統管理與維護功能" actions={adminActions} />
             </RoleGuard>
 
-            {/* 教師和管理員共用功能 */}
             <RoleGuard allowedRoles={['admin', 'teacher']}>
-                <QuickActionSection
-                    role={role}
-                    title="教學管理"
-                    description="內容與學術資源管理"
-                    actions={teachingActions}
-                />
+                <QuickActionSection role={role} title="教學管理" description="內容與學術資源管理" actions={teachingActions} />
             </RoleGuard>
 
-            {/* 個人設定（所有角色共用） */}
-            <QuickActionSection
-                role={role}
-                title="個人設定"
-                description="帳戶與安全設定管理"
-                actions={personalActions}
-            />
+            <QuickActionSection role={role} title="個人設定" description="帳戶與安全設定管理" actions={personalActions} />
 
-            {/* 除錯資訊（僅開發環境顯示） */}
             {process.env.NODE_ENV === 'development' && (
                 <Card className="border-yellow-200 bg-yellow-50">
                     <CardHeader>
-                        <CardTitle className="text-yellow-800">除錯資訊</CardTitle>
+                        <CardTitle className="text-yellow-900">偵錯資訊</CardTitle>
+                        <CardDescription className="text-yellow-800">
+                            目前身份：{role} · 功能權限：
+                            {[
+                                canManageUsers && '使用者管理',
+                                canManagePosts && '公告管理',
+                                canManageLabs && '實驗室管理',
+                                canManageClassrooms && '教室管理',
+                                canManageAcademics && '學程管理',
+                                canManageProjects && '專案管理',
+                            ]
+                                .filter(Boolean)
+                                .join('、') || '無'}
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="text-sm text-yellow-700">
-                        <p>目前角色: {role}</p>
-                        <p>可管理使用者: {canManageUsers ? '是' : '否'}</p>
-                        <p>可管理公告: {canManagePosts ? '是' : '否'}</p>
-                        <p>可管理實驗室: {canManageLabs ? '是' : '否'}</p>
-                        <p>可管理教室: {canManageClassrooms ? '是' : '否'}</p>
-                        <p>可管理學制: {canManageAcademics ? '是' : '否'}</p>
-                        <p>可管理研究專案: {canManageProjects ? '是' : '否'}</p>
+                    <CardContent className="text-sm text-yellow-800">
+                        若需測試權限組合，可至使用者管理頁面調整角色。
                     </CardContent>
                 </Card>
             )}

@@ -15,7 +15,7 @@ class LabController extends Controller
         $keyword = $request->query('q');
 
         $labs = Lab::where('visible', true)
-            ->with('teachers:id,name,name_en')
+            ->with('teachers:id,name')
             ->when($keyword, function ($query) use ($keyword) {
                 $like = "%{$keyword}%";
                 $query->where(function ($inner) use ($like) {
@@ -51,7 +51,7 @@ class LabController extends Controller
                     'id' => $teacher->id,
                     'name' => [
                         'zh-TW' => $teacher->name,
-                        'en' => $teacher->name_en,
+                        'en' => $teacher->name,
                     ],
                 ])->values(),
             ]);
@@ -90,7 +90,7 @@ class LabController extends Controller
                     'id' => $teacher->id,
                     'name' => [
                         'zh-TW' => $teacher->name,
-                        'en' => $teacher->name_en,
+                        'en' => $teacher->name,
                     ],
                 ])->values(),
             ],

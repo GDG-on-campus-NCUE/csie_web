@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Lab;
 use App\Models\Post;
 use App\Models\Project;
-use App\Models\Teacher;
-use Illuminate\Support\Carbon;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,40 +70,63 @@ class HomeController extends Controller
                 'teachers_count' => $lab->teachers_count,
             ]);
 
-        $spotlightTeachers = Teacher::where('visible', true)
-            ->orderBy('sort_order')
+        $teacherBaseQuery = User::query()
+            ->where('status', 'active')
+            ->whereHas('userRoles', function ($query) {
+                $query->where('status', 'active')
+                    ->whereHas('role', fn ($role) => $role->where('name', 'teacher'));
+            });
+
+        $spotlightTeachers = (clone $teacherBaseQuery)
+            ->with(['profile', 'researchRecords.tags'])
             ->orderBy('name')
             ->limit(4)
-            ->get([
-                'id',
-                'name',
-                'name_en',
-                'title',
-                'title_en',
-                'photo_url',
-                'expertise',
-                'expertise_en',
-            ])
-            ->map(fn (Teacher $teacher) => [
-                'id' => $teacher->id,
-                'name' => [
-                    'zh-TW' => $teacher->name,
-                    'en' => $teacher->name_en,
-                ],
-                'title' => [
-                    'zh-TW' => $teacher->title,
-                    'en' => $teacher->title_en,
-                ],
-                'photo_url' => $teacher->photo_url
-                    ? (Str::startsWith($teacher->photo_url, ['http://', 'https://', '/'])
-                        ? $teacher->photo_url
-                        : asset($teacher->photo_url))
-                    : null,
-                'expertise' => [
-                    'zh-TW' => $teacher->expertise,
-                    'en' => $teacher->expertise_en,
-                ],
-            ]);
+            ->get(['id', 'name'])
+            ->map(function (User $teacher) {
+                $profile = $teacher->profile;
+                $avatar = $profile?->avatar_url;
+
+                if ($avatar && ! Str::startsWith($avatar, ['http://', 'https://', '/'])) {
+                    $avatar = Storage::disk('public')->url($avatar);
+                }
+
+                $expertise = $teacher->researchRecords
+                    ->flatMap(fn ($record) => $record->tags->pluck('name'))
+                    ->unique()
+                    ->values();
+
+                $primaryTitle = '教師';
+                if (is_array($profile?->experience) && ! empty($profile->experience)) {
+                    $firstExperience = $profile->experience[0];
+                    if (is_array($firstExperience) && ! empty($firstExperience['title'])) {
+                        $primaryTitle = (string) $firstExperience['title'];
+                    } elseif (is_string($firstExperience) && $firstExperience !== '') {
+                        $primaryTitle = $firstExperience;
+                    }
+                }
+
+                $expertiseLabel = $expertise->isNotEmpty() ? $expertise->implode(', ') : null;
+
+                return [
+                    'id' => $teacher->id,
+                    'slug' => (string) $teacher->id,
+                    'name' => [
+                        'zh-TW' => $teacher->name,
+                        'en' => $teacher->name,
+                    ],
+                    'title' => [
+                        'zh-TW' => $primaryTitle,
+                        'en' => $primaryTitle !== '教師' ? $primaryTitle : 'Faculty',
+                    ],
+                    'photo_url' => $avatar,
+                    'expertise' => [
+                        'zh-TW' => $expertiseLabel,
+                        'en' => $expertiseLabel,
+                    ],
+                ];
+            });
+
+        $teacherCount = (clone $teacherBaseQuery)->count();
 
         $statistics = [
             [
@@ -112,7 +135,7 @@ class HomeController extends Controller
                     'zh-TW' => '專任師資',
                     'en' => 'Full-time Faculty',
                 ],
-                'value' => Teacher::where('visible', true)->count(),
+                'value' => $teacherCount,
             ],
             [
                 'key' => 'labs',

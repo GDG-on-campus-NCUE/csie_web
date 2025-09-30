@@ -14,19 +14,19 @@ export function LabTeacherAssignmentForm({ form, teacherOptions }: LabTeacherAss
     return (
         <Card className="shadow-sm">
             <CardHeader>
-                <CardTitle>師資連動</CardTitle>
+                <CardTitle>成員連動</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 <p className="text-sm text-neutral-600">
-                    為了呈現實驗室與教師的對應關係，可於此選擇一位或多位教師成員；後續將同步儲存於多對多關聯。
+                    指定與此研究室關聯的教職成員，系統會同步更新多對多關聯以供前台顯示。
                 </p>
                 <AssignableMultiSelect
                     options={teacherOptions}
                     selectedIds={data.teacher_ids}
                     onChange={(ids: number[]) => setData('teacher_ids', ids)}
                     helperText="勾選後會立即更新表單資料，提交前仍可隨時調整。"
-                    emptyLabel="目前沒有教師資料，請先至師資管理建立教師。"
-                    searchPlaceholder="搜尋教師姓名或職稱"
+                    emptyLabel="目前沒有可選成員，請先建立使用者並賦予角色。"
+                    searchPlaceholder="搜尋姓名或關鍵字"
                     errorMessage={Array.isArray(errors.teacher_ids) ? errors.teacher_ids.join('\n') : errors.teacher_ids}
                 />
             </CardContent>
