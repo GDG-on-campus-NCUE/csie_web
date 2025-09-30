@@ -50,6 +50,7 @@ return [
             'users' => 'Users',
             'messages' => 'Messages',
             'attachments' => 'Attachments',
+            'nav_label' => 'Administration',
         ],
         'teacher' => [
             'dashboard' => 'Teaching Home',
@@ -73,6 +74,12 @@ return [
             'docs' => 'Documentation',
             'repo' => 'Repository',
         ],
+    ],
+    'access' => [
+        'denied_title' => 'Access denied',
+        'denied_description' => 'You do not have permission to access this feature. Please contact a system administrator if you believe this is an error.',
+        'back_to_dashboard' => 'Back to dashboard',
+        'denied_role' => 'Current role: :role',
     ],
     'success' => [
         'created' => ':item created successfully',
