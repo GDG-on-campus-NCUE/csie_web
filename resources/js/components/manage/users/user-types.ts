@@ -1,5 +1,5 @@
 // 集中管理使用者管理頁面會共用的型別，避免重複宣告造成維護負擔。
-export type UserRole = 'admin' | 'teacher' | 'user';
+export type UserRole = 'admin' | 'teacher' | 'staff' | 'user';
 
 export type UserStatus = 'active' | 'suspended';
 
@@ -7,7 +7,8 @@ export interface UserRow {
     id: number;
     name: string;
     email: string;
-    role: UserRole;
+    roles: UserRole[];
+    primary_role: UserRole | null;
     status: UserStatus;
     avatar?: string | null;
     email_verified_at?: string | null;
@@ -63,7 +64,7 @@ export interface UserFormPayload {
     id?: number;
     name: string;
     email: string;
-    role: UserRole;
+    roles: UserRole[];
     status: UserStatus;
     email_verified_at?: string | null;
 }

@@ -60,17 +60,22 @@ class Settings extends Model
      */
     public function scopeAccessibleBy($query, $user)
     {
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             // 管理員可以檢視所有設定
             return $query;
-        } elseif ($user->role === 'teacher') {
+        } elseif ($user->isTeacher()) {
             // 教師僅能檢視自己的設定與一般會員公開設定
             return $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere(function ($subQ) use ($user) {
                       $subQ->where('is_public', true)
                            ->whereHas('user', function ($userQ) {
-                               $userQ->where('role', 'user');
+                               $userQ->whereHas('userRoles', function ($roleQ) {
+                                   $roleQ->where('status', 'active')
+                                       ->whereHas('role', function ($role) {
+                                           $role->where('name', 'user');
+                                       });
+                               });
                            });
                   });
             });
@@ -81,7 +86,12 @@ class Settings extends Model
                   ->orWhere(function ($subQ) use ($user) {
                       $subQ->where('is_public', true)
                            ->whereHas('user', function ($userQ) {
-                               $userQ->where('role', 'user');
+                               $userQ->whereHas('userRoles', function ($roleQ) {
+                                   $roleQ->where('status', 'active')
+                                       ->whereHas('role', function ($role) {
+                                           $role->where('name', 'user');
+                                       });
+                               });
                            });
                   });
             });

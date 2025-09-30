@@ -80,7 +80,7 @@ class StaffControllerTest extends TestCase
      */
     public function test_unauthorized_users_cannot_access_staff_create(): void
     {
-        $user = User::factory()->create(['role' => 'user']);
+        $user = User::factory()->user()->create();
 
         $response = $this
             ->actingAs($user)
@@ -346,7 +346,7 @@ class StaffControllerTest extends TestCase
      */
     public function test_unauthorized_users_cannot_delete_staff(): void
     {
-        $user = User::factory()->create(['role' => 'user']);
+        $user = User::factory()->user()->create();
         $staff = Staff::factory()->create();
 
         $response = $this

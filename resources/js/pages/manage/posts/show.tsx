@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Eye, FileText, Link2, User } from 'lucide-react';
 import type { BreadcrumbItem, SharedData } from '@/types';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface AttachmentSummary {
     id: number;
@@ -62,9 +63,7 @@ const formatDateTime = (value: string | null) => {
 
 export default function ShowPost({ post }: ShowPostProps) {
     const { auth } = usePage<SharedData>().props;
-    const userRole = auth?.user?.role ?? 'user';
-    const layoutRole: 'admin' | 'teacher' | 'user' =
-        userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
+    const layoutRole = deriveManageRole(auth?.user ?? null, null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: '管理首頁', href: '/manage/dashboard' },

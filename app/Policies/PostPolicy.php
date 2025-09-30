@@ -33,12 +33,12 @@ class PostPolicy
     public function view(User $user, Post $post): bool
     {
         // 管理員可檢視所有公告
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
         // 教師可檢視所有公告以利協作管理
-        if ($user->role === 'teacher') {
+        if ($user->isTeacher()) {
             return true;
         }
 
@@ -51,7 +51,7 @@ class PostPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     /**
@@ -60,12 +60,12 @@ class PostPolicy
     public function update(User $user, Post $post): bool
     {
         // 管理員可編輯所有公告
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
         // 教師可以編輯所有公告以支援團隊維護
-        if ($user->role === 'teacher') {
+        if ($user->isTeacher()) {
             return true;
         }
 
@@ -79,12 +79,12 @@ class PostPolicy
     public function delete(User $user, Post $post): bool
     {
         // 管理員可刪除任何公告
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
         // 教師僅能刪除自己建立的公告
-        if ($user->role === 'teacher') {
+        if ($user->isTeacher()) {
             return $post->created_by === $user->id;
         }
 
@@ -98,12 +98,12 @@ class PostPolicy
     public function restore(User $user, Post $post): bool
     {
         // 管理員可復原任何公告
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
         // 教師僅能復原自己建立的公告
-        if ($user->role === 'teacher') {
+        if ($user->isTeacher()) {
             return $post->created_by === $user->id;
         }
 
@@ -117,7 +117,7 @@ class PostPolicy
     public function forceDelete(User $user, Post $post): bool
     {
         // 只有管理員可以永久刪除公告
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -125,7 +125,7 @@ class PostPolicy
      */
     public function publish(User $user, Post $post): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -133,7 +133,7 @@ class PostPolicy
      */
     public function unpublish(User $user, Post $post): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -141,7 +141,7 @@ class PostPolicy
      */
     public function manageCategories(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -149,7 +149,7 @@ class PostPolicy
      */
     public function bulkOperations(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -157,7 +157,7 @@ class PostPolicy
      */
     public function viewAnalytics(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     /**
@@ -165,7 +165,7 @@ class PostPolicy
      */
     public function schedulePost(User $user, Post $post): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -173,6 +173,6 @@ class PostPolicy
      */
     public function moderateComments(User $user, Post $post): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 }

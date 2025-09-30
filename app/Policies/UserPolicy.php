@@ -24,7 +24,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -33,7 +33,7 @@ class UserPolicy
     public function view(User $user, User $model): bool
     {
         // 管理員可檢視所有使用者
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -46,7 +46,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -55,7 +55,7 @@ class UserPolicy
     public function update(User $user, User $model): bool
     {
         // 管理員可管理所有帳號
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -68,7 +68,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->role === 'admin' && $user->id !== $model->id;
+        return $user->isAdmin() && $user->id !== $model->id;
     }
 
     /**
@@ -76,7 +76,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -85,7 +85,7 @@ class UserPolicy
     public function forceDelete(User $user, User $model): bool
     {
         // 管理員可以永久刪除其他帳號，但不得刪除自己
-        return $user->role === 'admin' && $user->id !== $model->id;
+        return $user->isAdmin() && $user->id !== $model->id;
     }
 
     /**
@@ -94,7 +94,7 @@ class UserPolicy
     public function assignRole(User $user, User $model): bool
     {
         // 只有管理員可以調整角色
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -102,7 +102,7 @@ class UserPolicy
      */
     public function manageTeacherAssignments(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -111,7 +111,7 @@ class UserPolicy
     public function viewSettings(User $user, User $model): bool
     {
         // 管理員可檢視所有設定
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -125,7 +125,7 @@ class UserPolicy
     public function updateSettings(User $user, User $model): bool
     {
         // 管理員可更新所有設定
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -138,7 +138,7 @@ class UserPolicy
      */
     public function accessAdminDashboard(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -146,6 +146,6 @@ class UserPolicy
      */
     public function accessManageDashboard(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->hasRole('admin') || $user->hasRole('teacher');
     }
 }

@@ -22,10 +22,18 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role',
-        'teacher_id',
         'locale',
         'status',
+    ];
+
+    /**
+     * Additional attributes that should be appended to array casts.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'roles',
+        'primary_role',
     ];
 
     /**
@@ -48,34 +56,105 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => 'string',
             'status' => 'string',
         ];
     }
 
-    // 角色相關方法
+    // 角色相關方法 - 新系統
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
     }
 
     public function isTeacher(): bool
     {
-        return $this->role === 'teacher';
+        return $this->hasRole('teacher');
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasRole('staff');
     }
 
     public function isUser(): bool
     {
-        return $this->role === 'user';
+        return $this->hasRole('user');
     }
 
-    public function hasRoleOrHigher(string $role): bool
+    public function hasRole(string $roleName): bool
     {
-        $hierarchy = ['user' => 1, 'teacher' => 2, 'admin' => 3];
-        $userLevel = $hierarchy[$this->role] ?? 0;
-        $requiredLevel = $hierarchy[$role] ?? 0;
+        return $this->userRoles()
+            ->whereHas('role', function ($q) use ($roleName) {
+                $q->where('name', $roleName);
+            })
+            ->where('status', 'active')
+            ->exists();
+    }
 
-        return $userLevel >= $requiredLevel;
+    public function hasRoleOrHigher(string $roleName): bool
+    {
+        $roleHierarchy = Role::getHierarchy();
+        $requiredPriority = array_search($roleName, $roleHierarchy);
+
+        if ($requiredPriority === false) {
+            return false;
+        }
+
+        $userRoles = $this->getActiveRoles();
+        foreach ($userRoles as $userRole) {
+            $userPriority = array_search($userRole, $roleHierarchy);
+            if ($userPriority !== false && $userPriority >= $requiredPriority) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getActiveRoles(): array
+    {
+        return $this->userRoles()
+            ->with('role')
+            ->where('status', 'active')
+            ->get()
+            ->pluck('role.name')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public function getPrimaryRole(): ?string
+    {
+        $roles = $this->getActiveRoles();
+        if (empty($roles)) {
+            return null;
+        }
+
+        // 返回權限最高的角色
+        $hierarchy = Role::getHierarchy();
+        foreach ($hierarchy as $priority => $roleName) {
+            if (in_array($roleName, $roles)) {
+                return $roleName;
+            }
+        }
+
+        return $roles[0];
+    }
+
+    // 向後相容性：保留舊的 role 屬性取得器
+    public function getRoleAttribute()
+    {
+        return $this->getPrimaryRole() ?? 'user';
+    }
+
+    public function getRolesAttribute(): array
+    {
+        return $this->getActiveRoles();
+    }
+
+    public function getPrimaryRoleAttribute(): ?string
+    {
+        return $this->getPrimaryRole();
     }
 
     /**
@@ -83,23 +162,79 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function scopeCanBeManagedBy($query, $user)
     {
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             // 管理員可管理所有非管理員帳號，且不得處理自己
-            return $query->where('role', '!=', 'admin')
-                        ->where('id', '!=', $user->id);
-        } elseif ($user->role === 'teacher') {
+            return $query->whereDoesntHave('userRoles', function ($q) {
+                $q->whereHas('role', function ($roleQuery) {
+                    $roleQuery->where('name', 'admin');
+                })->where('status', 'active');
+            })->where('id', '!=', $user->id);
+        } elseif ($user->isTeacher()) {
             // 教師僅能管理一般會員
-            return $query->where('role', 'user');
+            return $query->whereHas('userRoles', function ($q) {
+                $q->whereHas('role', function ($roleQuery) {
+                    $roleQuery->where('name', 'user');
+                })->where('status', 'active');
+            });
         } else {
-            // 一般會員無法管理任何帳號，透過永遠為假的條件避免取得資料
+            // 一般會員無法管理任何帳號
             return $query->whereRaw('1 = 0');
         }
     }
 
-    // Relationships
+    // Relationships - 新系統
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')->wherePivot('status', 'active');
+    }
+
+    public function people()
+    {
+        return $this->belongsToMany(Person::class, 'user_roles')->wherePivot('status', 'active');
+    }
+
+    // 向後相容性
     public function teacher()
     {
         return $this->hasOne(Teacher::class, 'user_id');
+    }
+
+    // 新的關聯方法
+    public function teacherProfile()
+    {
+        return $this->hasOneThrough(
+            TeacherProfile::class,
+            UserRole::class,
+            'user_id',
+            'person_id',
+            'id',
+            'person_id'
+        )->whereHas('userRole', function ($q) {
+            $q->whereHas('role', function ($roleQuery) {
+                $roleQuery->where('name', 'teacher');
+            })->where('status', 'active');
+        });
+    }
+
+    public function staffProfile()
+    {
+        return $this->hasOneThrough(
+            StaffProfile::class,
+            UserRole::class,
+            'user_id',
+            'person_id',
+            'id',
+            'person_id'
+        )->whereHas('userRole', function ($q) {
+            $q->whereHas('role', function ($roleQuery) {
+                $roleQuery->where('name', 'staff');
+            })->where('status', 'active');
+        });
     }
 
     public function settings()

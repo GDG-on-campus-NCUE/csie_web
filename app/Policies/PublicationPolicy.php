@@ -12,41 +12,41 @@ class PublicationPolicy
 
     public function before(User $user): bool|null
     {
-        return $user->role === 'admin' ? true : null;
+        return $user->isAdmin() ? true : null;
     }
 
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     public function view(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     public function update(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     public function delete(User $user, Publication $publication): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     public function restore(User $user, Publication $publication): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     public function forceDelete(User $user, Publication $publication): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 }

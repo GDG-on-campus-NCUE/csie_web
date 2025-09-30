@@ -12,6 +12,7 @@ use App\Http\Controllers\BulletinController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', HomeController::class)->name('home');
 
@@ -19,6 +20,17 @@ Route::get('/', HomeController::class)->name('home');
 Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
     return redirect()->route('manage.dashboard');
 })->name('dashboard');
+
+// 個人檔案管理路由
+Route::middleware(['auth', 'verified'])->prefix('profile')->name('profile.')->group(function () {
+    Route::get('/', [ProfileController::class, 'index'])->name('index');
+    Route::get('/people/{person}/edit', [ProfileController::class, 'edit'])->name('edit');
+    Route::patch('/people/{person}', [ProfileController::class, 'update'])->name('update');
+
+    // 向後相容性路由
+    Route::get('/teacher', [ProfileController::class, 'teacherProfile'])->name('teacher');
+    Route::get('/staff', [ProfileController::class, 'staffProfile'])->name('staff');
+});
 
 // Public Routes
 Route::group(['as' => 'public.'], function () {

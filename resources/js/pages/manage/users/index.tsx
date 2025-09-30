@@ -90,13 +90,13 @@ export default function UsersIndex({
     const statusForm = useForm<{
         name: string;
         email: string;
-        role: UserRole;
+        roles: UserRole[];
         status: UserStatus;
         email_verified: boolean;
     }>({
         name: '',
         email: '',
-        role: 'user',
+        roles: ['user'],
         status: 'active',
         email_verified: false,
     });
@@ -239,7 +239,7 @@ export default function UsersIndex({
             statusForm.transform(() => ({
                 name: user.name,
                 email: user.email,
-                role: user.role,
+                roles: user.roles,
                 status: nextStatus,
                 email_verified: Boolean(user.email_verified_at),
             }));

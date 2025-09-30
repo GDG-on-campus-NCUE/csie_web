@@ -3,6 +3,7 @@ import LanguageSwitcher from '@/components/language-switcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface ManageHeaderProps {
     role?: ManageRole;
@@ -10,7 +11,7 @@ interface ManageHeaderProps {
 
 export default function ManageHeader({ role: roleOverride }: ManageHeaderProps) {
     const { auth } = usePage<SharedData>().props;
-    const role = (roleOverride ?? auth?.user?.role ?? 'user') as ManageRole;
+    const role = deriveManageRole(auth?.user ?? null, roleOverride ?? null);
 
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-0 text-neutral-700 md:px-6">

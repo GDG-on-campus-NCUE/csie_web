@@ -10,6 +10,7 @@ import UserForm from '@/components/manage/users/UserForm';
 import type { OptionItem, UserFormPayload } from '@/components/manage/users/user-types';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface ManageUserEditProps {
     mode: 'create' | 'edit';
@@ -22,9 +23,7 @@ export default function ManageUserEdit({ mode, user, roleOptions, statusOptions 
     const { auth } = usePage<SharedData>().props;
     const { t } = useTranslator('manage');
 
-    const userRole = auth?.user?.role ?? 'user';
-    const layoutRole: 'admin' | 'teacher' | 'user' =
-        userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
+    const layoutRole = deriveManageRole(auth?.user ?? null, null);
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [

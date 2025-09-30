@@ -25,6 +25,7 @@ import {
 import ManageBrand, { type ManageRole } from '@/components/manage/manage-brand';
 import { useTranslator } from '@/hooks/use-translator';
 import { useMemo } from 'react';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface ManageSidebarProps {
     role?: ManageRole;
@@ -37,7 +38,7 @@ interface ManageSidebarProps {
  */
 export default function ManageSidebar({ role: roleOverride }: ManageSidebarProps) {
     const { auth } = usePage<SharedData>().props;
-    const role = (roleOverride ?? auth?.user?.role ?? 'user') as ManageRole;
+    const role = deriveManageRole(auth?.user ?? null, roleOverride ?? null);
     const { t } = useTranslator('manage');
 
     // 管理員導航項目

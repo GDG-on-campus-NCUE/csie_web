@@ -21,7 +21,7 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
     const form = useForm<{
         name: string;
         email: string;
-        role: UserRole;
+        roles: UserRole[];
         status: UserStatus;
         password: string;
         password_confirmation: string;
@@ -29,12 +29,40 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
     }>({
         name: user?.name ?? '',
         email: user?.email ?? '',
-        role: user?.role ?? ((roleOptions[0]?.value as UserRole) ?? 'user'),
+        roles:
+            user?.roles && user.roles.length > 0
+                ? (user.roles as UserRole[])
+                : roleOptions.length > 0
+                    ? [(roleOptions[0]?.value as UserRole) ?? 'user']
+                    : ['user'],
         status: user?.status ?? ((statusOptions[0]?.value as UserStatus) ?? 'active'),
         password: '',
         password_confirmation: '',
         email_verified: Boolean(user?.email_verified_at ?? false),
     });
+
+    const roleErrors = Object.entries(form.errors)
+        .filter(([key]) => key === 'roles' || key.startsWith('roles.'))
+        .map(([, value]) => value)
+        .filter((message): message is string => Boolean(message));
+
+    const toggleRole = (role: UserRole, checked: boolean) => {
+        const current = Array.isArray(form.data.roles) ? form.data.roles : [];
+
+        if (checked) {
+            if (current.includes(role)) {
+                return;
+            }
+
+            form.setData('roles', [...current, role]);
+            return;
+        }
+
+        form.setData(
+            'roles',
+            current.filter((item) => item !== role),
+        );
+    };
 
     // 表單送出時依模式決定呼叫新增或更新 API，並避免頁面重新整理。
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -99,21 +127,36 @@ export default function UserForm({ mode, user, roleOptions, statusOptions }: Use
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="role">角色</Label>
-                            <Select
-                                id="role"
-                                value={form.data.role}
-                                onChange={(event) => form.setData('role', event.target.value as UserFormPayload['role'])}
-                                aria-invalid={Boolean(form.errors.role)}
-                            >
-                                {roleOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </Select>
-                            {form.errors.role && (
-                                <p className="text-sm text-red-500">{form.errors.role}</p>
+                            <Label>角色</Label>
+                            <div className="flex flex-wrap gap-3 rounded-lg border border-neutral-200 p-3">
+                                {roleOptions.map((option) => {
+                                    const value = option.value as UserRole;
+                                    const checked = form.data.roles.includes(value);
+
+                                    return (
+                                        <label
+                                            key={option.value}
+                                            className="flex items-center gap-2 text-sm text-neutral-700"
+                                        >
+                                            <Checkbox
+                                                checked={checked}
+                                                onCheckedChange={(state) =>
+                                                    toggleRole(value, state === true)
+                                                }
+                                            />
+                                            <span>{option.label}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            {roleErrors.length > 0 && (
+                                <div className="space-y-1">
+                                    {roleErrors.map((error, index) => (
+                                        <p key={index} className="text-sm text-red-500">
+                                            {error}
+                                        </p>
+                                    ))}
+                                </div>
                             )}
                         </div>
 

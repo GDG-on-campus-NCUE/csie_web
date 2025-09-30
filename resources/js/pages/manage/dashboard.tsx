@@ -15,8 +15,8 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { BookOpen, LayoutGrid, Megaphone, NotebookPen, Settings, ShieldCheck, User } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
-
-type ManageRole = 'admin' | 'teacher' | 'user';
+import type { ManageRole } from '@/components/manage/manage-brand';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface DashboardFlashMessages {
     success?: string;
@@ -58,7 +58,7 @@ export default function Dashboard() {
     const page = usePage<SharedData & { flash?: DashboardFlashMessages }>();
     const { auth, adminDashboard, locale } = page.props;
     const flashMessages: DashboardFlashMessages = page.props.flash ?? {};
-    const role = (auth?.user?.role ?? 'user') as ManageRole;
+    const role = deriveManageRole(auth?.user ?? null, null);
     const { t } = useTranslator('manage');
     const { toasts, showToast, dismissToast } = useDashboardToast();
     const previousFlashRef = useRef<DashboardFlashMessages>({});

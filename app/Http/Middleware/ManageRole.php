@@ -22,20 +22,15 @@ class ManageRole
         }
 
         $user = $request->user();
-        $userRole = $user->role;
 
-        // Check if user has the required role or higher privileges
-        $roleHierarchy = $this->getRoleHierarchy();
-        $requiredLevel = $roleHierarchy[$role] ?? 0;
-        $userLevel = $roleHierarchy[$userRole] ?? 0;
-
-        if ($userLevel < $requiredLevel) {
+        // 使用新的角色系統檢查權限
+        if (!$user->hasRoleOrHigher($role)) {
             // Return appropriate response based on request type
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'message' => 'Insufficient privileges for this action.',
                     'required_role' => $role,
-                    'user_role' => $userRole,
+                    'user_roles' => $user->getActiveRoles(),
                 ], 403);
             }
 
@@ -45,16 +40,5 @@ class ManageRole
         return $next($request);
     }
 
-    /**
-     * Get role hierarchy mapping
-     * Higher numbers indicate higher privileges
-     */
-    private function getRoleHierarchy(): array
-    {
-        return [
-            'user' => 1,
-            'teacher' => 2,
-            'admin' => 3,
-        ];
-    }
+    // 移除舊的階層檢查方法，改用 User Model 的新方法
 }

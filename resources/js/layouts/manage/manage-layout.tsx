@@ -8,6 +8,7 @@ import { usePage } from '@inertiajs/react';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import ManageHeader from '@/components/manage/manage-header';
 import { type ManageRole } from '@/components/manage/manage-brand';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface ManageLayoutProps {
     role?: ManageRole;
@@ -25,8 +26,8 @@ export default function ManageLayout({
     role: roleOverride,
 }: PropsWithChildren<ManageLayoutProps>) {
     const { auth } = usePage<SharedData>().props;
-    // 優先使用傳入的角色參數，否則使用認證資訊中的角色，預設為 user
-    const role = (roleOverride ?? auth?.user?.role ?? 'user') as ManageRole;
+
+    const role = deriveManageRole(auth?.user ?? null, roleOverride ?? null);
 
     return (
         <AppShell variant="sidebar">

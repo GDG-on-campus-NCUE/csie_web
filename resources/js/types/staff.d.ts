@@ -47,7 +47,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'user';
+    roles: Array<'admin' | 'teacher' | 'staff' | 'user'>;
 }
 
 export interface Lab {

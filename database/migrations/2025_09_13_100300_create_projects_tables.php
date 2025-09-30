@@ -27,8 +27,8 @@ return new class extends Migration
 
         Schema::create('project_teachers', function (Blueprint $table) {
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
-            $table->foreignId('teacher_id')->constrained('teachers')->cascadeOnDelete();
-            $table->unique(['project_id','teacher_id']);
+            $table->foreignId('teacher_profile_id')->constrained('teacher_profiles')->cascadeOnDelete();
+            $table->unique(['project_id','teacher_profile_id']);
         });
     }
 
@@ -38,4 +38,3 @@ return new class extends Migration
         Schema::dropIfExists('projects');
     }
 };
-

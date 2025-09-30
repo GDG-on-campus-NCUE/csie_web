@@ -24,7 +24,14 @@ class EnsureManageRole
             ->values()
             ->all();
 
-        if (! $user || ! in_array($user->role, $allowedRoles, true)) {
+        // 使用新的角色系統檢查權限
+        $hasPermission = false;
+        if ($user) {
+            $userRoles = $user->getActiveRoles();
+            $hasPermission = !empty(array_intersect($userRoles, $allowedRoles));
+        }
+
+        if (!$hasPermission) {
             if ($request->expectsJson() || ! $request->isMethod('GET')) {
                 abort(Response::HTTP_FORBIDDEN);
             }

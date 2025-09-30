@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Staff as StaffMember;
-use App\Models\Teacher;
+use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -16,96 +15,112 @@ class StaffController extends Controller
         $roleFilter = $request->query('role');
         $keyword = $request->query('q');
 
-        $teachers = Teacher::with(['labs:id,code,name,name_en'])
+        $baseQuery = Person::query()
+            ->with([
+                'teacherProfile.labs:id,code,name,name_en',
+                'teacherProfile.links',
+                'staffProfile',
+            ])
             ->where('visible', true)
+            ->where('status', 'active');
+
+        $teachers = (clone $baseQuery)
+            ->whereHas('teacherProfile')
             ->when($keyword, function ($query) use ($keyword) {
                 $like = "%{$keyword}%";
                 $query->where(function ($inner) use ($like) {
                     $inner->where('name', 'like', $like)
                         ->orWhere('name_en', 'like', $like)
-                        ->orWhere('title', 'like', $like)
-                        ->orWhere('title_en', 'like', $like);
+                        ->orWhereHas('teacherProfile', function ($profileQuery) use ($like) {
+                            $profileQuery->where('title', 'like', $like)
+                                ->orWhere('title_en', 'like', $like)
+                                ->orWhere('expertise', 'like', $like)
+                                ->orWhere('expertise_en', 'like', $like);
+                        });
                 });
             })
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(function (Teacher $teacher) {
-                $slug = sprintf('teacher-%d-%s', $teacher->id, Str::slug($teacher->name_en ?? $teacher->name));
+            ->map(function (Person $person) {
+                $profile = $person->teacherProfile;
+                $name = $person->name;
+                $title = $profile?->title;
+                $slug = sprintf('teacher-%d-%s', $person->id, Str::slug($person->getRawOriginal('name_en') ?: ($name['zh-TW'] ?? 'teacher')));
 
                 return [
-                    'id' => $teacher->id,
+                    'id' => $person->id,
                     'slug' => $slug,
                     'role' => 'faculty',
                     'name' => [
-                        'zh-TW' => $teacher->name,
-                        'en' => $teacher->name_en,
+                        'zh-TW' => $person->getRawOriginal('name') ?? '',
+                        'en' => $person->getRawOriginal('name_en') ?? '',
                     ],
                     'title' => [
-                        'zh-TW' => $teacher->title,
-                        'en' => $teacher->title_en,
+                        'zh-TW' => $profile?->getRawOriginal('title') ?? '',
+                        'en' => $profile?->getRawOriginal('title_en') ?? '',
                     ],
-                    'email' => $teacher->email,
-                    'phone' => $teacher->phone,
-                    'office' => $teacher->office,
-                    'photo_url' => $teacher->photo_url
-                        ? (Str::startsWith($teacher->photo_url, ['http://', 'https://', '/'])
-                            ? $teacher->photo_url
-                            : asset($teacher->photo_url))
+                    'email' => $person->email,
+                    'phone' => $person->phone,
+                    'office' => $profile?->office,
+                    'photo_url' => $person->photo_url
+                        ? (Str::startsWith($person->photo_url, ['http://', 'https://', '/'])
+                            ? $person->photo_url
+                            : asset($person->photo_url))
                         : null,
-                    'expertise' => [
-                        'zh-TW' => $teacher->expertise,
-                        'en' => $teacher->expertise_en,
-                    ],
-                    'labs' => $teacher->labs->map(fn ($lab) => [
-                        'code' => $lab->code,
-                        'name' => [
-                            'zh-TW' => $lab->name,
-                            'en' => $lab->name_en,
-                        ],
-                    ])->values(),
+                    'expertise' => $profile?->expertise ?? ['zh-TW' => [], 'en' => []],
+                    'labs' => $profile
+                        ? $profile->labs->map(fn ($lab) => [
+                            'code' => $lab->code,
+                            'name' => [
+                                'zh-TW' => $lab->name,
+                                'en' => $lab->name_en,
+                            ],
+                        ])->values()->all()
+                        : [],
                 ];
             });
 
-        $staff = StaffMember::where('visible', true)
+        $staff = (clone $baseQuery)
+            ->whereHas('staffProfile')
             ->when($keyword, function ($query) use ($keyword) {
                 $like = "%{$keyword}%";
                 $query->where(function ($inner) use ($like) {
                     $inner->where('name', 'like', $like)
                         ->orWhere('name_en', 'like', $like)
-                        ->orWhere('position', 'like', $like)
-                        ->orWhere('position_en', 'like', $like);
+                        ->orWhereHas('staffProfile', function ($profileQuery) use ($like) {
+                            $profileQuery->where('position', 'like', $like)
+                                ->orWhere('position_en', 'like', $like);
+                        });
                 });
             })
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(function (StaffMember $staffMember) {
-                $slug = sprintf('staff-%d-%s', $staffMember->id, Str::slug($staffMember->name_en ?? $staffMember->name));
+            ->map(function (Person $person) {
+                $profile = $person->staffProfile;
+                $slug = sprintf('staff-%d-%s', $person->id, Str::slug($person->getRawOriginal('name_en') ?: $person->getRawOriginal('name')));
 
                 return [
-                    'id' => $staffMember->id,
+                    'id' => $person->id,
                     'slug' => $slug,
                     'role' => 'staff',
                     'name' => [
-                        'zh-TW' => $staffMember->name,
-                        'en' => $staffMember->name_en,
+                        'zh-TW' => $person->getRawOriginal('name') ?? '',
+                        'en' => $person->getRawOriginal('name_en') ?? '',
                     ],
                     'title' => [
-                        'zh-TW' => $staffMember->position,
-                        'en' => $staffMember->position_en,
+                        'zh-TW' => $profile?->getRawOriginal('position') ?? '',
+                        'en' => $profile?->getRawOriginal('position_en') ?? '',
                     ],
-                    'email' => $staffMember->email,
-                    'phone' => $staffMember->phone,
-                    'photo_url' => $staffMember->photo_url
-                        ? (Str::startsWith($staffMember->photo_url, ['http://', 'https://', '/'])
-                            ? $staffMember->photo_url
-                            : asset($staffMember->photo_url))
+                    'email' => $person->email,
+                    'phone' => $person->phone,
+                    'photo_url' => $person->photo_url
+                        ? (Str::startsWith($person->photo_url, ['http://', 'https://', '/'])
+                            ? $person->photo_url
+                            : asset($person->photo_url))
                         : null,
-                    'bio' => [
-                        'zh-TW' => $staffMember->bio,
-                        'en' => $staffMember->bio_en,
-                    ],
+                    'bio' => $person->bio ?? ['zh-TW' => '', 'en' => ''],
                 ];
             });
 
@@ -134,85 +149,84 @@ class StaffController extends Controller
         $id = (int) ($id ?? 0);
 
         if ($type === 'teacher') {
-            $teacher = Teacher::with(['labs:id,code,name,name_en', 'links'])->where('visible', true)->findOrFail($id);
+            $person = Person::with(['teacherProfile.labs:id,code,name,name_en', 'teacherProfile.links'])
+                ->where('visible', true)
+                ->where('status', 'active')
+                ->whereHas('teacherProfile')
+                ->findOrFail($id);
 
-            $expertiseZh = $teacher->expertise ? preg_split('/[\n,]+/', $teacher->expertise) : [];
-            $expertiseEn = $teacher->expertise_en ? preg_split('/[\n,]+/', $teacher->expertise_en) : [];
+            $profile = $person->teacherProfile;
 
             return Inertia::render('people/show', [
                 'person' => [
-                    'id' => $teacher->id,
+                    'id' => $person->id,
                     'role' => 'faculty',
                     'name' => [
-                        'zh-TW' => $teacher->name,
-                        'en' => $teacher->name_en,
+                        'zh-TW' => $person->getRawOriginal('name') ?? '',
+                        'en' => $person->getRawOriginal('name_en') ?? '',
                     ],
                     'title' => [
-                        'zh-TW' => $teacher->title,
-                        'en' => $teacher->title_en,
+                        'zh-TW' => $profile?->getRawOriginal('title') ?? '',
+                        'en' => $profile?->getRawOriginal('title_en') ?? '',
                     ],
-                    'email' => $teacher->email,
-                    'phone' => $teacher->phone,
-                    'office' => $teacher->office,
-                    'photo_url' => $teacher->photo_url
-                        ? (Str::startsWith($teacher->photo_url, ['http://', 'https://', '/'])
-                            ? $teacher->photo_url
-                            : asset($teacher->photo_url))
+                    'email' => $person->email,
+                    'phone' => $person->phone,
+                    'office' => $profile?->office,
+                    'photo_url' => $person->photo_url
+                        ? (Str::startsWith($person->photo_url, ['http://', 'https://', '/'])
+                            ? $person->photo_url
+                            : asset($person->photo_url))
                         : null,
-                    'bio' => [
-                        'zh-TW' => $teacher->bio,
-                        'en' => $teacher->bio_en,
-                    ],
-                    'expertise' => [
-                        'zh-TW' => $expertiseZh,
-                        'en' => $expertiseEn,
-                    ],
-                    'education' => [
-                        'zh-TW' => $teacher->education,
-                        'en' => $teacher->education_en,
-                    ],
-                    'labs' => $teacher->labs->map(fn ($lab) => [
+                    'bio' => $person->bio ?? ['zh-TW' => '', 'en' => ''],
+                    'expertise' => $profile?->expertise ?? ['zh-TW' => [], 'en' => []],
+                    'education' => $profile?->education ?? ['zh-TW' => [], 'en' => []],
+                    'labs' => $profile?->labs->map(fn ($lab) => [
                         'code' => $lab->code,
                         'name' => [
                             'zh-TW' => $lab->name,
                             'en' => $lab->name_en,
                         ],
-                    ])->values(),
-                    'links' => $teacher->links->map(fn ($link) => [
-                        'id' => $link->id,
-                        'type' => $link->type,
-                        'label' => $link->label,
-                        'url' => $link->url,
-                    ])->values(),
+                    ])->values() ?? collect(),
+                    'links' => $profile
+                        ? $profile->links->map(fn ($link) => [
+                            'id' => $link->id,
+                            'type' => $link->type,
+                            'label' => $link->label,
+                            'url' => $link->url,
+                        ])->values()->all()
+                        : [],
                 ],
             ]);
         }
 
-        $staff = StaffMember::where('visible', true)->findOrFail($id);
+        $person = Person::with('staffProfile')
+            ->where('visible', true)
+            ->where('status', 'active')
+            ->whereHas('staffProfile')
+            ->findOrFail($id);
+
+        $profile = $person->staffProfile;
 
         return Inertia::render('people/show', [
             'person' => [
-                'id' => $staff->id,
+                'id' => $person->id,
                 'role' => 'staff',
                 'name' => [
-                    'zh-TW' => $staff->name,
-                    'en' => $staff->name_en,
+                    'zh-TW' => $person->getRawOriginal('name') ?? '',
+                    'en' => $person->getRawOriginal('name_en') ?? '',
                 ],
                 'title' => [
-                    'zh-TW' => $staff->position,
-                    'en' => $staff->position_en,
+                    'zh-TW' => $profile?->getRawOriginal('position') ?? '',
+                    'en' => $profile?->getRawOriginal('position_en') ?? '',
                 ],
-                'email' => $staff->email,
-                'phone' => $staff->phone,
-                'photo_url' => $staff->photo_url
-                    ? (Str::startsWith($staff->photo_url, ['http://', 'https://', '/'])
-                        ? $staff->photo_url
-                        : asset($staff->photo_url))
+                'email' => $person->email,
+                'phone' => $person->phone,
+                'photo_url' => $person->photo_url
+                    ? (Str::startsWith($person->photo_url, ['http://', 'https://', '/'])
+                        ? $person->photo_url
+                        : asset($person->photo_url))
                     : null,
-                'bio' => [
-                    'zh-TW' => $staff->bio,
-                    'en' => $staff->bio_en,
-                ],
+                'bio' => $person->bio ?? ['zh-TW' => '', 'en' => ''],
             ],
         ]);
     }

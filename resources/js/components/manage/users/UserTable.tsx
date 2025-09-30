@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
-import type { PaginationLink, PaginationMeta, UserRow } from './user-types';
+import type { PaginationLink, PaginationMeta, UserRole, UserRow } from './user-types';
 
 interface UserTableProps {
     data: UserRow[];
@@ -30,9 +30,10 @@ interface UserTableProps {
 }
 
 // 角色標籤對照表，方便統一顯示中文角色名稱。
-const roleLabels: Record<UserRow['role'], string> = {
+const roleLabels: Record<Exclude<UserRole, never>, string> = {
     admin: '管理員',
     teacher: '教師',
+    staff: '職員',
     user: '一般會員',
 };
 
@@ -194,9 +195,21 @@ export default function UserTable({
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <Badge variant="outline" className="font-medium text-neutral-700">
-                                                        {roleLabels[user.role]}
-                                                    </Badge>
+                                                    {user.roles.length === 0 ? (
+                                                        <span className="text-sm text-neutral-400">—</span>
+                                                    ) : (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {user.roles.map((role) => (
+                                                                <Badge
+                                                                    key={`${user.id}-${role}`}
+                                                                    variant="outline"
+                                                                    className="font-medium text-neutral-700"
+                                                                >
+                                                                    {roleLabels[role] ?? role}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <Badge
@@ -272,7 +285,17 @@ export default function UserTable({
                                         </div>
 
                                         <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                                            <Badge variant="outline">{roleLabels[user.role]}</Badge>
+                                            {user.roles.length === 0 ? (
+                                                <Badge variant="outline" className="text-neutral-500">
+                                                    未指派角色
+                                                </Badge>
+                                            ) : (
+                                                user.roles.map((role) => (
+                                                    <Badge key={`${user.id}-${role}`} variant="outline">
+                                                        {roleLabels[role] ?? role}
+                                                    </Badge>
+                                                ))
+                                            )}
                                             <Badge
                                                 variant={statusMeta.variant}
                                                 className={cn('flex items-center gap-1.5 px-3 py-1', {

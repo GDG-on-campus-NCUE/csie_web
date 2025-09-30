@@ -12,12 +12,11 @@ class TeacherLink extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'teacher_id','type','label','url','sort_order',
+        'teacher_profile_id','type','label','url','sort_order',
     ];
 
     public function teacher()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(TeacherProfile::class);
     }
 }
-

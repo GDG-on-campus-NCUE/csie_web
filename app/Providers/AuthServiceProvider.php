@@ -10,6 +10,9 @@ use App\Models\Publication;
 use App\Models\Staff;
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\Person;
+use App\Models\TeacherProfile;
+use App\Models\StaffProfile;
 use App\Policies\AttachmentPolicy;
 use App\Policies\ClassroomPolicy;
 use App\Policies\LabPolicy;
@@ -18,6 +21,9 @@ use App\Policies\PublicationPolicy;
 use App\Policies\StaffPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\PersonPolicy;
+use App\Policies\TeacherProfilePolicy;
+use App\Policies\StaffProfilePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -26,7 +32,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         // 附件授權政策
         Attachment::class => AttachmentPolicy::class,
-        // 職員授權政策
+        // 職員授權政策（舊系統，向後相容）
         Staff::class => StaffPolicy::class,
         // 實驗室授權政策
         Lab::class => LabPolicy::class,
@@ -40,6 +46,11 @@ class AuthServiceProvider extends ServiceProvider
         Publication::class => PublicationPolicy::class,
         // 標籤授權政策
         Tag::class => TagPolicy::class,
+
+        // 新角色系統政策
+        Person::class => PersonPolicy::class,
+        TeacherProfile::class => TeacherProfilePolicy::class,
+        StaffProfile::class => StaffProfilePolicy::class,
     ];
 
     public function boot(): void

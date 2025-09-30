@@ -15,7 +15,7 @@ class ClassroomPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     /**
@@ -23,7 +23,7 @@ class ClassroomPolicy
      */
     public function view(User $user, Classroom $classroom): bool
     {
-        return in_array($user->role, ['admin', 'teacher'], true);
+        return $user->isAdmin() || $user->isTeacher();
     }
 
     /**
@@ -31,7 +31,7 @@ class ClassroomPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -39,7 +39,7 @@ class ClassroomPolicy
      */
     public function update(User $user, Classroom $classroom): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -47,16 +47,16 @@ class ClassroomPolicy
      */
     public function delete(User $user, Classroom $classroom): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     public function restore(User $user, Classroom $classroom): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 
     public function forceDelete(User $user, Classroom $classroom): bool
     {
-        return $user->role === 'admin';
+        return $user->isAdmin();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\TeacherProfile;
 
 class Lab extends Model
 {
@@ -19,9 +20,13 @@ class Lab extends Model
         'tags' => 'array',
     ];
 
+    public function teacherProfiles()
+    {
+        return $this->belongsToMany(TeacherProfile::class, 'lab_teachers', 'lab_id', 'teacher_profile_id');
+    }
+
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'lab_teachers');
+        return $this->teacherProfiles();
     }
 }
-

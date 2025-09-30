@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
+use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,7 +32,6 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'user', // 預設角色
             'locale' => 'en',
             'status' => 'active',
         ];
@@ -50,9 +52,7 @@ class UserFactory extends Factory
      */
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'admin',
-        ]);
+        return $this->withRoles(['admin']);
     }
 
     /**
@@ -60,9 +60,7 @@ class UserFactory extends Factory
      */
     public function teacher(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'teacher',
-        ]);
+        return $this->withRoles(['teacher']);
     }
 
     /**
@@ -70,8 +68,29 @@ class UserFactory extends Factory
      */
     public function user(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'user',
-        ]);
+        return $this->withRoles(['user']);
+    }
+
+    public function withRoles(array $roles): static
+    {
+        return $this->afterCreating(function (User $user) use ($roles) {
+            foreach ($roles as $roleName) {
+                $role = Role::where('name', $roleName)->first();
+                if (! $role) {
+                    continue;
+                }
+
+                UserRole::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'role_id' => $role->id,
+                    ],
+                    [
+                        'status' => 'active',
+                        'assigned_at' => now(),
+                    ]
+                );
+            }
+        });
     }
 }

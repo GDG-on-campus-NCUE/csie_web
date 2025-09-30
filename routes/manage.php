@@ -18,6 +18,7 @@ use App\Http\Controllers\Manage\Admin\PublicationController as AdminPublicationC
 use App\Http\Controllers\Manage\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Manage\Admin\AttachmentController as AdminAttachmentController;
 use App\Http\Controllers\Manage\Admin\TagController as AdminTagController;
+use App\Http\Controllers\Manage\PersonController;
 
 // 基本的管理後台功能，允許所有已驗證的角色訪問
 Route::middleware(['auth', 'verified', 'role:admin|teacher|user'])
@@ -52,7 +53,14 @@ Route::middleware(['auth', 'role:admin|teacher'])
             Route::get('labs', [AdminLabController::class, 'index'])->name('labs');
         });
 
-        // 師資與職員管理
+        // 師資與職員管理 - 新系統
+        Route::resource('people', PersonController::class);
+        Route::patch('people/{person}/status', [PersonController::class, 'updateStatus'])
+            ->name('people.status');
+        Route::patch('people/order', [PersonController::class, 'updateOrder'])
+            ->name('people.order');
+
+        // 向後相容性路由
         Route::resource('staff', AdminStaffController::class);
         Route::patch('staff/{staff}/restore', [AdminStaffController::class, 'restore'])
             ->name('staff.restore');

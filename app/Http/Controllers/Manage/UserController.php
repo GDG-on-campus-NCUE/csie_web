@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Manage\User\StoreUserRequest;
 use App\Http\Requests\Manage\User\UpdateUserRequest;
 use App\Http\Resources\Manage\UserResource;
+use App\Models\Role;
 use App\Models\User;
+use App\Services\UserRoleProfileSynchronizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -24,9 +26,12 @@ class UserController extends Controller
     /** @var list<int> */
     private array $perPageOptions = [15, 30, 50, 100, 200];
 
-    public function __construct()
+    protected UserRoleProfileSynchronizer $synchronizer;
+
+    public function __construct(UserRoleProfileSynchronizer $synchronizer)
     {
         $this->authorizeResource(User::class, 'user');
+        $this->synchronizer = $synchronizer;
     }
 
     public function index(Request $request): Response
@@ -61,7 +66,7 @@ class UserController extends Controller
             'perPageOptions' => $this->perPageOptions,
             'can' => [
                 'create' => $request->user()->can('create', User::class),
-                'manage' => $request->user()->role === 'admin',
+                'manage' => $request->user()->isAdmin(),
             ],
             'authUserId' => $request->user()->id,
         ]);
@@ -81,14 +86,17 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
+        $roles = $data['roles'];
+
         $user = new User();
         $user->name = $data['name'];
         $user->email = $data['email'];
-        $user->role = $data['role'];
         $user->status = $data['status'];
         $user->password = Hash::make($data['password']);
         $user->email_verified_at = $request->boolean('email_verified') ? now() : null;
         $user->save();
+
+        $this->synchronizer->synchronizeUserProfile($user, $roles);
 
         return redirect()
             ->route('manage.users.index')
@@ -103,7 +111,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
+                'roles' => $user->getActiveRoles(),
                 'status' => $user->status,
                 'email_verified_at' => optional($user->email_verified_at)?->toIso8601String(),
             ],
@@ -116,10 +124,11 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
+        $roles = $data['roles'];
+
         $payload = [
             'name' => $data['name'],
             'email' => $data['email'],
-            'role' => $data['role'],
             'status' => $data['status'],
         ];
 
@@ -132,6 +141,8 @@ class UserController extends Controller
             : null;
 
         $user->update($payload);
+
+        $this->synchronizer->synchronizeUserProfile($user, $roles);
 
         return redirect()
             ->route('manage.users.index')
@@ -196,15 +207,10 @@ class UserController extends Controller
         if ($data['action'] === 'delete') {
             $authUser = $request->user();
 
-            $privilegedRoles = ['admin'];
-
-            $activeAdminsCount = User::query()
-                ->whereIn('role', $privilegedRoles)
-                ->whereNull('deleted_at')
-                ->count();
+            $activeAdminsCount = $this->countActiveAdmins();
 
             $targetActiveAdmins = $users->filter(
-                fn (User $target) => in_array($target->role, $privilegedRoles, true) && ! $target->trashed()
+                fn (User $target) => $target->hasRole('admin') && ! $target->trashed()
             );
 
             if ($targetActiveAdmins->isNotEmpty() && $targetActiveAdmins->count() >= $activeAdminsCount) {
@@ -256,7 +262,7 @@ class UserController extends Controller
             $query->whereIn('id', $ids);
         }
 
-        $users = $query->get();
+        $users = $query->with(['userRoles.role'])->get();
 
         $fileName = 'users-' . now()->format('Ymd-His') . '.csv';
 
@@ -275,7 +281,7 @@ class UserController extends Controller
                     $user->id,
                     $user->name,
                     $user->email,
-                    $user->role,
+                    implode('、', $user->getActiveRoles()),
                     $user->status,
                     optional($user->created_at)?->format('Y-m-d H:i:s'),
                 ]);
@@ -301,8 +307,13 @@ class UserController extends Controller
         }
 
         $role = $request->input('role');
-        if (in_array($role, ['admin', 'teacher', 'user'], true)) {
-            $query->where('role', $role);
+        if (is_string($role) && $role !== '') {
+            $query->whereHas('userRoles', function (Builder $builder) use ($role) {
+                $builder->where('status', 'active')
+                    ->whereHas('role', function (Builder $roleQuery) use ($role) {
+                        $roleQuery->where('name', $role);
+                    });
+            });
         } else {
             $role = '';
         }
@@ -356,7 +367,6 @@ class UserController extends Controller
             'created_at' => 'created_at',
             'name' => 'name',
             'email' => 'email',
-            'role' => 'role',
             'status' => 'status',
         ];
 
@@ -389,11 +399,14 @@ class UserController extends Controller
      */
     private function roleOptions(): array
     {
-        return [
-            ['value' => 'admin', 'label' => '管理員'],
-            ['value' => 'teacher', 'label' => '教師'],
-            ['value' => 'user', 'label' => '一般會員'],
-        ];
+        return Role::orderByPriority()
+            ->get()
+            ->map(static fn (Role $role) => [
+                'value' => $role->name,
+                'label' => $role->display_name,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -424,19 +437,29 @@ class UserController extends Controller
 
     private function isLastActiveAdmin(User $user): bool
     {
-        if ($user->role !== 'admin') {
+        if (! $user->hasRole('admin')) {
             return false;
         }
 
-        $activeAdmins = User::query()
-            ->where('role', 'admin')
-            ->whereNull('deleted_at')
-            ->count();
+        $activeAdmins = $this->countActiveAdmins();
 
         if ($user->trashed()) {
             return $activeAdmins === 0;
         }
 
         return $activeAdmins <= 1;
+    }
+
+    private function countActiveAdmins(): int
+    {
+        return User::query()
+            ->whereNull('deleted_at')
+            ->whereHas('userRoles', function (Builder $query) {
+                $query->where('status', 'active')
+                    ->whereHas('role', function (Builder $roleQuery) {
+                        $roleQuery->where('name', 'admin');
+                    });
+            })
+            ->count();
     }
 }

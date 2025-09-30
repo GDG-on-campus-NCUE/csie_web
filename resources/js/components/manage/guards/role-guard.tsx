@@ -1,4 +1,5 @@
 import { type ManageRole } from '@/components/manage/manage-brand';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { type ReactNode } from 'react';
@@ -39,10 +40,12 @@ interface RoleGuardProps {
  */
 export default function RoleGuard({ allowedRoles, children, fallback = null }: RoleGuardProps) {
     const { auth } = usePage<SharedData>().props;
-    const userRole = (auth?.user?.role ?? 'user') as ManageRole;
+    const manageRole = deriveManageRole(auth?.user ?? null, null);
+    const roles = Array.isArray(auth?.user?.roles)
+        ? (auth?.user?.roles as ManageRole[])
+        : [manageRole];
 
-    // 檢查使用者角色是否在允許的角色列表中
-    const hasPermission = allowedRoles.includes(userRole);
+    const hasPermission = allowedRoles.some((role) => roles.includes(role));
 
     return hasPermission ? <>{children}</> : <>{fallback}</>;
 }
@@ -70,9 +73,12 @@ export default function RoleGuard({ allowedRoles, children, fallback = null }: R
  */
 export function useRolePermission(allowedRoles: ManageRole[]): boolean {
     const { auth } = usePage<SharedData>().props;
-    const userRole = (auth?.user?.role ?? 'user') as ManageRole;
+    const manageRole = deriveManageRole(auth?.user ?? null, null);
+    const roles = Array.isArray(auth?.user?.roles)
+        ? (auth?.user?.roles as ManageRole[])
+        : [manageRole];
 
-    return allowedRoles.includes(userRole);
+    return allowedRoles.some((role) => roles.includes(role));
 }
 
 /**
@@ -95,5 +101,5 @@ export function useRolePermission(allowedRoles: ManageRole[]): boolean {
  */
 export function useCurrentRole(): ManageRole {
     const { auth } = usePage<SharedData>().props;
-    return (auth?.user?.role ?? 'user') as ManageRole;
+    return deriveManageRole(auth?.user ?? null, null);
 }

@@ -7,6 +7,7 @@ import PostForm, { PostFormSubmitHandler, PostResource } from '@/components/mana
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
 import { useMemo } from 'react';
+import { deriveManageRole } from '@/components/manage/utils/role-helpers';
 
 interface CategoryOption {
     id: number;
@@ -33,9 +34,7 @@ interface EditPostProps {
 
 export default function EditPost({ post, categories, statusOptions, availableTags }: EditPostProps) {
     const { auth } = usePage<SharedData>().props;
-    const userRole = auth?.user?.role ?? 'user';
-    const layoutRole: 'admin' | 'teacher' | 'user' =
-        userRole === 'admin' ? 'admin' : userRole === 'teacher' ? 'teacher' : 'user';
+    const layoutRole = deriveManageRole(auth?.user ?? null, null);
     const { t } = useTranslator('manage');
     const normalizedAvailableTags = useMemo(
         () =>

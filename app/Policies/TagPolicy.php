@@ -9,7 +9,7 @@ class TagPolicy
 {
     public function before(User $user, string $ability)
     {
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
 

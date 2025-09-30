@@ -28,8 +28,8 @@ return new class extends Migration
 
         Schema::create('lab_teachers', function (Blueprint $table) {
             $table->foreignId('lab_id')->constrained('labs')->cascadeOnDelete();
-            $table->foreignId('teacher_id')->constrained('teachers')->cascadeOnDelete();
-            $table->unique(['lab_id','teacher_id']);
+            $table->foreignId('teacher_profile_id')->constrained('teacher_profiles')->cascadeOnDelete();
+            $table->unique(['lab_id','teacher_profile_id']);
         });
     }
 
@@ -39,4 +39,3 @@ return new class extends Migration
         Schema::dropIfExists('labs');
     }
 };
-

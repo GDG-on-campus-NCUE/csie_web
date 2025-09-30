@@ -100,7 +100,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'user';
+    roles: Array<'admin' | 'teacher' | 'staff' | 'user'>;
+    primary_role?: 'admin' | 'teacher' | 'staff' | 'user' | null;
     status?: 'active' | 'suspended';
     locale?: string | null;
     avatar?: string;
