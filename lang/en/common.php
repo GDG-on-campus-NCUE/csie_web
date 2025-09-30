@@ -110,6 +110,8 @@ return [
         'login' => 'Login',
     ],
     'search' => 'Search',
+    'search_placeholder' => 'Enter keywords to search...',
+    'close' => 'Close',
     'floating_nav' => [
         'sheet_title' => 'Menu',
         'open_navigation' => 'Open navigation',

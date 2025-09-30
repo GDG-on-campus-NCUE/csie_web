@@ -109,6 +109,8 @@ return [
         'login' => '登入',
     ],
     'search' => '搜尋',
+    'search_placeholder' => '輸入關鍵字搜尋...',
+    'close' => '關閉',
     'floating_nav' => [
         'sheet_title' => '選單',
         'open_navigation' => '開啟導覽',

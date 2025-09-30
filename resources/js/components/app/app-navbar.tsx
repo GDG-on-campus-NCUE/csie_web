@@ -4,12 +4,16 @@ import { useNavItems } from '@/lib/nav-items';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function AppNavbar() {
+interface AppNavbarProps {
+    className?: string;
+}
+
+export default function AppNavbar({ className }: AppNavbarProps = {}) {
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const navItems = useNavItems();
 
     return (
-        <nav className="hidden lg:flex items-center space-x-1">
+        <nav className={cn('hidden lg:flex items-center space-x-1', className)}>
             {navItems.map((item) => (
                 <div key={item.key} className="relative group">
                     {item.children ? (
