@@ -14,30 +14,30 @@ class UserRoleSystemTest extends TestCase
     {
         parent::setUp();
 
-    // 使用 enum 欄位，不需要建立 roles table
+        // 使用 enum 欄位，不需要建立 roles table
     }
 
     public function test_user_roles_can_be_synchronized(): void
     {
-    $user = User::factory()->create(['role' => 'teacher']);
+        $user = User::factory()->create(['role' => 'teacher']);
 
-    $this->assertTrue($user->hasRole('teacher'));
-    $this->assertTrue($user->hasRoleOrHigher('user'));
-    $this->assertFalse($user->hasRole('admin'));
+        $this->assertTrue($user->hasRole('teacher'));
+        $this->assertTrue($user->hasRoleOrHigher('user'));
+        $this->assertFalse($user->hasRole('admin'));
     }
 
     public function test_roles_are_deactivated_when_removed(): void
     {
-    $user = User::factory()->create(['role' => 'admin']);
-    $this->assertTrue($user->hasRole('admin'));
-    $this->assertFalse($user->hasRole('teacher'));
+        $user = User::factory()->create(['role' => 'admin']);
+        $this->assertTrue($user->hasRole('admin'));
+        $this->assertFalse($user->hasRole('teacher'));
 
-    // 模擬移除 admin 並改為 teacher
-    $user->role = 'teacher';
-    $user->save();
+        // 模擬移除 admin 並改為 teacher
+        $user->role = 'teacher';
+        $user->save();
 
-    $this->assertFalse($user->hasRole('admin'));
-    $this->assertTrue($user->hasRole('teacher'));
+        $this->assertFalse($user->hasRole('admin'));
+        $this->assertTrue($user->hasRole('teacher'));
     }
 
     public function test_profile_is_created_and_updated(): void
@@ -77,5 +77,13 @@ class UserRoleSystemTest extends TestCase
         $user->role = 'admin';
         $user->save();
         $this->assertEquals('admin', $user->role);
+    }
+
+    public function test_admin_has_higher_role_permissions(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+
+        $this->assertTrue($user->hasRoleOrHigher('teacher'));
+        $this->assertTrue($user->hasRoleOrHigher('user'));
     }
 }

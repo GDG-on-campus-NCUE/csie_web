@@ -30,6 +30,26 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
+     * 狀態別名，提供與前端既有欄位的相容性。
+     *
+     * @var array<string, string>
+     */
+    public const STATUS_ALIASES = [
+        'suspended' => 'inactive',
+    ];
+
+    /**
+     * 角色階層設定，數值越大代表權限越高。
+     *
+     * @var array<string, int>
+     */
+    public const ROLE_HIERARCHY = [
+        'user' => 0,
+        'teacher' => 1,
+        'admin' => 2,
+    ];
+
+    /**
      * 可批次指定的欄位。
      *
      * @var list<string>
@@ -41,6 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'locale',
         'status',
         'email_verified_at',
+        'role',
     ];
 
     /**
@@ -71,10 +92,13 @@ class User extends Authenticatable implements MustVerifyEmail
             get: fn ($value): string => array_flip(self::STATUS_MAP)[$value] ?? 'inactive',
             set: function ($value) {
                 if (is_int($value)) {
-                    return $value;
+                    return in_array($value, self::STATUS_MAP, true)
+                        ? $value
+                        : self::STATUS_MAP['active'];
                 }
 
                 $key = is_string($value) ? strtolower($value) : 'active';
+                $key = self::STATUS_ALIASES[$key] ?? $key;
 
                 return self::STATUS_MAP[$key] ?? self::STATUS_MAP['active'];
             }
@@ -82,10 +106,37 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * 傳統以 users.role enum 欄位保存使用者角色，保留 userRoles relation 不再使用。
-     * 若未來要支援多重角色，可再恢復 relations 與對應 migration。
+     * 取得系統支援的角色清單。
+     *
+     * @return array<int, string>
      */
-    // ...existing code...
+    public static function availableRoles(): array
+    {
+        return array_keys(self::ROLE_HIERARCHY);
+    }
+
+    /**
+     * 取得允許輸入的角色名稱，配合前端傳入陣列格式使用。
+     *
+     * @return array<int, string>
+     */
+    public static function allowedRoleInputs(): array
+    {
+        return self::availableRoles();
+    }
+
+    /**
+     * 取得允許輸入的狀態名稱，含前端舊有別名。
+     *
+     * @return array<int, string>
+     */
+    public static function allowedStatusInputs(): array
+    {
+        return array_values(array_unique([
+            ...array_keys(self::STATUS_MAP),
+            ...array_keys(self::STATUS_ALIASES),
+        ]));
+    }
 
     /**
      * 使用者個人檔案。
@@ -115,6 +166,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasRole(string $role): bool
     {
+        $role = strtolower($role);
+
         return in_array($role, $this->getActiveRoles(), true);
     }
 
@@ -123,17 +176,45 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasRoleOrHigher(string $role): bool
     {
-        // 不使用 roles 資料表時，無法比較 priority；退回為簡單的 hasRole 檢查
-        return $this->hasRole($role);
+        $currentRole = $this->role;
+        if ($currentRole === null) {
+            return false;
+        }
+
+        $role = strtolower($role);
+
+        if (! array_key_exists($role, self::ROLE_HIERARCHY)) {
+            return false;
+        }
+
+        $currentPriority = self::ROLE_HIERARCHY[$currentRole] ?? null;
+
+        if ($currentPriority === null) {
+            return false;
+        }
+
+        return $currentPriority >= self::ROLE_HIERARCHY[$role];
     }
 
     /**
      * 主要角色存取器。
      */
-    public function getRoleAttribute(): ?string
+    protected function role(): Attribute
     {
-        // 直接回傳 enum 欄位
-        return $this->attributes['role'] ?? null;
+        return Attribute::make(
+            get: fn ($value): ?string => $value !== null ? strtolower((string) $value) : null,
+            set: function ($value) {
+                if ($value === null) {
+                    return null;
+                }
+
+                $role = strtolower((string) $value);
+
+                return in_array($role, self::availableRoles(), true)
+                    ? $role
+                    : 'user';
+            }
+        );
     }
 
     /**
@@ -167,14 +248,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // 當系統僅使用 users.role 欄位時，模擬一個最小的 role 物件集合，
         // 以符合程式中期待的介面（name, priority, pivot->status）
-        if ($this->role === null) {
+        $role = $this->role;
+
+        if ($role === null) {
             return collect();
         }
 
         $obj = (object) [
-            'name' => $this->role,
-            'priority' => 0,
-            'pivot' => (object) ['status' => $this->status === self::STATUS_MAP['active'] ? 'active' : 'inactive'],
+            'name' => $role,
+            'priority' => self::ROLE_HIERARCHY[$role] ?? 0,
+            'pivot' => (object) [
+                'status' => $this->status === 'active' ? 'active' : 'inactive',
+            ],
         ];
 
         return collect([$obj]);

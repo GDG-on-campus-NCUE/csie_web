@@ -18,7 +18,7 @@ class EnsureManageRole
 
         $allowedRoles = collect($roles)
             ->flatMap(static fn (string $role) => preg_split('/[|,]/', $role) ?: [$role])
-            ->map(static fn (string $role) => trim($role))
+            ->map(static fn (string $role) => strtolower(trim($role)))
             ->filter()
             ->unique()
             ->values()
@@ -27,8 +27,17 @@ class EnsureManageRole
         // 使用新的角色系統檢查權限
         $hasPermission = false;
         if ($user) {
-            $userRoles = $user->getActiveRoles();
-            $hasPermission = !empty(array_intersect($userRoles, $allowedRoles));
+            if ($allowedRoles === []) {
+                $hasPermission = true;
+            } else {
+                foreach ($allowedRoles as $role) {
+                    if ($user->hasRoleOrHigher($role)) {
+                        $hasPermission = true;
+
+                        break;
+                    }
+                }
+            }
         }
 
         if (!$hasPermission) {
