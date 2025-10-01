@@ -19,7 +19,7 @@ export default function AppLayout({ children, breadcrumbs, ...props }: AppLayout
     }, []);
 
     if (isManage) {
-        return <ManageLayout>{children}</ManageLayout>;
+        return <ManageLayout breadcrumbs={breadcrumbs}>{children}</ManageLayout>;
     }
 
     return (
