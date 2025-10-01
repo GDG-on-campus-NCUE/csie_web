@@ -6,6 +6,11 @@ import type { SharedData } from '@/types';
 import LanguageSwitcher from './app-lang-switcher';
 import { ArrowRight, ChevronDown, LogIn, Search, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+    AppInlineActionButton,
+    AppInlineActionLabel,
+    AppInlineActionLink,
+} from './app-inline-action';
 
 interface NavItem {
     key: string;
@@ -119,30 +124,60 @@ export default function AppMobileNavbar({
                     </div>
                 ))}
 
-                {/* 搜尋欄位 */}
-                <div className="px-4">
-                    <button
-                        type="button"
-                        onClick={isSearchOpen ? handleSearchClose : handleSearchToggle}
-                        className={cn(
-                            'flex w-full items-center px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 rounded-lg',
-                            isSearchOpen && 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                {/* 快速操作：搜尋 / 登入 / 語言切換 */}
+                <div className="border-t px-4 py-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <AppInlineActionButton
+                            onClick={isSearchOpen ? handleSearchClose : handleSearchToggle}
+                            aria-expanded={isSearchOpen}
+                            aria-controls="mobile-search-panel"
+                            isActive={isSearchOpen}
+                        >
+                            <Search
+                                className={cn(
+                                    'h-3.5 w-3.5 text-current transition-transform duration-200 group-hover:-translate-y-0.5',
+                                    isSearchOpen && '-translate-y-0.5'
+                                )}
+                            />
+                            <AppInlineActionLabel className="text-sm" isActive={isSearchOpen}>
+                                {t('search', '搜尋')}
+                            </AppInlineActionLabel>
+                        </AppInlineActionButton>
+
+                        {isAuthenticated ? (
+                            <AppInlineActionLink href="/dashboard" onClick={onClose} className="text-neutral-900">
+                                <User className="h-3.5 w-3.5 text-current transition-transform duration-200 group-hover:-translate-y-0.5" />
+                                <AppInlineActionLabel className="text-sm">
+                                    {t('auth.dashboard', 'Dashboard')}
+                                </AppInlineActionLabel>
+                            </AppInlineActionLink>
+                        ) : (
+                            <AppInlineActionLink
+                                href="/login"
+                                onClick={onClose}
+                                className="text-blue-600 hover:text-blue-500"
+                            >
+                                <LogIn className="h-3.5 w-3.5 text-current transition-transform duration-200 group-hover:-translate-y-0.5" />
+                                <AppInlineActionLabel className="text-sm">
+                                    {t('auth.login', 'Login')}
+                                </AppInlineActionLabel>
+                            </AppInlineActionLink>
                         )}
-                        aria-expanded={isSearchOpen}
-                    >
-                        <Search className="h-4 w-4 mr-3" />
-                        {t('search', '搜尋')}
-                    </button>
+
+                        <LanguageSwitcher className="text-neutral-900" />
+                    </div>
+
                     <div
+                        id="mobile-search-panel"
                         className={cn(
                             'overflow-hidden transition-all duration-300 ease-out',
-                            isSearchOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'
+                            isSearchOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                         )}
                         aria-hidden={!isSearchOpen}
                     >
                         <form
                             onSubmit={handleSearchSubmit}
-                            className="mt-3 flex items-center gap-3 px-1"
+                            className="flex items-center gap-3 px-1"
                         >
                             <Search className="h-4 w-4 flex-shrink-0 text-gray-400" />
                             <div className="relative flex-1">
@@ -183,35 +218,6 @@ export default function AppMobileNavbar({
                             </button>
                         </form>
                     </div>
-                </div>
-
-                {/* 分隔線 */}
-                <div className="border-t my-2"></div>
-
-                {/* 登入/使用者 */}
-                {isAuthenticated ? (
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={onClose}
-                    >
-                        <User className="h-4 w-4 mr-3" />
-                        {t('auth.dashboard', 'Dashboard')}
-                    </Link>
-                ) : (
-                    <Link
-                        href="/login"
-                        className="flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors"
-                        onClick={onClose}
-                    >
-                        <LogIn className="h-4 w-4 mr-3" />
-                        {t('auth.login', 'Login')}
-                    </Link>
-                )}
-
-                {/* 語言切換器 */}
-                <div className="px-4 py-2 border-t">
-                    <LanguageSwitcher />
                 </div>
             </nav>
         </div>
