@@ -52,17 +52,26 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
         locales,
     };
 
+    const dashboardHref =
+        role === 'teacher' ? '/manage/teacher/dashboard' : role === 'user' ? '/manage/user/dashboard' : '/manage/admin/dashboard';
+    const dashboardTitleKey =
+        role === 'teacher'
+            ? 'layout.breadcrumbs.teacher_dashboard'
+            : role === 'user'
+              ? 'layout.breadcrumbs.user_dashboard'
+              : 'layout.breadcrumbs.admin_dashboard';
+
     const defaultPageProps: ManagePageProps = {
-        title: t('layout.breadcrumbs.admin_dashboard', '系統總覽'),
+        title: t(dashboardTitleKey, '系統總覽'),
         description: t('access.denied_description', '歡迎回到管理後台。'),
         breadcrumbs: [
             {
                 title: t('layout.breadcrumbs.dashboard', '管理後台'),
-                href: '/manage/dashboard',
+                href: dashboardHref,
             },
             {
-                title: t('layout.breadcrumbs.admin_dashboard', '系統總覽'),
-                href: '/manage/dashboard',
+                title: t(dashboardTitleKey, '系統總覽'),
+                href: dashboardHref,
             },
         ],
     };

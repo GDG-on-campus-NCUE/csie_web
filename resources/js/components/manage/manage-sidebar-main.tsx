@@ -68,22 +68,22 @@ function buildGroups(role: 'admin' | 'teacher' | 'user', t: TranslatorFn): Array
                     items: [
                         {
                             title: t('sidebar.teacher.dashboard', '教學首頁'),
-                            href: '/manage/dashboard',
+                            href: '/manage/teacher/dashboard',
                             icon: LayoutDashboard,
                         },
                         {
                             title: t('sidebar.teacher.posts', '公告管理'),
-                            href: '/manage/posts',
+                            href: '/manage/teacher/posts',
                             icon: Megaphone,
                         },
                         {
                             title: t('sidebar.teacher.labs', '實驗室'),
-                            href: '/manage/labs',
+                            href: '/manage/teacher/labs',
                             icon: FolderKanban,
                         },
                         {
                             title: t('sidebar.teacher.projects', '研究計畫'),
-                            href: '/manage/projects',
+                            href: '/manage/teacher/projects',
                             icon: GaugeCircle,
                         },
                         {
@@ -101,7 +101,7 @@ function buildGroups(role: 'admin' | 'teacher' | 'user', t: TranslatorFn): Array
                     items: [
                         {
                             title: t('sidebar.user.dashboard', '會員首頁'),
-                            href: '/manage/dashboard',
+                            href: '/manage/user/dashboard',
                             icon: LayoutDashboard,
                         },
                         {
@@ -134,32 +134,32 @@ function buildGroups(role: 'admin' | 'teacher' | 'user', t: TranslatorFn): Array
                     items: [
                         {
                             title: t('sidebar.admin.dashboard', '儀表板'),
-                            href: '/manage/dashboard',
+                            href: '/manage/admin/dashboard',
                             icon: LayoutDashboard,
                         },
                         {
                             title: t('sidebar.admin.posts', '公告訊息'),
-                            href: '/manage/posts',
+                            href: '/manage/admin/posts',
                             icon: Megaphone,
                         },
                         {
                             title: t('sidebar.admin.tags', '標籤管理'),
-                            href: '/manage/tags',
+                            href: '/manage/admin/tags',
                             icon: Tag,
                         },
                         {
                             title: t('sidebar.admin.users', '使用者'),
-                            href: '/manage/users',
+                            href: '/manage/admin/users',
                             icon: Users,
                         },
                         {
                             title: t('sidebar.admin.attachments', '附件資源'),
-                            href: '/manage/attachments',
+                            href: '/manage/admin/attachments',
                             icon: FolderKanban,
                         },
                         {
                             title: t('sidebar.admin.messages', '聯絡表單'),
-                            href: '/manage/messages',
+                            href: '/manage/admin/messages',
                             icon: MessageSquare,
                         },
                     ],

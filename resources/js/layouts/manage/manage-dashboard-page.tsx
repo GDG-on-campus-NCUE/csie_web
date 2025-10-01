@@ -57,11 +57,11 @@ export default function ManageDashboardPage(): ReactElement {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/dashboard',
+            href: '/manage/admin/dashboard',
         },
         {
             title: t('layout.breadcrumbs.admin_dashboard', '系統總覽'),
-            href: '/manage/dashboard',
+            href: '/manage/admin/dashboard',
         },
     ];
 

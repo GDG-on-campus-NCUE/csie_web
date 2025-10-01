@@ -1,24 +1,20 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Manage\User\DashboardController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified'])
     ->prefix('manage')
     ->as('manage.')
     ->group(function () {
-        Route::redirect('/', '/manage/dashboard')->name('index');
+        Route::redirect('/', '/manage/user/dashboard')->name('index');
+    });
 
-        Route::get('/dashboard', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'user';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'dashboard',
-            ]);
-        })
+Route::middleware(['auth', 'verified'])
+    ->prefix('manage/user')
+    ->as('manage.user.')
+    ->group(function () {
+        Route::get('/dashboard', DashboardController::class)
             ->middleware('role:admin,teacher,user')
             ->name('dashboard');
     });

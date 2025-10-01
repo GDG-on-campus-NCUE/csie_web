@@ -1,50 +1,22 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Manage\Admin\AttachmentController;
+use App\Http\Controllers\Manage\Admin\DashboardController;
+use App\Http\Controllers\Manage\Admin\MessageController;
+use App\Http\Controllers\Manage\Admin\PostController;
+use App\Http\Controllers\Manage\Admin\TagController;
+use App\Http\Controllers\Manage\Admin\UserController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
-    ->prefix('manage')
-    ->as('manage.')
+    ->prefix('manage/admin')
+    ->as('manage.admin.')
     ->group(function () {
-        Route::get('/tags', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'admin';
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'tags',
-            ]);
-        })->name('tags.index');
-
-        Route::get('/users', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'admin';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'users',
-            ]);
-        })->name('users.index');
-
-        Route::get('/attachments', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'admin';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'attachments',
-            ]);
-        })->name('attachments.index');
-
-        Route::get('/messages', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'admin';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'messages',
-            ]);
-        })->name('messages.index');
+        Route::resource('posts', PostController::class)->only(['index', 'create', 'show', 'edit']);
+        Route::resource('tags', TagController::class)->only(['index']);
+        Route::resource('users', UserController::class)->only(['index']);
+        Route::resource('attachments', AttachmentController::class)->only(['index']);
+        Route::resource('messages', MessageController::class)->only(['index']);
     });
