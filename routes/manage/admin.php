@@ -9,14 +9,16 @@ use App\Http\Controllers\Manage\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
-    ->prefix('manage/admin')
-    ->as('manage.admin.')
+    ->prefix('manage')
+    ->as('manage.')
     ->group(function () {
-        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::prefix('admin')->group(function () {
+            Route::get('/dashboard', DashboardController::class)->name('admin.dashboard');
 
-        Route::resource('posts', PostController::class)->only(['index', 'create', 'show', 'edit']);
-        Route::resource('tags', TagController::class)->only(['index']);
-        Route::resource('users', UserController::class)->only(['index']);
-        Route::resource('attachments', AttachmentController::class)->only(['index']);
-        Route::resource('messages', MessageController::class)->only(['index']);
+            Route::resource('posts', PostController::class);
+            Route::resource('tags', TagController::class);
+            Route::resource('users', UserController::class);
+            Route::resource('attachments', AttachmentController::class);
+            Route::resource('messages', MessageController::class);
+        });
     });
