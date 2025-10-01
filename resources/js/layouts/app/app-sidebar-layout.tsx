@@ -1,7 +1,7 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
-import { AppSidebar } from '@/components/manage/app-sidebar';
-import { AppSidebarHeader } from '@/components/manage/app-sidebar-header';
+import { ManageSidebar } from '@/components/manage/manage-sidebar';
+import { ManageSidebarHeader } from '@/components/manage/manage-sidebar-header';
 import { type BreadcrumbItem } from '@/types';
 import AdminFooter from '@/components/admin-footer';
 import { type PropsWithChildren } from 'react';
@@ -9,13 +9,13 @@ import { type PropsWithChildren } from 'react';
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <AppShell variant="sidebar">
-            <AppSidebar />
+            <ManageSidebar />
             <AppContent
                 variant="sidebar"
                 className="relative overflow-x-hidden bg-white text-black"
             >
                 <div className="relative flex min-h-svh flex-col gap-6 pb-10">
-                    <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                    <ManageSidebarHeader breadcrumbs={breadcrumbs} />
 
                     <main className="flex flex-1 flex-col gap-8 px-4 pb-6 sm:px-6 md:px-8">
                         {children}
