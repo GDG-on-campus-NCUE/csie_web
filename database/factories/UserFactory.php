@@ -2,9 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Role;
 use App\Models\User;
-use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -52,7 +50,7 @@ class UserFactory extends Factory
      */
     public function admin(): static
     {
-        return $this->withRoles(['admin']);
+        return $this->state(fn (array $attributes) => ['role' => 'admin']);
     }
 
     /**
@@ -60,7 +58,7 @@ class UserFactory extends Factory
      */
     public function teacher(): static
     {
-        return $this->withRoles(['teacher']);
+        return $this->state(fn (array $attributes) => ['role' => 'teacher']);
     }
 
     /**
@@ -68,29 +66,7 @@ class UserFactory extends Factory
      */
     public function user(): static
     {
-        return $this->withRoles(['user']);
+        return $this->state(fn (array $attributes) => ['role' => 'user']);
     }
-
-    public function withRoles(array $roles): static
-    {
-        return $this->afterCreating(function (User $user) use ($roles) {
-            foreach ($roles as $roleName) {
-                $role = Role::where('name', $roleName)->first();
-                if (! $role) {
-                    continue;
-                }
-
-                UserRole::updateOrCreate(
-                    [
-                        'user_id' => $user->id,
-                        'role_id' => $role->id,
-                    ],
-                    [
-                        'status' => 'active',
-                        'assigned_at' => now(),
-                    ]
-                );
-            }
-        });
-    }
+    // 使用 users.role enum 欄位來標記角色
 }

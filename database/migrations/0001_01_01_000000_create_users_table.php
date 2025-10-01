@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('status')
                 ->default(1)
                 ->comment('使用者狀態：1=啟用、2=停用，於服務層轉換為對應名稱');
+            $table->enum('role', ['admin', 'teacher', 'user'])->default('user')->comment('使用者角色，預設為一般會員');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

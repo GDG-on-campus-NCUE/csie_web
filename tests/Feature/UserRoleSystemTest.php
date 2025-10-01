@@ -2,9 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Role;
 use App\Models\User;
-use App\Services\UserRoleProfileSynchronizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,50 +14,48 @@ class UserRoleSystemTest extends TestCase
     {
         parent::setUp();
 
-        Role::create(['name' => 'admin', 'display_name' => '管理員', 'priority' => 100]);
-        Role::create(['name' => 'teacher', 'display_name' => '教師', 'priority' => 80]);
-        Role::create(['name' => 'user', 'display_name' => '一般會員', 'priority' => 20]);
+    // 使用 enum 欄位，不需要建立 roles table
     }
 
     public function test_user_roles_can_be_synchronized(): void
     {
-        $user = User::factory()->create();
-        $synchronizer = new UserRoleProfileSynchronizer();
+    $user = User::factory()->create(['role' => 'teacher']);
 
-        $synchronizer->synchronizeUserProfile($user, ['teacher']);
-
-        $this->assertTrue($user->hasRole('teacher'));
-        $this->assertTrue($user->hasRoleOrHigher('user'));
-        $this->assertFalse($user->hasRole('admin'));
+    $this->assertTrue($user->hasRole('teacher'));
+    $this->assertTrue($user->hasRoleOrHigher('user'));
+    $this->assertFalse($user->hasRole('admin'));
     }
 
     public function test_roles_are_deactivated_when_removed(): void
     {
-        $user = User::factory()->create();
-        $synchronizer = new UserRoleProfileSynchronizer();
+    $user = User::factory()->create(['role' => 'admin']);
+    $this->assertTrue($user->hasRole('admin'));
+    $this->assertFalse($user->hasRole('teacher'));
 
-        $synchronizer->synchronizeUserProfile($user, ['admin', 'teacher']);
-        $this->assertTrue($user->hasRole('admin'));
-        $this->assertTrue($user->hasRole('teacher'));
+    // 模擬移除 admin 並改為 teacher
+    $user->role = 'teacher';
+    $user->save();
 
-        $synchronizer->synchronizeUserProfile($user, ['teacher']);
-        $this->assertFalse($user->hasRole('admin'));
-        $this->assertTrue($user->hasRole('teacher'));
+    $this->assertFalse($user->hasRole('admin'));
+    $this->assertTrue($user->hasRole('teacher'));
     }
 
     public function test_profile_is_created_and_updated(): void
     {
         $user = User::factory()->create();
-        $synchronizer = new UserRoleProfileSynchronizer();
 
-        $synchronizer->synchronizeUserProfile($user, ['user'], [
+        // 直接建立或更新 profile
+        $user->profile()->create([
             'avatar_url' => 'avatars/example.png',
             'bio' => '這是測試簡介',
             'experience' => ['研究計畫 A', '專案 B'],
             'education' => ['測試大學資訊工程系'],
-            'links' => [
-                ['url' => 'https://example.com', 'label' => '個人網站'],
-            ],
+        ]);
+
+        $user->profile->links()->create([
+            'type' => 'other',
+            'label' => '個人網站',
+            'url' => 'https://example.com',
         ]);
 
         $profile = $user->refresh()->profile;
@@ -71,16 +67,15 @@ class UserRoleSystemTest extends TestCase
 
     public function test_primary_role_accessor_returns_highest_priority(): void
     {
-        $user = User::factory()->create();
-        $synchronizer = new UserRoleProfileSynchronizer();
-
-        $synchronizer->synchronizeUserProfile($user, ['user']);
+        $user = User::factory()->create(['role' => 'user']);
         $this->assertEquals('user', $user->role);
 
-        $synchronizer->synchronizeUserProfile($user, ['teacher', 'user']);
+        $user->role = 'teacher';
+        $user->save();
         $this->assertEquals('teacher', $user->role);
 
-        $synchronizer->synchronizeUserProfile($user, ['admin', 'teacher']);
+        $user->role = 'admin';
+        $user->save();
         $this->assertEquals('admin', $user->role);
     }
 }

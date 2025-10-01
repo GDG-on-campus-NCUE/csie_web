@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use App\Models\User;
-use App\Models\UserRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,18 +11,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $roles = [
-            ['name' => 'admin', 'display_name' => '管理員', 'priority' => 100],
-            ['name' => 'teacher', 'display_name' => '教師', 'priority' => 80],
-            ['name' => 'user', 'display_name' => '一般會員', 'priority' => 20],
-        ];
-
-        foreach ($roles as $roleData) {
-            Role::firstOrCreate(
-                ['name' => $roleData['name']],
-                ['display_name' => $roleData['display_name'], 'priority' => $roleData['priority']]
-            );
-        }
+        // 使用 enum 欄位儲存角色，seed 不需建立 roles table
 
         $user = User::firstOrCreate(
             ['email' => 'admin@example.com'],
@@ -35,12 +22,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $adminRoleId = Role::where('name', 'admin')->value('id');
-        if ($adminRoleId && ! $user->userRoles()->where('role_id', $adminRoleId)->where('status', 'active')->exists()) {
-            UserRole::updateOrCreate(
-                ['user_id' => $user->id, 'role_id' => $adminRoleId],
-                ['status' => 'active', 'assigned_at' => now()]
-            );
+        // 直接給予使用者 enum 角色
+        if ($user->role !== 'admin') {
+            $user->role = 'admin';
+            $user->save();
         }
 
         if (DB::table('post_categories')->count() === 0) {

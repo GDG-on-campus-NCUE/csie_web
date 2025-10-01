@@ -6,7 +6,6 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -83,21 +82,10 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * 使用者角色的關聯資料。
+     * 傳統以 users.role enum 欄位保存使用者角色，保留 userRoles relation 不再使用。
+     * 若未來要支援多重角色，可再恢復 relations 與對應 migration。
      */
-    public function userRoles(): HasMany
-    {
-        return $this->hasMany(UserRole::class);
-    }
-
-    /**
-     * 直接取得角色資料。
-     */
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'user_roles')
-            ->withPivot(['status', 'assigned_at']);
-    }
+    // ...existing code...
 
     /**
      * 使用者個人檔案。
@@ -114,11 +102,12 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getActiveRoles(): array
     {
-        return $this->activeRoleCollection()
-            ->sortByDesc(fn (Role $role) => $role->priority ?? 0)
-            ->pluck('name')
-            ->values()
-            ->all();
+        // 使用者現在只會有一個角色（enum 欄位），回傳為字串陣列以符合既有前端介面
+        if ($this->role === null) {
+            return [];
+        }
+
+        return [(string) $this->role];
     }
 
     /**
@@ -134,13 +123,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasRoleOrHigher(string $role): bool
     {
-        $targetPriority = Role::query()->where('name', $role)->value('priority');
-        if ($targetPriority === null) {
-            return $this->hasRole($role);
-        }
-
-        return $this->activeRoleCollection()
-            ->contains(fn (Role $roleModel) => ($roleModel->priority ?? 0) >= $targetPriority);
+        // 不使用 roles 資料表時，無法比較 priority；退回為簡單的 hasRole 檢查
+        return $this->hasRole($role);
     }
 
     /**
@@ -148,10 +132,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getRoleAttribute(): ?string
     {
-        return $this->activeRoleCollection()
-            ->sortByDesc(fn (Role $role) => $role->priority ?? 0)
-            ->pluck('name')
-            ->first();
+        // 直接回傳 enum 欄位
+        return $this->attributes['role'] ?? null;
     }
 
     /**
@@ -183,14 +165,26 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected function activeRoleCollection(): Collection
     {
-        $roles = $this->relationLoaded('roles')
-            ? $this->getRelation('roles')
-            : $this->roles()->get();
+        // 當系統僅使用 users.role 欄位時，模擬一個最小的 role 物件集合，
+        // 以符合程式中期待的介面（name, priority, pivot->status）
+        if ($this->role === null) {
+            return collect();
+        }
 
-        return $roles->filter(function (Role $role) {
-            $status = $role->pivot->status ?? 'active';
+        $obj = (object) [
+            'name' => $this->role,
+            'priority' => 0,
+            'pivot' => (object) ['status' => $this->status === self::STATUS_MAP['active'] ? 'active' : 'inactive'],
+        ];
 
-            return strtolower((string) $status) === 'active';
-        });
+        return collect([$obj]);
+    }
+
+    /**
+     * 取得主要角色（相當於 enum 欄位的值）。
+     */
+    public function getPrimaryRole(): ?string
+    {
+        return $this->role ?? null;
     }
 }

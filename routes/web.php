@@ -8,7 +8,8 @@ Route::get('home', function () {
 });
 
 // lang settings
-Route::get('/lang/{locale}', [PageController::class, 'setLang'])->name('home');
+// Named differently to avoid collision with the main home route name
+Route::get('/lang/{locale}', [PageController::class, 'setLang'])->name('lang.set');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/manage/admin.php';

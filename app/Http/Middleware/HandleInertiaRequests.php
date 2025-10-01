@@ -55,8 +55,8 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user()
-                    ? fn () => $request->user()->loadMissing('userRoles.role')->only([
+                        'user' => $request->user()
+                    ? fn () => $request->user()->only([
                         'id', 'name', 'email', 'locale', 'status',
                     ]) + [
                         'roles' => $request->user()->getActiveRoles(),
