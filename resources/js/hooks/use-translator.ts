@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import type { SharedData } from '@/types';
+import type { SharedData } from '@/types/shared';
 
 type LocaleKey = 'zh-TW' | 'en';
 

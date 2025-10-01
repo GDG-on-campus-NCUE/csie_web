@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { ComponentProps } from 'react';
 import { Link } from '@inertiajs/react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 
 const baseClasses =
     'group inline-flex items-center gap-2 rounded-md bg-transparent px-2.5 py-1 text-sm font-semibold leading-none text-neutral-900 transition-colors duration-200 hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-0';

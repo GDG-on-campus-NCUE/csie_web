@@ -1,7 +1,7 @@
 import ManageMainHeaderBreadcrumb from '@/components/manage/manage-main-header-breadcumb';
 import ManageMainHeaderNavbar from '@/components/manage/manage-main-header-navbar';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import type { ReactNode } from 'react';
 
 interface ManageMainHeaderProps {

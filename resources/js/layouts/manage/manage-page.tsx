@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTranslator } from '@/hooks/use-translator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { RefreshCcw, CalendarCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -67,4 +67,3 @@ function ManagePage({
 ManagePage.displayName = 'ManagePage';
 
 export default ManagePage;
-export type { ManagePageProps };

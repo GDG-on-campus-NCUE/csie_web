@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/types/shared';
+import { Head, Link } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 
@@ -51,11 +51,11 @@ export default function ManageAdminPostsEdit({ post }: ManageAdminPostsEditProps
                 breadcrumbs={breadcrumbs}
                 toolbar={
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="gap-2" href="/manage/admin/posts" asChild>
-                            <a>
+                        <Button variant="ghost" size="sm" className="gap-2" asChild>
+                            <Link href="/manage/admin/posts">
                                 <ArrowLeft className="h-4 w-4" />
                                 {t('layout.back', '返回列表')}
-                            </a>
+                            </Link>
                         </Button>
                         <Button size="sm" className="gap-2">
                             <Save className="h-4 w-4" />

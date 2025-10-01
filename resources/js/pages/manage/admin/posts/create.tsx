@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/types/shared';
+import { Head, Link } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -38,11 +38,11 @@ export default function ManageAdminPostsCreate() {
                 description={t('posts.create_description', '建立新的公告內容，並設定發佈資訊。')}
                 breadcrumbs={breadcrumbs}
                 toolbar={
-                    <Button variant="ghost" size="sm" className="gap-2" href="/manage/admin/posts" asChild>
-                        <a>
+                    <Button variant="ghost" size="sm" className="gap-2" asChild>
+                        <Link href="/manage/admin/posts">
                             <ArrowLeft className="h-4 w-4" />
                             {t('layout.back', '返回列表')}
-                        </a>
+                        </Link>
                     </Button>
                 }
             >

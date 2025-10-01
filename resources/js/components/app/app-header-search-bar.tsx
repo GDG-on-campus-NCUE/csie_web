@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowRight, Search, X } from 'lucide-react';
 import { useTranslator } from '@/hooks/use-translator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 
 interface AppSearchBarProps {
     isOpen: boolean;

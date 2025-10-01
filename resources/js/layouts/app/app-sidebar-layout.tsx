@@ -1,4 +1,4 @@
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem } from '@/types/shared';
 import { type ReactNode } from 'react';
 
 interface AppSidebarLayoutProps {

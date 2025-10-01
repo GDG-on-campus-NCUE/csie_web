@@ -1,5 +1,5 @@
-import PublicHeader from '@/components/public-header';
-import PublicFooter from '@/components/public-footer';
+import PublicHeader from '@/components/public/header';
+import PublicFooter from '@/components/public/footer';
 import type { PropsWithChildren } from 'react';
 
 export default function PublicHeaderLayout({ children }: PropsWithChildren) {
@@ -16,4 +16,3 @@ export default function PublicHeaderLayout({ children }: PropsWithChildren) {
         </div>
     );
 }
-

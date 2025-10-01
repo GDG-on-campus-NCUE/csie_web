@@ -2,10 +2,10 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslator } from '@/hooks/use-translator';
-import type { SharedData } from '@/types';
+import type { SharedData } from '@/types/shared';
 import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { ArrowRight, ChevronDown, LogIn, Search, User, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import {
     AppInlineActionButton,
     AppInlineActionLabel,

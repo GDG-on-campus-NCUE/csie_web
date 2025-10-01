@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import { Head } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { CalendarCheck, Megaphone, NotebookPen } from 'lucide-react';

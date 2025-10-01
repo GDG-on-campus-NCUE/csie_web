@@ -1,6 +1,6 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import ManageLayout from '@/layouts/manage/manage-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem } from '@/types/shared';
 import { type ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 

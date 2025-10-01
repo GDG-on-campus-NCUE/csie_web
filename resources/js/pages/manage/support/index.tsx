@@ -3,7 +3,7 @@ import ManagePage from '@/layouts/manage/manage-page';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import { Head } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { LifeBuoy } from 'lucide-react';

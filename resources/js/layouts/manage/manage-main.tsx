@@ -1,7 +1,7 @@
 import ManageMainContent from '@/components/manage/manage-main-content';
 import ManageMainFooter from '@/components/manage/manage-main-footer';
 import ManageMainHeader from '@/components/manage/manage-main-header';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import type { ReactNode } from 'react';
 
 export interface ManageMainProps {

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import { Head } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { UserPlus } from 'lucide-react';

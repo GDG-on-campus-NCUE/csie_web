@@ -1,6 +1,6 @@
 import TextLink from '@/components/text-link';
 import { home } from '@/routes';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { useTranslator } from '@/hooks/use-translator';
 
 export interface AuthFooterLink {

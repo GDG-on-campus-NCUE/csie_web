@@ -1,115 +1,164 @@
 # manage 管理頁面詳細規劃
 
-## 0. 核心原則與整體架構
-- 以 `AppLayout` → `ManageLayout` → `ManagePage` → 專屬模組為層次，維持 components/layouts/pages 的分層；共通 UI 盡量放在 `resources/js/components/manage` 與 `resources/js/layouts/manage`。
-- 後端統一建立 `App\\Http\\Controllers\\Manage` 命名空間，使用 RESTful controller + FormRequest 驗證 + Policy 授權，搭配 Inertia response 傳遞資料。
-- 透過 `pageRole` 與 `pageSection` props 控制前端畫面，`pageSection` 將對應到一個 section component map（見 1.3），避免 `ManageDashboardPage` 腫脹。
-- 一切資料操作採用 Laravel Resource route (`index/create/store/edit/update/destroy`) 或自訂 action (ex: `bulkUpdateStatus`)，並在前端建立對應 service hook (`resources/js/services/manage`)，集中 axios/fetch 呼叫。
-- 所有表單/表格狀態管理預設走 React hook + Inertia form helper (`useForm`)，列表使用 shadcn/ui Table，視情況拆分成 `List`, `Toolbar`, `Dialog` 組件。
+## 0. 核心原則與整體流程
+- 保持 `AppLayout → ManageLayout → ManagePage → FeatureComponent` 的層級分工；頁面只負責資料取得與掌控權限，布局只處理排版、元件只專注於視覺。
+- 前後端命名一致：Laravel 採 `App\\Http\\Controllers\\Manage` + `App\\Http\\Resources\\Manage` + `App\\Http\\Requests\\Manage`，對應前端 `resources/js/pages/manage/<domain>`。
+- 所有列表預設採用後端分頁（LengthAwarePaginator），封裝為 `usePaginatedResource` hook，統一處理換頁、排序、分頁狀態同步，並在 UI 顯示分頁控制（上一頁/下一頁/跳頁）。
+- 統一以 `Tag` 模組維護標籤，任何表單涉及標籤都透過同一個多選組件與 `/manage/tags/options` API，避免重複定義。
+- 共用的 Rich Text/附件/日期挑選器皆獨立成組件，並在表單中統一使用 `useForm` + schema 驗證（Zod + server-side FormRequest）。
 
-## 1. 共通前端元素
-- 建立 `resources/js/pages/manage/__shared/section-map.ts`，輸出 `{ [key: string]: LazyExoticComponent }`，由 `dashboard.tsx` 依 `pageSection` 動態載入；提供 loading + fallback (未授權/尚未完成)。
-- 產生 `resources/js/pages/manage/__shared/useManageSection.ts` hook，封裝 `usePage` 取得 `pageRole/pageSection/filters/pagination` 等通用 props。
-- 建立 `resources/js/pages/manage/__shared/section-shell.tsx` 作為 section 容器，統一處理標題、動作列、錯誤態、空資料態、loading skeleton。
-- Sidebar 導航資料與 section map 保持同步：調整 `ManageSidebarMain` 參考共用設定檔 `resources/js/lib/nav-items.ts`，避免重複定義路徑與標題。
-- 全域訊息/錯誤處理：沿用現有 toast 機制，另在 `ManageLayout` 注入 `flash` 訊息展示。
+## 1. 共通基礎建設
+### 1.1 共用檔案與工具
+- [ ] `resources/js/lib/manage/api-client.ts`：包裝 axios instance、統一錯誤處理與 CSRF。
+- [ ] `resources/js/hooks/manage/use-paginated-resource.ts`：接受 `{ route, params }`，回傳 `data, meta, onPageChange, onFilterChange`。
+- [ ] `resources/js/components/manage/manage-page-header.tsx`：標題、副標題、麵包屑、工具列統一樣式。
+- [ ] `resources/js/components/manage/table-empty.tsx` 與 `table-loading.tsx`：列表空態、載入態共用。
+
+### 1.2 共用資料結構與型別
+- [ ] `@/types/manage/index.d.ts` 增加 `PaginationMeta`, `FilterOption`, `TagOption` 型別。
+- [ ] 擴充 `@/types/shared` 的 `SharedData`，加入 `flash`, `abilities`, `spaces` 基礎資料。
+- [ ] `resources/js/lib/manage/sidebar-nav-groups.ts` 改由常數檔 `nav-config.ts` 餵入，保持導航與權限一致。
+
+### 1.3 表單元件庫
+- [ ] `resources/js/components/manage/forms/`：建立 `FormSection`, `FormField`, `FormActions`，整合 label、錯誤、說明文字。
+- [ ] `TagMultiSelect`：支援搜尋、顯示使用次數、可直接新建（綁定 `/manage/tags`）。
+- [ ] `AttachmentUploader`：支援多檔、排序、預覽、刪除，並回傳附件 ID 清單。
 
 ## 2. 儀表板（/manage/dashboard）
-- 規劃 `DashboardOverviewSection` 組件，根據 `pageRole` 顯示對應卡片：`admin` → 系統統計、佈告草稿；`teacher` → 課程/實驗室待辦；`user` → 最近公告、個人資料進度。
-- 後端 `DashboardController@index` 聚合所需統計（近期公告數、訊息數、待審核件數、個人設定完成度），資料透過 Transformer （`app/Http/Resources/Manage/DashboardResource`）。
-- 建立 `DashboardActivity` 子組件，用於顯示最近活動 timeline，未來可接 WebSocket/輪詢。
-- 加上 Quick Actions 區塊（依角色顯示 `建立公告`、`上傳附件`、`編輯個人檔案` 等），並透過 Sidebar Quick link 導向。
+### 2.1 後端
+- [ ] `DashboardController@index`：依角色回傳 `metrics`, `activities`, `quickLinks`, `personalTodos`。
+- [ ] 建立 `DashboardMetricService` 彙整公告、標籤、附件、space 使用狀況。
+- [ ] Resource：`DashboardResource` 格式化數據、日期、連結 URL。
 
-## 3. 管理員專區（role: admin）
-### 3.1 公告管理（/manage/posts）
-- 路由：`Route::resource('posts', Manage\\PostController::class)`；額外 `POST /manage/posts/bulk-status`。
-- Controller：`index` 提供篩選（分類/狀態/日期）、`store/update` 依 FormRequest 驗證（標題、時程、附件、標籤）、`destroy` 軟刪除、`restore` 自訂 action。
-- 前端：建立 `resources/js/pages/manage/admin/posts/index.tsx`、`create.tsx`、`edit.tsx`，並將表單抽象成 `PostForm` component，整合 RichText 編輯器、附件上傳區塊（ reuse `AttachmentUploader`）。
-- 列表支援：排序、關鍵字搜尋、批次操作（改狀態/刪除）、多語欄位顯示（繁中/英文），空態提供建立按鈕。
-- 測試：Feature test 覆蓋授權（只有 admin/teacher 可 CRUD），表單驗證、附件同步、標籤 pivot 更新。
+### 2.2 前端
+- [ ] `resources/js/pages/manage/admin/dashboard.tsx`：拆為 `OverviewCards`, `RecentActivities`, `QuickActions` 子元件。
+- [ ] 使用 `useTranslator('manage.dashboard')` 提供欄位字典。
+- [ ] 卡片資料：公告總數/草稿/排程、使用者註冊數、空間使用率（space usage）。
+- [ ] 活動列表顯示 `title`, `status`, `timestamp`, `actor`，提供載入更多。
+- [ ] Quick Actions 依能力顯示按鈕（建立公告、邀請教師、上傳附件、連結 Space 資源）。
 
-### 3.2 標籤管理（/manage/tags）
-- 建立 `Manage\\TagController` + `TagRequest`，支援 CRUD + 合併（merge）/分裂（split）操作。
-- 表格顯示使用次數、最後使用時間，支援快速編輯（inline edit）與啟用/停用 flag。
-- 前端：`resources/js/pages/manage/admin/tags/index.tsx` 與 `TagDialog`；整合菁英功能（ex: 批次刪除前顯示關聯異動數）。
-- 除錯：提供 `TagUsagePreview`，顯示受影響的公告列表連結。
+## 3. 管理員模組（role = admin）
+### 3.1 公告管理（/manage/admin/posts）
+#### 3.1.1 資料與 API
+- [ ] `Post` 模型加入 `excerpt`, `published_at`, `visibility`, `space_id` 欄位。
+- [ ] `Manage\\PostController`：`index`, `store`, `update`, `destroy`, `restore`, `bulkStatus`。
+- [ ] 篩選參數：`keyword`, `status`, `tag`, `category`, `publisher`, `published_between`。
 
-### 3.3 使用者管理（/manage/users）
-- Controller：`Manage\\UserController` 搭配 `UserFilter`, `UserRequest`；提供 `index`（篩選角色/狀態/關鍵字）、`updateRole`, `impersonate`, `resetPasswordLink` 等自訂 action。
-- 前端：`resources/js/pages/manage/admin/users/index.tsx`，拆分 `UserList`, `UserFilters`, `UserActions`，支援 `InfiniteScroll` 或分頁。
-- 詳細視窗（drawer/dialog）顯示個人資訊、角色、登入紀錄；可變更角色 (多選) 與發送通知。
-- 整合 `ContactMessage` 及 `SupportTicket`（若有），顯示使用者互動紀錄。
+#### 3.1.2 列表頁
+- [ ] 表格欄位：標題、分類、狀態、標籤、建立者、最後更新、瀏覽次數。
+- [ ] Toolbar：搜尋框（debounce）、狀態篩選、標籤篩選、批次操作下拉（發佈/封存/刪除）。
+- [ ] 支援多選列；在下方顯示分頁（每頁 10 筆），提供跳頁輸入框。
+- [ ] 空態卡片：提示尚無公告，提供「立即新增」。
 
-### 3.4 附件資源（/manage/attachments）
-- Controller：`Manage\\AttachmentController`，支援列表、上傳、重新命名、標記、刪除、下載簽章。
-- 規劃使用 Laravel `Storage` + Signed URL，支援多檔上傳、拖放排序、metadata 編輯。
-- 前端：`resources/js/pages/manage/admin/attachments/index.tsx`，提供 grid/list 切換、檔案預覽（圖片/PDF/音訊）、分類/標籤篩選。
-- 實作批次操作（下載、移動、刪除），並顯示儲存空間使用情況。
+#### 3.1.3 建立/編輯表單
+- [ ] 表單欄位：`title`, `title_en`, `slug`, `status`, `published_at`, `category_id`, `tags[]`, `space_id`, `summary`, `content`, `attachments[]`。
+- [ ] 驗證：標題必填、slug unique、已排程需 `published_at`、附件限制 10 個。
+- [ ] RichText 區塊整合 `sanitizeRichText`，顯示字數統計；附件區顯示已上傳檔案 chip。
+- [ ] 提供「儲存草稿」、「預覽」、「發佈」三個動作按鈕，按鈕停用狀態依提交中更新。
 
-### 3.5 聯絡表單（/manage/messages）
-- Controller：`Manage\\MessageController` (模型 `ContactMessage`)；提供 `index`, `show`, `updateStatus`, `reply`。
-- 前端：`resources/js/pages/manage/admin/messages/index.tsx`，以 mailbox layout 呈現，新舊排序、狀態標籤（new/processing/done）。
-- `MessageDetailPanel` 顯示內容、附件、回覆歷程；回覆表單支援 Markdown，並呼叫 `Notification` 服務寄信。
-- 加入快速標籤（ex: admissions, lecture, funding），便於分類。
+#### 3.1.4 詳細頁（show）
+- [ ] 顯示標題、狀態 badge、發佈資訊、標籤列表、連結 Space 資源摘要。
+- [ ] 附件列出可下載連結 + 檔案大小 + 標籤。
+- [ ] 歷程區塊：顯示最近 5 筆更新紀錄（人員、時間、變更摘要）。
 
-## 4. 教師專區（role: admin|teacher）
-### 4.1 教師公告（共用 /manage/posts）
-- Teacher 與 Admin 共用 `PostController`，但權限限制為自己建立的公告；前端 reuse admin 頁面，但透過 props 控制可操作欄位（無法修改他人公告，少部分欄位只讀）。
-- 新增 `PostPolicy` 驗證 teacher 只能 CRUD 自己負責分類。
+#### 3.1.5 測試
+- [ ] Feature：未授權阻擋、建立與更新成功、標籤同步、批次操作。
+- [ ] Dusk/Browser：建立公告流程、表單錯誤顯示、擷取成功提示。
 
-### 4.2 實驗室管理（/manage/labs）
-- Controller：`Manage\\LabController` (模型 `Lab`)；功能：列表、編輯多語欄位、關聯教師、實驗室成員。
-- 前端頁面 `resources/js/pages/manage/teacher/labs/index.tsx` + `LabForm`；支援拖拉調整排序、上傳展示圖片、設定公開與否。
-- 提供 `LabMembersSection`，可新增/移除成員（引用 `User` 模型）。
+### 3.2 標籤管理（/manage/admin/tags）
+- [ ] 列表欄位：名稱（中英）、使用次數、最後使用、狀態（啟用/停用）。
+- [ ] 篩選：依模組（公告/附件/space）、狀態、關鍵字。
+- [ ] 新增/編輯 Modal：欄位 `name`, `name_en`, `description`, `color`。
+- [ ] Merge 功能：選擇多個標籤 → 指派新的保留標籤 → 顯示受影響筆數確認。
+- [ ] Split 功能：以逗號分隔快速建立多個標籤，並選擇原標籤是否保留。
+- [ ] 前端提供即時搜尋結果 + 錯誤提示；後端建立對應 Action + 事件紀錄。
 
-### 4.3 研究計畫（/manage/projects）
-- Controller：`Manage\\ProjectController`；支援 CRUD、年份/類別/主持人篩選、檔案附件。
-- 前端：`resources/js/pages/manage/teacher/projects/index.tsx`，使用 timeline 或 card layout，提供年度群組。
-- 評估與 `Project` 模型關聯 `Publication` 或 `Attachment`，並在 UI 展示。
+### 3.3 使用者管理（/manage/admin/users）
+- [ ] 列表欄位：姓名、Email、角色、狀態、最近登入、所屬 Space。
+- [ ] 篩選：角色（多選）、狀態、關鍵字、space。
+- [ ] 支援分頁、排序（姓名、註冊時間、登入時間）。
+- [ ] 詳細抽屜：基本資料、角色管理、多重 Space 授權、最近 10 次活動。
+- [ ] 角色編輯表單：checkbox 群組 + 儲存按鈕。
+- [ ] Actions：重設密碼連結、模擬登入 (impersonate)、停權/啟用。
+- [ ] 後端：`Manage\\UserController` + `UserFilter` + `UpdateRoleRequest` + Audit log。
 
-## 5. 會員 / 一般使用者專區（role: user）
-- 共用 Dashboard 但顯示個人化 KPI：最近公告、個人資料完成度、支援票案件數。
-- `Manage\\SupportPage` 提供 FAQ + 建立支援單表單（若暫未有後端，可先 stub）；成功提交後顯示 ticket 狀態。
-- 提供 `ProfileSummary` 卡片，引導快速前往設定（profile/password/appearance）。
+### 3.4 附件資源（/manage/admin/attachments）
+- [ ] 資料表新增 `space_id`, `tags`, `description` 欄位。
+- [ ] 列表支援 Grid/List 切換；欄位有縮圖、檔名、大小、標籤、綁定 Space、建立者。
+- [ ] 篩選：檔案類型、標籤、space、日期。
+- [ ] 批次操作：下載、改標籤、移轉 Space、刪除。
+- [ ] 上傳流程：拖放區 + 進度條 + 失敗重試；成功後可直接編輯名稱/備註。
+- [ ] Detail Drawer：顯示檔案預覽、metadata、引用紀錄（哪篇公告使用）。
 
-## 6. 帳號設定 (settings.*)
-### 6.1 Profile（/manage/settings/profile）
-- Controller：`Manage\\Settings\\ProfileController@edit/update`；使用 `UserProfile` 模型 + `UserProfileRequest`。
-- 表單包含：基本資料、職稱、聯絡方式、社群連結（使用 `UserProfileLink`）、頭像上傳（avatar crop）。
-- 前端頁面 `resources/js/pages/manage/setting/profile.tsx`（命名統一為 `resources/js/pages/manage/setting/profile.tsx`），拆分 `ProfileForm`, `SocialLinksForm`, `AvatarUploader`。
+### 3.5 公告留言/聯絡表單（/manage/admin/messages）
+- [ ] 列表欄位：主旨、發送者、Email、狀態（新訊息/處理中/已結案）、提交時間。
+- [ ] 內有分頁、狀態篩選、關鍵字搜尋。
+- [ ] 詳細視窗：顯示訊息內容、附件、處理紀錄，提供回覆與更改狀態表單。
+- [ ] 後端：`Manage\\MessageController` + `MessageReplyController`，支援記錄處理過程。
 
-### 6.2 Password（/manage/settings/password）
-- Controller：`Manage\\Settings\\PasswordController`；使用 Laravel 密碼驗證規則，支援強度提示。
-- 前端：`resources/js/pages/manage/setting/password.tsx` + `PasswordStrengthMeter`，整合 `useForm`、顯示成功/錯誤 toast。
+### 3.6 啟動稽核與記錄
+- [ ] 所有敏感操作（公告發佈、標籤合併、user 角色變更）觸發 `ManageActivity` log。
+- [ ] `resources/js/components/manage/activity-timeline.tsx` 顯示最新 20 筆記錄。
 
-### 6.3 Appearance（/manage/settings/appearance）
-- Controller：`Manage\\Settings\\AppearanceController`；儲存主題、語系、介面偏好（儀表板卡片排序）。
-- 前端：`resources/js/pages/manage/setting/appearance.tsx`；使用現有 `AppearanceTabs` 與 `FloatingSettings`，增加 preview 區塊；變更時即時更新 `localStorage` 並同步到後端。
+## 4. 教師模組（role = teacher）
+### 4.1 教師公告/課程管理
+- [ ] 列表欄位：標題、狀態、課程分類、最後更新。
+- [ ] 表單欄位：課程名稱、受眾、開始/結束時間、附件、標籤、Space 連結（教師個人教學空間）。
+- [ ] 提供「複製公告」與「快速發佈」功能。
+- [ ] 分頁 + 篩選課程、狀態、標籤。
 
-## 7. 支援中心（/manage/support）
-- Controller：`Manage\\SupportController@index/store`；`index` 提供 FAQ, `store` 建立支援請求（資料表 `contact_messages` 或新 `support_tickets`）。
-- 前端：`resources/js/pages/manage/user/support.tsx`；採兩欄布局（左側 FAQ accordion，右側支援單表單），送出後顯示 ticket 編號與預估回覆時間。
+### 4.2 實驗室模組
+- [ ] 列表顯示每個實驗室：名稱、領域、負責老師、學生名單、Space 連結。
+- [ ] 表單欄位：`name`, `field`, `description`, `members[]`, `space_id`, `tags[]`, `public_url`。
+- [ ] 成員管理使用多選清單 + 搜尋；提供批次邀請。
 
-## 8. 後端 API 與資料層實作
-- 建立 `app/Http/Controllers/Manage` 目錄，下分 `Admin`, `Teacher`, `Settings`, `Support` 子命名空間；共用基底 `ManageController`（注入 `AuthorizesRequests`、`ValidatesRequests`）。
-- 導入 FormRequest：`Manage/PostRequest`, `Manage/TagRequest`, `Manage/UserRequest`, `Manage/AttachmentRequest`, `Manage/MessageReplyRequest`, `Manage/Settings/ProfileRequest` 等。
-- 建立 `app/Policies` 內的 `PostPolicy`, `AttachmentPolicy`, `UserPolicy`, `LabPolicy`, `ProjectPolicy`, `ContactMessagePolicy`，於 `AuthServiceProvider` 綁定。
-- 資料回傳統一透過 `JsonResource`：`Manage/PostResource`, `Manage/UserResource`, `Manage/AttachmentResource`, `Manage/ContactMessageResource`, `Manage/LabResource`, `Manage/ProjectResource`, `Manage/DashboardResource`。
-- 列表查詢封裝成 `QueryBuilder` scope (`app/Models/Scopes/Manage`)，例如 `Post::query()->forManage($filters)`，提高重用性。
+### 4.3 研究計畫
+- [ ] 列表欄位：計畫名稱、主持人、期間、經費、狀態。
+- [ ] 表單欄位：`title`, `title_en`, `funding_source`, `amount`, `start_at`, `end_at`, `summary`, `attachments`, `tags`, `space_id`。
+- [ ] 顯示計畫文件下載、相關公告連結。
 
-## 9. 權限、審核與測試
-- 使用 Laravel `role` middleware + Policy；新增 `role` middleware 組態以支援 `role:admin,teacher`。
-- Feature tests：
-  - Dashboard：依角色回傳正確統計。
-  - Posts/Tags/Users/Attachments/Messages CRUD + 權限。
-  - Settings 更新／支援單建立。
-- 前端測試：採用 Jest/RTL 對關鍵表單與 section map 進行渲染測試、互動測試。
-- E2E（可用 Laravel Dusk 或 Playwright）覆蓋核心流程：建立公告、上傳附件、更新個人資料。
+## 5. 一般使用者模組（role = user）
+### 5.1 個人主頁（/manage/user/dashboard）
+- [ ] 卡片：進度檢核（個人資料完整度、Space 資源綁定、待回覆訊息）。
+- [ ] 最近的公告列表，支援標籤篩選與書籤功能。
 
-## 10. 里程碑與優先順序
-1. 建立後端 Manage namespace、Section map 基礎、Dashboard props（Sprint 1）。
-2. 行政功能（Posts/Tags/Users/Attachments/Messages）核心 CRUD 與 UI（Sprint 2-3）。
-3. 教師專區（Labs/Projects + 共享 Posts 權限細緻化）（Sprint 4）。
-4. 設定頁面與支援中心（Sprint 5）。
-5. 整體優化：國際化、可用性測試、前端單元測試補強（Sprint 6）。
-6. 文檔與維運：更新 `.docs/ARCHITECTURE.md`、撰寫手冊、建立監控告警（持續任務）。
+### 5.2 個人資料（/manage/settings/profile）
+- [ ] 表單欄位：姓名、英文姓名、暱稱、Email（唯讀）、連絡電話、學號/員工編號、職稱、頭像上傳、語系、時區。
+- [ ] 使用 `AvatarUploader` 支援裁切預覽；變更語系後觸發重新整理。
+- [ ] 變更歷程顯示最近 5 次修改。
+- [ ] 後端：`ProfileController@update` + `UpdateProfileRequest`。
+
+### 5.3 安全設定（/manage/settings/password`、`/manage/settings/security`）
+- [ ] 表單欄位：舊密碼、新密碼、確認；顯示密碼強度指標。
+- [ ] 顯示登入紀錄列表（裝置、IP、時間）；提供登出其他裝置按鈕。
+
+### 5.4 外觀設定（appearance）
+- [ ] 控制主題（淺/深）、字體大小、側欄固定選項；儲存在 user preferences。
+
+### 5.5 Space 資源綁定
+- [ ] 使用者可將帳號綁到一或多個 Space（如雲端資料夾/課程空間）。
+- [ ] 表單欄位：`space_id`, `role`, `access_level`, `sync_options`（自動同步附件/公告）。
+- [ ] 列表顯示目前綁定的 Space、權限、同步狀態，提供斷開/重新同步按鈕。
+- [ ] 後端：`Manage\\UserSpaceController` 實作 `index`, `store`, `destroy`, `sync`。
+
+## 6. 支援頁面（Support）
+- [ ] 常見問題 (FAQ) 列表：分類、問題、狀態、排序。
+- [ ] 支援單表單：欄位 `subject`, `category`, `priority`, `message`, `attachments[]`, `tags[]`。
+- [ ] 工單詳情：交流紀錄、狀態更新、標籤、相關 Space 資源連結。
+
+## 7. 通知與整合
+- [ ] 實作通知中心：顯示系統提醒、支援標記已讀、分頁。
+- [ ] Webhook/Email 觸發：公告發佈、Space 同步失敗、帳號權限變更。
+- [ ] `NotificationPreference` 表單：使用者可勾選接收頻道（Email、App、LINE Bot）。
+
+## 8. 測試策略與品質保證
+- [ ] 每個模組至少具備 Feature 測試（授權 + 主要流程）與 FormRequest 單元測試。
+- [ ] 前端使用 `@testing-library/react` 為關鍵元件撰寫互動測試（表單提交流程、分頁、篩選）。
+- [ ] E2E 改用 Laravel Dusk 或 Playwright（擇一），覆蓋公告 CRUD、標籤合併、user 編輯 profile、Space 綁定流程。
+- [ ] 建立 CI 工作流程：`npm run lint`, `npm run types`, `npm run test`, `phpunit`。
+
+## 9. 發布與維運
+- [ ] 撰寫資料遷移計畫：新增欄位（space_id、published_at……）、預填預設資料。
+- [ ] 初始化 Seeder：建立預設標籤、Space 種子資料、測試帳號。
+- [ ] 建立操作手冊：後台使用指南、常見錯誤排除流程。
+- [ ] 監控指標：公告發佈失敗率、Space 同步狀況、API 錯誤通知。

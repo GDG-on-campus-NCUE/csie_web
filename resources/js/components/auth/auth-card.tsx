@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { type PropsWithChildren } from 'react';
 
 interface AuthCardProps {

@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/types/shared';
+import { Head, Link } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { ArrowLeft, Edit } from 'lucide-react';
 
@@ -49,17 +49,17 @@ export default function ManageAdminPostsShow({ post }: ManageAdminPostsShowProps
                 breadcrumbs={breadcrumbs}
                 toolbar={
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="gap-2" href="/manage/admin/posts" asChild>
-                            <a>
+                        <Button variant="ghost" size="sm" className="gap-2" asChild>
+                            <Link href="/manage/admin/posts">
                                 <ArrowLeft className="h-4 w-4" />
                                 {t('layout.back', '返回列表')}
-                            </a>
+                            </Link>
                         </Button>
-                        <Button size="sm" className="gap-2" href={`/manage/admin/posts/${post.id}/edit`} asChild>
-                            <a>
+                        <Button size="sm" className="gap-2" asChild>
+                            <Link href={`/manage/admin/posts/${post.id}/edit`}>
                                 <Edit className="h-4 w-4" />
                                 {t('posts.edit', '編輯公告')}
-                            </a>
+                            </Link>
                         </Button>
                     </div>
                 }

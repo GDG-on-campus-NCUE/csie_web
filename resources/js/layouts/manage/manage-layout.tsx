@@ -1,7 +1,7 @@
 import ManagePage, { type ManagePageProps } from '@/layouts/manage/manage-page';
 import ManageSidebar, { type ManageSidebarProps } from '@/layouts/manage/manage-siderbar';
 import { useTranslator } from '@/hooks/use-translator';
-import type { SharedData, User } from '@/types';
+import type { SharedData, User } from '@/types/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarInset, SidebarProvider, SidebarRail } from '@/components/ui/sidebar';

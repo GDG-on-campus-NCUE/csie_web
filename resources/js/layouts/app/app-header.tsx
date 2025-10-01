@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from '@inertiajs/react';
-import { useNavItems } from '@/lib/nav-items';
+import { useNavItems } from '@/lib/app/header-nav-items';
 import AppLogo from '@/components/app/app-logo';
 import AppNavbar from '@/components/app/app-header-navbar';
 import AppMobileNavbar from '@/components/app/app-header-mobile-navbar';

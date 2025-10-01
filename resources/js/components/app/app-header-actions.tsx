@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import type { SharedData } from '@/types';
+import type { SharedData } from '@/types/shared';
 import { useTranslator } from '@/hooks/use-translator';
 import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import {

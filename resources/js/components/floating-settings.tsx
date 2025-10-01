@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Settings, Languages, Moon, Sun, Monitor, Globe, Palette } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useTranslator } from '@/hooks/use-translator';
 import { usePage } from '@inertiajs/react';
-import type { SharedData } from '@/types';
+import type { SharedData } from '@/types/shared';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 
 interface FloatingSettingsProps {

@@ -2,7 +2,7 @@ import { AuthCard } from '@/components/auth/auth-card';
 import { AuthFooter } from '@/components/auth/auth-footer';
 import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { useTranslator } from '@/hooks/use-translator';
-import type { SharedData } from '@/types';
+import type { SharedData } from '@/types/shared';
 import { home } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';

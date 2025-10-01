@@ -1,7 +1,7 @@
 import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { useTranslator } from '@/hooks/use-translator';
-import { cn } from '@/lib/utils';
-import type { SharedData } from '@/types';
+import { cn } from '@/lib/shared/utils';
+import type { SharedData } from '@/types/shared';
 import { home } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';

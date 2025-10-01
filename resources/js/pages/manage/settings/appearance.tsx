@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 // import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types/shared';
 import { Head } from '@inertiajs/react';
 import type { ReactElement } from 'react';
 import { Palette } from 'lucide-react';

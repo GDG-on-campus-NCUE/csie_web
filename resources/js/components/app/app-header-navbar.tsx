@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { useNavItems } from '@/lib/nav-items';
+import { useNavItems } from '@/lib/app/header-nav-items';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 
 interface AppNavbarProps {
     className?: string;

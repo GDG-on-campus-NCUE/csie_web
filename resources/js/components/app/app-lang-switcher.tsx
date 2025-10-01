@@ -1,14 +1,18 @@
 import { useTranslator } from '@/hooks/use-translator';
-import { cn } from '@/lib/utils';
-import type { SharedData } from '@/types';
+import { cn } from '@/lib/shared/utils';
+import type { SharedData } from '@/types/shared';
 import { usePage, router } from '@inertiajs/react';
 import { Languages } from 'lucide-react';
 import { AppInlineActionButton, AppInlineActionLabel } from '@/components/app/app-header-inline-action';
 
+type LanguageSwitcherVariant = 'default' | 'light';
+
 interface LanguageSwitcherProps {
     className?: string;
+    variant?: LanguageSwitcherVariant;
 }
-export default function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
+
+export default function LanguageSwitcher({ className = '', variant = 'default' }: LanguageSwitcherProps) {
     const { locale } = usePage<SharedData>().props as SharedData & { locale: string };
     const { t } = useTranslator('common');
     const isZh = locale === 'zh-TW';
@@ -26,11 +30,16 @@ export default function LanguageSwitcher({ className = '' }: LanguageSwitcherPro
         });
     };
 
+    const variantClassName =
+        variant === 'light'
+            ? 'text-slate-600 hover:text-slate-700 focus-visible:ring-slate-300'
+            : 'text-neutral-900';
+
     return (
         <AppInlineActionButton
             onClick={handleLanguageSwitch}
             aria-label={t('layout.language_label', '語言')}
-            className={cn('text-neutral-900', className)}
+            className={cn(variantClassName, className)}
         >
             <Languages
                 aria-hidden

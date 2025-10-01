@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import type { ComponentPropsWithoutRef, ElementType } from 'react';
 
 type FloatVariant = 'slow' | 'medium' | 'horizontal' | false;

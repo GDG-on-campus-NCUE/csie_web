@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { AlertCircle, CheckCircle2, Info, X, AlertTriangle } from 'lucide-react';
 import type { ToastMessage } from '@/hooks/use-toast';
 

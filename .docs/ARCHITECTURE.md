@@ -37,11 +37,64 @@
 
 ---
 
-### 前端js規定
+## 前端程式碼架構規範
 
-- components/中放置組件
-- layouts引用上層組件，提供page引用
-    - layouts 最終有一個page，該page引入其他layout中布局好的組件
-    - page引用layout給予的page
-    - 命名方式參考components/manage與layouts/manage
-- 你需要組件化設計
+### 核心原則
+
+- `pages/` 專注在頁面邏輯：負責資料讀取、組態決策、注入對應的版型與元件。
+- `layouts/` 專注在版面配置：只提供排版、框架與容器組件，不在此執行資料載入或業務判斷。
+- `components/` 提供可重複使用的視圖元件，依照用途拆分 `ui/`、`app/`、`manage/`、`auth/` 等子目錄。
+- `lib/` 與 `types/` 依業務領域分門別類（例如 `shared/`、`app/`、`manage/`、`auth/`），讓匯入路徑能直接揭露所屬領域。
+- 導入任何共用工具或型別時，優先從對應領域的索引檔匯入，例如 `@/lib/manage/...` 或 `@/types/shared`。
+- 模組命名採用 kebab-case 檔名、camelCase 匯出；同一份檔案限制單一責任。
+
+### 目錄指南
+
+#### `pages/`
+
+- 每個頁面檔案都應直接組合版型與元件，不再透過 `layouts/` 中的「假頁面」間接轉接。
+- 頁面內處理資料轉換、權限判斷、Head/Meta 設定以及事件處理，再將結果交給版型。
+- 路徑命名依照實際路由階層；需要額外切分時使用資料夾並維持 `index.tsx` 入口。
+
+#### `layouts/`
+
+- 版型專注於排版與容器，不在此拉取資料或決定業務狀態。
+- 允許組合下層元件（例如 `ManagePage`、`AuthSimpleLayout`），但輸入資料需由 `pages/` 決定。
+- 如果需要共用的子版型，放在對應子資料夾中（`app/`、`auth/`、`manage/`、`public/`）。
+
+#### `components/`
+
+- `ui/`：低階樣式元件，可於任何領域重用。
+- `app/`、`auth/`、`manage/` 等：對應領域的展示元件，盡量無狀態，所需資料由頁面或版型傳入。
+- `components.json` 定義的設計系統 Token 與組件清單需同步調整匯入路徑。
+
+#### `lib/`
+
+- 依領域拆分：
+    - `lib/shared/`：跨領域的基礎工具（例如 `utils`、`rich-text`）。
+    - `lib/app/`：前台共用的資料、導覽與行為邏輯。
+    - `lib/manage/`：後台領域的導航、設定或資料轉換函式。
+    - 若未來出現 `auth` 等其他領域，一律建立獨立目錄再新增檔案。
+- 工具函式需附上簡潔的 JSDoc 或註解說明用途與輸入輸出。
+
+#### `types/`
+
+- 與 `lib/` 結構對應，使用 `types/shared` 與 `types/manage` （以及後續擴充領域）。
+- `types/shared` 放置跨領域的 `User`、`Auth`、`BreadcrumbItem`、`SharedData` 等宣告。
+- `types/manage` 放置後台專屬型別（例如儀表板統計資料）。
+- `types/index.d.ts` 僅作為過渡期總出口，新的程式碼應改為引入 `@/types/shared` 或各領域索引。
+
+#### 其他目錄
+
+- `hooks/`：保留 React hooks，必要時同樣依領域新增子資料夾。
+- `styles/`：集中 Tailwind 樣式組合與排版系統；匯入工具一律透過 `@/lib/shared/utils`。
+- `assets/` 與 `wayfinder/` 等特殊目錄沿用既有規範，如需更新請同步補充說明。
+
+### 匯入與命名慣例
+
+- 匯入 alias `@` 指向 `resources/js`，禁止使用相對路徑爬升跨域（例如 `../../lib`）。
+- 型別匯入使用 `import type`，維持 tree-shaking 與明確語意。
+- 組件檔案預設使用具語意的預設輸出名稱，例如 `ManageSidebarMain`。
+- 當跨領域共用邏輯或型別不足時，先評估是否應調整領域歸屬，再決定檔案位置。
+
+以上規範用來約束前端檔案架構，新增功能時務必先確認目錄歸屬與命名是否符合規則，避免再度出現難以辨識的匯入與結構混亂。

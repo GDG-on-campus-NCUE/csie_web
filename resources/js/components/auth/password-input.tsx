@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { useTranslator } from '@/hooks/use-translator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState, forwardRef } from 'react';
 
