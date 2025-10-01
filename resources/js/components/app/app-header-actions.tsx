@@ -59,7 +59,7 @@ export default function AppHeaderActions({
             <div className="hidden lg:block">
                 {isAuthenticated ? (
                     <Link
-                        href="/dashboard"
+                        href="/manage/dashboard"
                         className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-blue-600 hover:bg-gray-50 transition-colors"
                     >
                         <User className="h-4 w-4 mr-1" />

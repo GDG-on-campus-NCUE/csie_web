@@ -15,7 +15,7 @@ export default function ManageSettingsProfile() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/user/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('settings.title', '帳號設定'),

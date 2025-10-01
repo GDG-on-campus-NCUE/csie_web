@@ -52,8 +52,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
         locales,
     };
 
-    const dashboardHref =
-        role === 'teacher' ? '/manage/teacher/dashboard' : role === 'user' ? '/manage/user/dashboard' : '/manage/admin/dashboard';
+    const dashboardHref = '/manage/dashboard';
     const dashboardTitleKey =
         role === 'teacher'
             ? 'layout.breadcrumbs.teacher_dashboard'
@@ -61,7 +60,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
               ? 'layout.breadcrumbs.user_dashboard'
               : 'layout.breadcrumbs.admin_dashboard';
 
-    const defaultPageProps: ManagePageProps = {
+    const defaultPageProps: Omit<ManagePageProps, 'children'> = {
         title: t(dashboardTitleKey, '系統總覽'),
         description: t('access.denied_description', '歡迎回到管理後台。'),
         breadcrumbs: [

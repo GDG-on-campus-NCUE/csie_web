@@ -19,7 +19,7 @@ export default function ManageTeacherLabsIndex() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/teacher/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.teacher.labs', '實驗室'),

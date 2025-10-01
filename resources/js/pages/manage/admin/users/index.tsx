@@ -22,7 +22,7 @@ export default function ManageAdminUsersIndex() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/admin/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.admin.users', '使用者'),

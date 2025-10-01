@@ -134,7 +134,7 @@ function buildGroups(role: 'admin' | 'teacher' | 'user', t: TranslatorFn): Array
                     items: [
                         {
                             title: t('sidebar.admin.dashboard', '儀表板'),
-                            href: '/manage/admin/dashboard',
+                            href: '/manage/dashboard',
                             icon: LayoutDashboard,
                         },
                         {

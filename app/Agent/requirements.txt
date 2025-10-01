@@ -1,5 +1,0 @@
-google-adk
-requests
-beautifulsoup4
-lxml
-crawl4ai

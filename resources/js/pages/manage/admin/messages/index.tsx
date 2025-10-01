@@ -33,7 +33,7 @@ export default function ManageAdminMessagesIndex() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/admin/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.admin.messages', '聯絡表單'),

@@ -7,7 +7,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('manage')
     ->as('manage.')
     ->group(function () {
-        Route::redirect('/', '/manage/user/dashboard')->name('index');
+        Route::redirect('/', '/manage/dashboard')->name('index');
     });
 
 Route::middleware(['auth', 'verified'])

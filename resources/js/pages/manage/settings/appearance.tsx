@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+// import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslator } from '@/hooks/use-translator';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -21,7 +21,7 @@ export default function ManageSettingsAppearance() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/user/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('settings.title', '帳號設定'),
@@ -44,10 +44,10 @@ export default function ManageSettingsAppearance() {
                 breadcrumbs={breadcrumbs}
             >
                 <section className="space-y-6 rounded-xl border border-neutral-200/80 bg-white/95 p-6 shadow-sm">
-                    <RadioGroup defaultValue="system" className="space-y-4">
+                    <div className="space-y-4">
                         {themes.map((theme) => (
                             <div key={theme.id} className="flex items-start gap-3 rounded-lg border border-transparent bg-neutral-50 p-4">
-                                <RadioGroupItem value={theme.id} id={theme.id} className="mt-1" />
+                                <input type="radio" name="theme" value={theme.id} id={theme.id} className="mt-1" defaultChecked={theme.id === 'system'} />
                                 <div className="space-y-1">
                                     <Label htmlFor={theme.id} className="text-sm font-semibold text-neutral-800">
                                         {t(`settings.appearance.themes.${theme.id}.label`, theme.label)}
@@ -58,7 +58,7 @@ export default function ManageSettingsAppearance() {
                                 </div>
                             </div>
                         ))}
-                    </RadioGroup>
+                    </div>
                     <Button className="gap-2">
                         <Palette className="h-4 w-4" />
                         {t('settings.apply_theme', '套用主題')}

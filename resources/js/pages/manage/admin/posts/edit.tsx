@@ -3,7 +3,7 @@ import ManagePage from '@/layouts/manage/manage-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslator } from '@/hooks/use-translator';
 import type { BreadcrumbItem } from '@/types';
@@ -28,7 +28,7 @@ export default function ManageAdminPostsEdit({ post }: ManageAdminPostsEditProps
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/admin/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.admin.posts', '公告訊息'),
@@ -73,15 +73,10 @@ export default function ManageAdminPostsEdit({ post }: ManageAdminPostsEditProps
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">{t('posts.form.status', '公告狀態')}</Label>
-                                <Select defaultValue={post.status}>
-                                    <SelectTrigger id="status">
-                                        <SelectValue placeholder={t('posts.form.status_placeholder', '選擇狀態')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="draft">{t('posts.status.draft', '草稿')}</SelectItem>
-                                        <SelectItem value="review">{t('posts.status.review', '審核中')}</SelectItem>
-                                        <SelectItem value="published">{t('posts.status.published', '已發佈')}</SelectItem>
-                                    </SelectContent>
+                                <Select id="status" defaultValue={post.status}>
+                                    <option value="draft">{t('posts.status.draft', '草稿')}</option>
+                                    <option value="review">{t('posts.status.review', '審核中')}</option>
+                                    <option value="published">{t('posts.status.published', '已發佈')}</option>
                                 </Select>
                             </div>
                         </div>

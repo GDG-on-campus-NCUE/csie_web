@@ -16,7 +16,7 @@ export default function ManageAdminPostsCreate() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/admin/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.admin.posts', '公告訊息'),

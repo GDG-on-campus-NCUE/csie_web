@@ -19,11 +19,11 @@ export default function ManageTeacherDashboard() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/teacher/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.teacher.dashboard', '教學首頁'),
-            href: '/manage/teacher/dashboard',
+            href: '/manage/dashboard',
         },
     ];
 

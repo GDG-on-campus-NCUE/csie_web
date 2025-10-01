@@ -145,7 +145,7 @@ export default function AppMobileNavbar({
                         </AppInlineActionButton>
 
                         {isAuthenticated ? (
-                            <AppInlineActionLink href="/dashboard" onClick={onClose} className="text-neutral-900">
+                            <AppInlineActionLink href="/manage/dashboard" onClick={onClose} className="text-neutral-900">
                                 <User className="h-3.5 w-3.5 text-current transition-transform duration-200 group-hover:-translate-y-0.5" />
                                 <AppInlineActionLabel className="text-sm">
                                     {t('auth.dashboard', 'Dashboard')}

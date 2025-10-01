@@ -19,11 +19,11 @@ export default function ManageUserDashboard() {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('layout.breadcrumbs.dashboard', '管理後台'),
-            href: '/manage/user/dashboard',
+            href: '/manage/dashboard',
         },
         {
             title: t('sidebar.user.dashboard', '會員首頁'),
-            href: '/manage/user/dashboard',
+            href: '/manage/dashboard',
         },
     ];
 
