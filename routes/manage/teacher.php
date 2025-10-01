@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified', 'role:admin,teacher'])
     ->as('manage.teacher.')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
-        Route::resource('posts', PostController::class)->only(['index']);
-        Route::resource('labs', LabController::class)->only(['index']);
-        Route::resource('projects', ProjectController::class)->only(['index']);
+        Route::resource('posts', PostController::class);
+        Route::resource('labs', LabController::class);
+        Route::resource('projects', ProjectController::class);
     });

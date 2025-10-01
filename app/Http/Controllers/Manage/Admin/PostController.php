@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Manage\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -47,6 +49,14 @@ class PostController extends Controller
     }
 
     /**
+     * 儲存新公告。
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        return redirect()->route('manage.posts.index');
+    }
+
+    /**
      * 顯示公告詳細內容。
      */
     public function show(string $post): Response
@@ -78,5 +88,21 @@ class PostController extends Controller
                 'author' => '系辦公室',
             ],
         ]);
+    }
+
+    /**
+     * 更新指定公告。
+     */
+    public function update(Request $request, string $post): RedirectResponse
+    {
+        return redirect()->route('manage.posts.index');
+    }
+
+    /**
+     * 刪除指定公告。
+     */
+    public function destroy(string $post): RedirectResponse
+    {
+        return redirect()->route('manage.posts.index');
     }
 }
