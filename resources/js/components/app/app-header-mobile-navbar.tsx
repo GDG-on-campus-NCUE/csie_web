@@ -10,7 +10,7 @@ import {
     AppInlineActionButton,
     AppInlineActionLabel,
     AppInlineActionLink,
-} from '@/components/app/app-inline-action';
+} from '@/components/app/app-header-inline-action';
 
 interface NavItem {
     key: string;

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';
 import { usePage, router } from '@inertiajs/react';
 import { Languages } from 'lucide-react';
-import { AppInlineActionButton, AppInlineActionLabel } from '@/components/app/app-inline-action';
+import { AppInlineActionButton, AppInlineActionLabel } from '@/components/app/app-header-inline-action';
 
 interface LanguageSwitcherProps {
     className?: string;

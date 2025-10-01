@@ -3,8 +3,8 @@ import type { FormEvent } from 'react';
 import { Link } from '@inertiajs/react';
 import { useNavItems } from '@/lib/nav-items';
 import AppLogo from '@/components/app/app-logo';
-import AppNavbar from '@/components/app/app-navbar';
-import AppMobileNavbar from '@/components/app/app-mobile-navbar';
+import AppNavbar from '@/components/app/app-header-navbar';
+import AppMobileNavbar from '@/components/app/app-header-mobile-navbar';
 import AppHeaderActions from '@/components/app/app-header-actions';
 
 export default function AppHeader() {

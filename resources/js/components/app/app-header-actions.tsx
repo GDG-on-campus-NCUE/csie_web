@@ -9,7 +9,7 @@ import {
     LogIn
 } from 'lucide-react';
 import type { FormEvent } from 'react';
-import AppSearchBar from '@/components/app/app-search-bar';
+import AppSearchBar from '@/components/app/app-header-search-bar';
 
 interface AppHeaderActionsProps {
     isMobileMenuOpen: boolean;

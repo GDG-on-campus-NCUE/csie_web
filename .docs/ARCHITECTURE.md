@@ -38,6 +38,10 @@
 ---
 
 ### 前端js規定
+
 - components/中放置組件
 - layouts引用上層組件，提供page引用
+    - layouts 最終有一個page，該page引入其他layout中布局好的組件
+    - page引用layout給予的page
+    - 命名方式參考components/manage與layouts/manage
 - 你需要組件化設計
