@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'locale' => 'en',
             'status' => 'active',
+            'role' => 'user',
         ];
     }
 

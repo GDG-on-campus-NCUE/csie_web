@@ -102,7 +102,7 @@ export interface User {
     email: string;
     roles: Array<'admin' | 'teacher' | 'user'>;
     primary_role?: 'admin' | 'teacher' | 'user' | null;
-    status?: 'active' | 'suspended';
+    status?: 'active' | 'inactive' | 'suspended';
     locale?: string | null;
     avatar?: string;
     email_verified_at: string | null;
