@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
 import { useTranslator } from '@/hooks/use-translator';
-import LanguageSwitcher from './app-lang-switcher';
+import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import {
     Menu,
     X,
@@ -9,7 +9,7 @@ import {
     LogIn
 } from 'lucide-react';
 import type { FormEvent } from 'react';
-import AppSearchBar from './app-search-bar';
+import AppSearchBar from '@/components/app/app-search-bar';
 
 interface AppHeaderActionsProps {
     isMobileMenuOpen: boolean;

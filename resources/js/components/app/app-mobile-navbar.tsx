@@ -3,14 +3,14 @@ import type { FormEvent } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslator } from '@/hooks/use-translator';
 import type { SharedData } from '@/types';
-import LanguageSwitcher from './app-lang-switcher';
+import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { ArrowRight, ChevronDown, LogIn, Search, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
     AppInlineActionButton,
     AppInlineActionLabel,
     AppInlineActionLink,
-} from './app-inline-action';
+} from '@/components/app/app-inline-action';
 
 interface NavItem {
     key: string;

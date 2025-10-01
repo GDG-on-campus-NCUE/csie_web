@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import AppLogoIcon from './app-logo-icon';
+import AppLogoIcon from '@/components/app/app-logo-icon';
 
 export default function AppLogo() {
     const page = usePage<any>();
