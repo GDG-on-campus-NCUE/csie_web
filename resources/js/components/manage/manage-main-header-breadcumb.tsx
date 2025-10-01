@@ -13,7 +13,7 @@ export default function ManageMainHeaderBreadcrumb({ breadcrumbs }: ManageMainHe
         : [
               {
                   title: t('layout.breadcrumbs.dashboard', '管理後台'),
-                  href: '/manage/dashboard',
+                  href: '/manage/admin/dashboard',
               },
           ];
 

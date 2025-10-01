@@ -1,40 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Manage\Teacher\DashboardController;
+use App\Http\Controllers\Manage\Teacher\LabController;
+use App\Http\Controllers\Manage\Teacher\PostController;
+use App\Http\Controllers\Manage\Teacher\ProjectController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified', 'role:admin,teacher'])
-    ->prefix('manage')
-    ->as('manage.')
+    ->prefix('manage/teacher')
+    ->as('manage.teacher.')
     ->group(function () {
-        Route::get('/posts', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'teacher';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'posts',
-            ]);
-        })->name('posts.index');
-
-        Route::get('/labs', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'teacher';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'labs',
-            ]);
-        })->name('labs.index');
-
-        Route::get('/projects', function (Request $request) {
-            $user = $request->user();
-            $role = $user?->role ?? 'teacher';
-
-            return Inertia::render('manage/dashboard', [
-                'pageRole' => $role,
-                'pageSection' => 'projects',
-            ]);
-        })->name('projects.index');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::resource('posts', PostController::class)->only(['index']);
+        Route::resource('labs', LabController::class)->only(['index']);
+        Route::resource('projects', ProjectController::class)->only(['index']);
     });
