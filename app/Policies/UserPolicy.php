@@ -52,11 +52,15 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user, ?User $model = null): bool
     {
         // 管理員可管理所有帳號
         if ($user->isAdmin()) {
             return true;
+        }
+
+        if ($model === null) {
+            return false;
         }
 
         // 其他角色僅能更新自身帳號
@@ -66,9 +70,17 @@ class UserPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): bool
+    public function delete(User $user, ?User $model = null): bool
     {
-        return $user->isAdmin() && $user->id !== $model->id;
+        if (! $user->isAdmin()) {
+            return false;
+        }
+
+        if ($model === null) {
+            return true;
+        }
+
+        return $user->id !== $model->id;
     }
 
     /**
@@ -91,10 +103,26 @@ class UserPolicy
     /**
      * Determine whether the user can assign roles to the model.
      */
-    public function assignRole(User $user, User $model): bool
+    public function assignRole(User $user, ?User $model = null): bool
     {
         // 只有管理員可以調整角色
         return $user->isAdmin();
+    }
+
+    /**
+     * Determine whether the user can impersonate another account.
+     */
+    public function impersonate(User $user, User $target): bool
+    {
+        return $user->isAdmin() && $user->id !== $target->id;
+    }
+
+    /**
+     * Determine whether the user can request password reset for another account.
+     */
+    public function sendPasswordReset(User $user, User $target): bool
+    {
+        return $user->isAdmin() && $user->id !== $target->id;
     }
 
     /**

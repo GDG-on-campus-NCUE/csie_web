@@ -2,6 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Attachment;
+use App\Models\Post;
+use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
@@ -76,6 +80,30 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
                 'importErrors' => $request->session()->get('importErrors'),
             ],
+            'abilities' => fn () => $this->resolveAbilities($request),
+        ];
+    }
+
+    /**
+     * 建立權限對應表，供前端依據權限切換功能。
+     */
+    protected function resolveAbilities(Request $request): array
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return [];
+        }
+
+        return [
+            'manage.posts.view' => $user->can('viewAny', Post::class),
+            'manage.posts.create' => $user->can('create', Post::class),
+            'manage.tags.view' => $user->can('viewAny', Tag::class),
+            'manage.users.view' => $user->can('viewAny', User::class),
+            'manage.users.create' => $user->can('create', User::class),
+            'manage.attachments.view' => $user->can('viewAny', Attachment::class),
+            'manage.attachments.create' => $user->isAdmin(),
+            'manage.messages.view' => $user->isAdmin(),
         ];
     }
 }

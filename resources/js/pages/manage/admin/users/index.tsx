@@ -1,23 +1,100 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import Pagination from '@/components/ui/pagination';
+import { Select } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import TableEmpty from '@/components/manage/table-empty';
+import ToastContainer from '@/components/ui/toast-container';
 import { useTranslator } from '@/hooks/use-translator';
-import type { BreadcrumbItem } from '@/types/shared';
-import { Head } from '@inertiajs/react';
-import type { ReactElement } from 'react';
-import { UserPlus } from 'lucide-react';
+import useToast from '@/hooks/use-toast';
+import { apiClient, isManageApiError } from '@/lib/manage/api-client';
+import { cn } from '@/lib/shared/utils';
+import type {
+    ManageUser,
+    ManageUserAbilities,
+    ManageUserFilterOptions,
+    ManageUserFilterState,
+    ManageUserListResponse,
+} from '@/types/manage';
+import type { BreadcrumbItem, SharedData } from '@/types/shared';
+import { Head, router, usePage } from '@inertiajs/react';
+import type { ChangeEvent, ReactElement } from 'react';
+import { useCallback } from 'react';
+import { MoreHorizontal, ShieldAlert, ShieldCheck, SquarePen, UserCheck, UserMinus, UserPlus } from 'lucide-react';
 
-const mockUsers = [
-    { id: 1, name: '王小明', email: 'admin@example.com', role: 'admin' },
-    { id: 2, name: '陳老師', email: 'teacher@example.com', role: 'teacher' },
-    { id: 3, name: '林同學', email: 'student@example.com', role: 'user' },
-];
+type ManageAdminUsersPageProps = Omit<SharedData, 'abilities'> & {
+    users: ManageUserListResponse;
+    filters: ManageUserFilterState;
+    filterOptions: ManageUserFilterOptions;
+    abilities: ManageUserAbilities;
+};
+
+type FilterFormState = {
+    keyword: string;
+    roles: string[];
+    statuses: string[];
+    space: string;
+    sort: string;
+    direction: 'asc' | 'desc';
+    per_page: string;
+};
+
+type DetailFormState = {
+    name: string;
+    email: string;
+    role: string | null;
+    status: string;
+    locale: string | null;
+    spaces: number[];
+};
+
+const PER_PAGE_OPTIONS = ['10', '15', '25', '50'] as const;
+
+function formatDateTime(value: string | null | undefined, locale: string): string {
+    if (!value) {
+        return '—';
+    }
+
+    return new Date(value).toLocaleString(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+function getInitials(name: string): string {
+    const full = name.trim();
+    if (!full) {
+        return 'U';
+    }
+
+    const parts = full.split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
+}
 
 export default function ManageAdminUsersIndex() {
+    const page = usePage<ManageAdminUsersPageProps>();
+    const { users, filters, filterOptions, abilities } = page.props;
+    const locale = typeof page.props.locale === 'string' ? page.props.locale : 'zh-TW';
+
     const { t } = useTranslator('manage');
+    const { toasts, showSuccess, showError, showWarning, dismissToast } = useToast();
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -30,54 +107,748 @@ export default function ManageAdminUsersIndex() {
         },
     ];
 
-    const pageTitle = t('sidebar.admin.users', '使用者');
+    const pageTitle = t('sidebar.admin.users', '使用者管理');
+
+    const defaultFilterForm = useMemo<FilterFormState>(() => ({
+        keyword: filters.keyword ?? '',
+        roles: filters.roles ?? [],
+        statuses: filters.statuses ?? [],
+        space: filters.space ? String(filters.space) : '',
+        sort: filters.sort ?? 'name',
+        direction: filters.direction ?? 'asc',
+        per_page: String(filters.per_page ?? parseInt(PER_PAGE_OPTIONS[1], 10)),
+    }), [filters.keyword, filters.roles, filters.statuses, filters.space, filters.sort, filters.direction, filters.per_page]);
+
+    const [filterForm, setFilterForm] = useState<FilterFormState>(defaultFilterForm);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [pendingBulkAction, setPendingBulkAction] = useState<'activate' | 'deactivate' | null>(null);
+    const [confirmBulkOpen, setConfirmBulkOpen] = useState(false);
+    const [detailUser, setDetailUser] = useState<ManageUser | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [detailForm, setDetailForm] = useState<DetailFormState | null>(null);
+    const [detailSaving, setDetailSaving] = useState(false);
+    const keywordTimer = useRef<number | null>(null);
+    const pagination = users.meta;
+
+    useEffect(() => {
+        setFilterForm(defaultFilterForm);
+    }, [defaultFilterForm]);
+
+    useEffect(() => {
+        setSelectedIds([]);
+    }, [pagination.current_page, users.data.map(user => user.id).join('-')]);
+
+    useEffect(() => {
+        if (filterForm.keyword === (filters.keyword ?? '')) {
+            return;
+        }
+
+        if (keywordTimer.current) {
+            window.clearTimeout(keywordTimer.current);
+        }
+
+        keywordTimer.current = window.setTimeout(() => {
+            applyFilters({ keyword: filterForm.keyword }, { replace: true });
+        }, 400);
+
+        return () => {
+            if (keywordTimer.current) {
+                window.clearTimeout(keywordTimer.current);
+            }
+        };
+    }, [filterForm.keyword]);
+
+    const applyFilters = useCallback((overrides: Partial<FilterFormState> = {}, options: { replace?: boolean } = {}) => {
+        const payload: Record<string, string | number | string[] | null> = {
+            keyword: (overrides.keyword ?? filterForm.keyword) || null,
+            roles: overrides.roles ?? filterForm.roles,
+            statuses: overrides.statuses ?? filterForm.statuses,
+            space: (overrides.space ?? filterForm.space) || null,
+            sort: overrides.sort ?? filterForm.sort,
+            direction: overrides.direction ?? filterForm.direction,
+            per_page: overrides.per_page ?? filterForm.per_page,
+        };
+
+        router.get('/manage/admin/users', payload, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: options.replace ?? false,
+        });
+    }, [filterForm.keyword, filterForm.roles, filterForm.statuses, filterForm.space, filterForm.sort, filterForm.direction, filterForm.per_page]);
+
+    const handlePerPageChange = (perPage: string) => {
+        setFilterForm(prev => ({ ...prev, per_page: perPage }));
+        applyFilters({ per_page: perPage }, { replace: true });
+    };
+
+    const handleSortChange = (sort: string) => {
+        setFilterForm(prev => ({ ...prev, sort }));
+        applyFilters({ sort }, { replace: true });
+    };
+
+    const handleDirectionToggle = () => {
+        const direction = filterForm.direction === 'asc' ? 'desc' : 'asc';
+        setFilterForm(prev => ({ ...prev, direction }));
+        applyFilters({ direction }, { replace: true });
+    };
+
+    const toggleRoleFilter = (value: string) => {
+        setFilterForm(prev => {
+            const exists = prev.roles.includes(value);
+            const updated = exists ? prev.roles.filter(role => role !== value) : [...prev.roles, value];
+            applyFilters({ roles: updated });
+            return { ...prev, roles: updated };
+        });
+    };
+
+    const toggleStatusFilter = (value: string) => {
+        setFilterForm(prev => {
+            const exists = prev.statuses.includes(value);
+            const updated = exists ? prev.statuses.filter(status => status !== value) : [...prev.statuses, value];
+            applyFilters({ statuses: updated });
+            return { ...prev, statuses: updated };
+        });
+    };
+
+    const handleSpaceFilterChange = (space: string) => {
+        setFilterForm(prev => ({ ...prev, space }));
+        applyFilters({ space }, { replace: true });
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(users.data.map(user => user.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleRowSelect = (id: number, checked: boolean) => {
+        setSelectedIds(prev => {
+            if (checked) {
+                return [...new Set([...prev, id])];
+            }
+            return prev.filter(item => item !== id);
+        });
+    };
+
+    const fetchDetail = async (userId: number) => {
+        try {
+            setDetailLoading(true);
+            const response = await apiClient.get<{ data: ManageUser }>(`/admin/users/${userId}`);
+            const fetchedUser = response.data.data;
+            setDetailUser(fetchedUser);
+            setDetailForm({
+                name: fetchedUser.name,
+                email: fetchedUser.email,
+                role: fetchedUser.role,
+                status: fetchedUser.status,
+                locale: fetchedUser.locale,
+                spaces: fetchedUser.spaces.map(space => space.id),
+            });
+            setDetailOpen(true);
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const handleStatusChange = async (user: ManageUser, status: 'active' | 'inactive') => {
+        try {
+            await apiClient.put(`/admin/users/${user.id}`, {
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status,
+                spaces: user.spaces.map(space => space.id),
+                locale: user.locale,
+            });
+            showSuccess(status === 'active' ? t('users.actions.activated', '已啟用使用者。') : t('users.actions.deactivated', '已停用使用者。'));
+            router.reload({ only: ['users'] });
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        }
+    };
+
+    const executeBulkStatus = async (status: 'active' | 'inactive') => {
+        try {
+            const response = await apiClient.post<{ message?: string }>('/admin/users/bulk-status', {
+                user_ids: selectedIds,
+                status,
+            });
+            showSuccess(response.data.message ?? t('users.bulk.success', '批次狀態已更新。'));
+            router.reload({ only: ['users'] });
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        } finally {
+            setPendingBulkAction(null);
+            setConfirmBulkOpen(false);
+        }
+    };
+
+    const handleSendPasswordReset = async (user: ManageUser) => {
+        try {
+            const response = await apiClient.post<{ message?: string }>(`/admin/users/${user.id}/password-reset`);
+            showSuccess(response.data.message ?? t('users.actions.reset_sent', '密碼重設連結已寄出。'));
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        }
+    };
+
+    const handleImpersonate = async (user: ManageUser) => {
+        try {
+            await apiClient.post(`/admin/users/${user.id}/impersonate`);
+            showWarning(t('users.actions.impersonating', '已切換至模擬登入帳號，重新導向中。'));
+            window.location.href = '/manage/dashboard';
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        }
+    };
+
+    const roleOptions = filterOptions.roles;
+    const statusOptions = filterOptions.statuses;
+    const spaceOptions = filterOptions.spaces;
+
+    const actionDisabled = selectedIds.length === 0;
+    const activeSelectedCount = users.data.filter(user => selectedIds.includes(user.id) && user.status === 'active').length;
+
+    const renderStatusBadge = (user: ManageUser) => {
+        const isActive = user.status === 'active';
+        const Icon = isActive ? ShieldCheck : ShieldAlert;
+
+        return (
+            <Badge
+                variant="outline"
+                className={cn(
+                    'gap-1 capitalize border-2',
+                    isActive
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-700',
+                )}
+            >
+                <Icon className="h-3 w-3" />
+                {user.status_label}
+            </Badge>
+        );
+    };
+
+    const handleDetailRoleToggle = (role: string) => {
+        setDetailForm(prev => {
+            if (!prev) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                role,
+            };
+        });
+    };
+
+    const handleDetailStatusChange = (status: string) => {
+        setDetailForm(prev => {
+            if (!prev) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                status,
+            };
+        });
+    };
+
+    const handleDetailSpaceToggle = (spaceId: number, checked: boolean) => {
+        setDetailForm(prev => {
+            if (!prev) {
+                return prev;
+            }
+
+            const current = new Set(prev.spaces);
+            if (checked) {
+                current.add(spaceId);
+            } else {
+                current.delete(spaceId);
+            }
+
+            return {
+                ...prev,
+                spaces: Array.from(current),
+            };
+        });
+    };
+
+    const handleDetailSave = async () => {
+        if (!detailUser || !detailForm) {
+            return;
+        }
+
+        try {
+            setDetailSaving(true);
+            const response = await apiClient.put<{ data: ManageUser; message?: string }>(`/admin/users/${detailUser.id}`, {
+                name: detailForm.name,
+                email: detailForm.email,
+                locale: detailForm.locale,
+                role: detailForm.role,
+                status: detailForm.status,
+                spaces: detailForm.spaces,
+            });
+
+            const updated = response.data.data;
+            setDetailUser(updated);
+            setDetailForm({
+                name: updated.name,
+                email: updated.email,
+                role: updated.role,
+                status: updated.status,
+                locale: updated.locale,
+                spaces: updated.spaces.map(space => space.id),
+            });
+
+            showSuccess(response.data.message ?? t('users.detail.save_success', '使用者設定已更新。'));
+            router.reload({ only: ['users'] });
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(t('shared.error.unknown', '發生未知錯誤。'));
+            }
+        } finally {
+            setDetailSaving(false);
+        }
+    };
+
+    const renderRoleBadge = (user: ManageUser) => (
+        <Badge variant="outline" className="capitalize">
+            {user.role_label}
+        </Badge>
+    );
 
     return (
         <>
             <Head title={pageTitle} />
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
             <ManagePage
                 title={pageTitle}
-                description={t('users.description', '管理使用者角色與登入權限。')}
+                description={t('users.description', '管理使用者角色、權限與登入狀態。')}
                 breadcrumbs={breadcrumbs}
-                toolbar={
-                    <Button size="sm" className="gap-2">
-                        <UserPlus className="h-4 w-4" />
-                        {t('users.invite', '邀請新成員')}
-                    </Button>
-                }
+                toolbar={(
+                    <div className="flex flex-wrap items-center gap-2">
+                        {abilities.canCreate && (
+                            <Button size="sm" className="gap-2">
+                                <UserPlus className="h-4 w-4" />
+                                {t('users.invite', '邀請新成員')}
+                            </Button>
+                        )}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="outline" className="gap-2" disabled={actionDisabled}>
+                                    <UserCheck className="h-4 w-4" />
+                                    {t('users.bulk.actions', '批次操作')}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>{t('users.bulk.title', '選擇批次動作')}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    disabled={actionDisabled || (!abilities.canUpdate && !abilities.canAssignRoles)}
+                                    onSelect={() => {
+                                        setPendingBulkAction('activate');
+                                        setConfirmBulkOpen(true);
+                                    }}
+                                    className="gap-2"
+                                >
+                                    <ShieldCheck className="h-4 w-4" />
+                                    {t('users.bulk.activate', '啟用選取帳號')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    disabled={actionDisabled || (!abilities.canUpdate && !abilities.canAssignRoles)}
+                                    onSelect={() => {
+                                        setPendingBulkAction('deactivate');
+                                        setConfirmBulkOpen(true);
+                                    }}
+                                    className="gap-2"
+                                >
+                                    <ShieldAlert className="h-4 w-4" />
+                                    {t('users.bulk.deactivate', '停用選取帳號')}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                )}
             >
                 <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-neutral-200/80">
-                                <TableHead className="w-2/6 text-neutral-500">{t('users.table.name', '姓名')}</TableHead>
-                                <TableHead className="w-2/6 text-neutral-500">{t('users.table.email', '電子郵件')}</TableHead>
-                                <TableHead className="w-2/6 text-right text-neutral-500">{t('users.table.role', '角色')}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {mockUsers.map((user) => (
-                                <TableRow key={user.id} className="border-neutral-200/60">
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-neutral-800">{user.name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-neutral-500">{user.email}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge variant="outline" className="capitalize">
-                                            {t(`users.roles.${user.role}`, user.role)}
-                                        </Badge>
-                                    </TableCell>
+                    <div className="flex flex-col gap-4 border-b border-neutral-200/70 p-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex flex-1 items-center gap-2">
+                            <Input
+                                value={filterForm.keyword}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) => setFilterForm(prev => ({ ...prev, keyword: event.target.value }))}
+                                placeholder={t('users.filters.keyword_placeholder', '搜尋姓名或 Email')}
+                                className="max-w-xs"
+                            />
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        {t('users.filters.roles', '角色')}
+                                        {filterForm.roles.length > 0 && (
+                                            <Badge variant="secondary" className="ml-2">
+                                                {filterForm.roles.length}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-48">
+                                    {roleOptions.map(option => (
+                                        <DropdownMenuItem key={option.value} className="gap-2" onSelect={(event) => event.preventDefault()}>
+                                            <Checkbox
+                                                checked={filterForm.roles.includes(String(option.value))}
+                                                onCheckedChange={() => toggleRoleFilter(String(option.value))}
+                                            />
+                                            <span>{option.label}</span>
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        {t('users.filters.status', '狀態')}
+                                        {filterForm.statuses.length > 0 && (
+                                            <Badge variant="secondary" className="ml-2">
+                                                {filterForm.statuses.length}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-48">
+                                    {statusOptions.map(option => (
+                                        <DropdownMenuItem key={option.value} className="gap-2" onSelect={(event) => event.preventDefault()}>
+                                            <Checkbox
+                                                checked={filterForm.statuses.includes(String(option.value))}
+                                                onCheckedChange={() => toggleStatusFilter(String(option.value))}
+                                            />
+                                            <span>{option.label}</span>
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Select
+                                value={filterForm.space}
+                                onChange={(event: ChangeEvent<HTMLSelectElement>) => handleSpaceFilterChange(event.target.value)}
+                                className="max-w-[180px]"
+                            >
+                                <option value="">{t('users.filters.space_all', '全部空間')}</option>
+                                {spaceOptions.map(option => (
+                                    <option key={option.value} value={String(option.value)}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Select
+                                value={filterForm.sort}
+                                onChange={(event: ChangeEvent<HTMLSelectElement>) => handleSortChange(event.target.value)}
+                                className="w-40"
+                            >
+                                {filterOptions.sorts.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </Select>
+                            <Button variant="outline" size="sm" onClick={handleDirectionToggle}>
+                                {filterForm.direction === 'asc' ? t('users.filters.direction.asc', '升冪') : t('users.filters.direction.desc', '降冪')}
+                            </Button>
+                            <Select
+                                value={filterForm.per_page}
+                                onChange={(event: ChangeEvent<HTMLSelectElement>) => handlePerPageChange(event.target.value)}
+                                className="w-28"
+                            >
+                                {PER_PAGE_OPTIONS.map(option => (
+                                    <option key={option} value={option}>
+                                        {t('users.filters.per_page', '{count} 筆/頁', { count: option })}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between px-4 py-2 text-sm text-neutral-500">
+                        <div>
+                            {selectedIds.length > 0 ? (
+                                <span>{t('users.bulk.selected_count', '已選擇 {count} 筆', { count: selectedIds.length })}</span>
+                            ) : (
+                                <span>{t('users.bulk.no_selection', '尚未選擇任何使用者')}</span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-neutral-400">{t('users.stats.total_spaces', '空間總數：')} {users.data.reduce((acc, user) => acc + user.space_count, 0)}</span>
+                            <span className="text-neutral-400">{t('users.stats.active_count', '啟用帳號：')} {users.data.filter(user => user.status === 'active').length}</span>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="border-neutral-200/80">
+                                    <TableHead className="w-10">
+                                        <Checkbox
+                                            checked={selectedIds.length > 0 && selectedIds.length === users.data.length}
+                                            onCheckedChange={checked => handleSelectAll(Boolean(checked))}
+                                            aria-label={t('users.table.select_all', '全選')}
+                                        />
+                                    </TableHead>
+                                    <TableHead className="min-w-[220px] text-neutral-500">{t('users.table.name', '姓名')}</TableHead>
+                                    <TableHead className="min-w-[220px] text-neutral-500">{t('users.table.email', '電子郵件')}</TableHead>
+                                    <TableHead className="min-w-[120px] text-neutral-500">{t('users.table.role', '角色')}</TableHead>
+                                    <TableHead className="min-w-[120px] text-neutral-500">{t('users.table.status', '狀態')}</TableHead>
+                                    <TableHead className="min-w-[160px] text-neutral-500">{t('users.table.last_login', '最近登入')}</TableHead>
+                                    <TableHead className="min-w-[200px] text-neutral-500">{t('users.table.spaces', '所屬 Space')}</TableHead>
+                                    <TableHead className="w-16 text-right text-neutral-500">{t('users.table.actions', '操作')}</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {users.data.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={8}>
+                                            <TableEmpty
+                                                title={t('users.empty.title', '尚無使用者資料')}
+                                                description={t('users.empty.description', '您可以從右上角邀請新成員或稍後再試。')}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {users.data.map(user => (
+                                    <TableRow key={user.id} className="border-neutral-200/70">
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={selectedIds.includes(user.id)}
+                                                onCheckedChange={checked => handleRowSelect(user.id, Boolean(checked))}
+                                                aria-label={t('users.table.select_row', '選擇使用者')}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium text-neutral-800">{user.name}</div>
+                                                    <div className="text-xs text-neutral-400">ID #{user.id}</div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-neutral-600">{user.email}</TableCell>
+                                        <TableCell>{renderRoleBadge(user)}</TableCell>
+                                        <TableCell>{renderStatusBadge(user)}</TableCell>
+                                        <TableCell className="text-neutral-500">{formatDateTime(user.last_login_at, locale)}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.spaces.length === 0 && (
+                                                    <span className="text-xs text-neutral-400">{t('users.table.no_spaces', '尚未綁定')}</span>
+                                                )}
+                                                {user.spaces.slice(0, 3).map(space => (
+                                                    <Badge key={space.id} variant="secondary" className="text-xs">
+                                                        {space.name}
+                                                    </Badge>
+                                                ))}
+                                                {user.space_count > 3 && (
+                                                    <Badge variant="outline" className="text-xs text-neutral-500">
+                                                        +{user.space_count - 3}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuItem className="gap-2" onSelect={() => fetchDetail(user.id)}>
+                                                        <SquarePen className="h-4 w-4" />
+                                                        {t('users.actions.view_detail', '檢視詳細資料')}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        disabled={!abilities.canSendPasswordReset}
+                                                        className="gap-2"
+                                                        onSelect={() => handleSendPasswordReset(user)}
+                                                    >
+                                                        <UserMinus className="h-4 w-4" />
+                                                        {t('users.actions.send_reset', '寄送重設密碼')}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        disabled={!abilities.canImpersonate}
+                                                        className="gap-2"
+                                                        onSelect={() => handleImpersonate(user)}
+                                                    >
+                                                        <UserCheck className="h-4 w-4" />
+                                                        {t('users.actions.impersonate', '模擬登入')}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="gap-2"
+                                                        disabled={!abilities.canUpdate}
+                                                        onSelect={() => handleStatusChange(user, user.status === 'active' ? 'inactive' : 'active')}
+                                                    >
+                                                        {user.status === 'active' ? (
+                                                            <ShieldAlert className="h-4 w-4 text-red-500" />
+                                                        ) : (
+                                                            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                                                        )}
+                                                        {user.status === 'active'
+                                                            ? t('users.actions.deactivate', '停用帳號')
+                                                            : t('users.actions.activate', '啟用帳號')}
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="border-t border-neutral-200/70 p-4">
+                        <Pagination
+                            meta={{
+                                current_page: pagination.current_page,
+                                last_page: pagination.last_page,
+                                per_page: pagination.per_page,
+                                total: pagination.total,
+                                from: pagination.from ?? 0,
+                                to: pagination.to ?? 0,
+                                links: pagination.links ?? [],
+                            }}
+                            onPerPageChange={(perPage) => handlePerPageChange(String(perPage))}
+                            perPageOptions={PER_PAGE_OPTIONS.map(option => Number(option))}
+                        />
+                    </div>
                 </section>
             </ManagePage>
+
+            <ConfirmDialog
+                open={confirmBulkOpen}
+                onOpenChange={setConfirmBulkOpen}
+                title={pendingBulkAction === 'activate' ? t('users.bulk.confirm_activate_title', '確認啟用') : t('users.bulk.confirm_deactivate_title', '確認停用')}
+                description={pendingBulkAction === 'activate'
+                    ? t('users.bulk.confirm_activate_description', '將啟用所有選取的帳號，是否繼續？')
+                    : t('users.bulk.confirm_deactivate_description', '將停用所有選取的帳號，是否繼續？')}
+                onConfirm={() => pendingBulkAction && executeBulkStatus(pendingBulkAction === 'activate' ? 'active' : 'inactive')}
+                variant={pendingBulkAction === 'activate' ? 'default' : 'destructive'}
+            />
+
+            <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
+                <SheetContent className="w-full sm:max-w-2xl">
+                    <SheetHeader>
+                        <SheetTitle>{detailUser?.name ?? t('users.detail.title', '使用者詳情')}</SheetTitle>
+                        <SheetDescription>
+                            {detailUser?.email ?? t('users.detail.description', '檢視使用者基本資料、角色與活動紀錄。')}
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="grid gap-6 px-4 pb-8">
+                        {detailLoading && (
+                            <div className="text-center text-sm text-neutral-500">{t('users.detail.loading', '載入中...')}</div>
+                        )}
+                        {!detailLoading && detailUser && (
+                            <>
+                                <div className="rounded-lg border border-neutral-200/70 p-4">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="h-14 w-14">
+                                            <AvatarFallback>{getInitials(detailUser.name)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <div className="text-lg font-semibold text-neutral-900">{detailUser.name}</div>
+                                            <div className="text-sm text-neutral-500">{detailUser.email}</div>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {renderRoleBadge(detailUser)}
+                                                {renderStatusBadge(detailUser)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-neutral-600 sm:grid-cols-2">
+                                        <div>
+                                            <dt className="text-neutral-400">{t('users.detail.fields.locale', '語系')}</dt>
+                                            <dd>{detailUser.locale ?? '—'}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-neutral-400">{t('users.detail.fields.last_login', '最近登入')}</dt>
+                                            <dd>{formatDateTime(detailUser.last_login_at, locale)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-neutral-400">{t('users.detail.fields.created_at', '建立時間')}</dt>
+                                            <dd>{formatDateTime(detailUser.created_at, locale)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-neutral-400">{t('users.detail.fields.updated_at', '最後更新')}</dt>
+                                            <dd>{formatDateTime(detailUser.updated_at, locale)}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+
+                                <div className="rounded-lg border border-neutral-200/70 p-4">
+                                    <h3 className="text-sm font-semibold text-neutral-700">{t('users.detail.sections.spaces', '綁定 Space')}</h3>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {detailUser.spaces.length === 0 && (
+                                            <span className="text-sm text-neutral-400">{t('users.detail.no_spaces', '尚未綁定任何空間')}</span>
+                                        )}
+                                        {detailUser.spaces.map(space => (
+                                            <Badge key={space.id} variant="outline">
+                                                {space.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="rounded-lg border border-neutral-200/70 p-4">
+                                    <h3 className="text-sm font-semibold text-neutral-700">{t('users.detail.sections.activities', '最近操作紀錄')}</h3>
+                                    <div className="mt-3 space-y-3">
+                                        {detailUser.recent_activities && detailUser.recent_activities.length > 0 ? (
+                                            detailUser.recent_activities.map(activity => (
+                                                <div key={activity.id} className="rounded-lg border border-neutral-200/60 bg-neutral-50/70 p-3">
+                                                    <div className="text-sm font-medium text-neutral-800">{activity.action}</div>
+                                                    <div className="text-xs text-neutral-500">{formatDateTime(activity.created_at, locale)}</div>
+                                                    {activity.description && (
+                                                        <p className="mt-2 text-sm text-neutral-600">{activity.description}</p>
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-neutral-400">{t('users.detail.no_activities', '尚無操作紀錄。')}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
         </>
     );
 }

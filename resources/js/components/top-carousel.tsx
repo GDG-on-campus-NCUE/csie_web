@@ -36,16 +36,16 @@ export default function TopCarousel({
     // swipe/drag support
     const startX = useRef<number | null>(null);
     const deltaX = useRef(0);
-    const onPointerDown = (e: React.PointerEvent) => {
-        startX.current = e.clientX;
+    const onPointerDown = (event: React.PointerEvent) => {
+        startX.current = event.clientX;
         deltaX.current = 0;
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        event.currentTarget.setPointerCapture(event.pointerId);
     };
-    const onPointerMove = (e: React.PointerEvent) => {
+    const onPointerMove = (event: React.PointerEvent) => {
         if (startX.current == null) return;
-        deltaX.current = e.clientX - startX.current;
+        deltaX.current = event.clientX - startX.current;
     };
-    const onPointerUp = (e: React.PointerEvent) => {
+    const onPointerUp = () => {
         if (startX.current == null) return;
         const dx = deltaX.current;
         startX.current = null;
@@ -74,7 +74,7 @@ export default function TopCarousel({
                     onPointerDown={onPointerDown}
                     onPointerMove={onPointerMove}
                     onPointerUp={onPointerUp}
-                    style={{ touchAction: 'pan-y' } as any}
+                    style={{ touchAction: 'pan-y' }}
                 >
                     {/* fade cross-fade stack */}
                     <div className="relative mx-auto w-full" style={{ height: 'min(100%, 560px)' }}>

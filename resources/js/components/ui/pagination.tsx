@@ -39,13 +39,6 @@ export default function Pagination({
         return null;
     }
 
-    const getPageNumber = (link: PaginationLink): number | null => {
-        if (!link.url) return null;
-        const url = new URL(link.url);
-        const page = url.searchParams.get('page');
-        return page ? parseInt(page) : null;
-    };
-
     const previousLink = links.find(link => link.label === '&laquo; Previous');
     const nextLink = links.find(link => link.label === 'Next &raquo;');
     const numberLinks = links.filter(link =>
@@ -117,7 +110,6 @@ export default function Pagination({
 
                 {/* Page numbers */}
                 {numberLinks.map((link, index) => {
-                    const pageNumber = getPageNumber(link);
                     const isEllipsis = link.label === '...';
 
                     if (isEllipsis) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\AttachmentBuilder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -106,6 +107,14 @@ class Attachment extends Model
                 return self::VISIBILITY_MAP[$key] ?? self::VISIBILITY_MAP['public'];
             }
         );
+    }
+
+    /**
+     * 使用自訂查詢產生器，支援以字串指定附件類型。
+     */
+    public function newEloquentBuilder($query): AttachmentBuilder
+    {
+        return new AttachmentBuilder($query);
     }
 
     /**

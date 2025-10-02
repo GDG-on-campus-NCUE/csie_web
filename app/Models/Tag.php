@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -25,6 +26,7 @@ class Tag extends Model
         'classrooms' => '教室',
         'programs' => '學程',
         'projects' => '研究計畫',
+        'spaces' => '空間',
     ];
 
     /**
@@ -35,9 +37,13 @@ class Tag extends Model
     protected $fillable = [
         'context',
         'name',
+        'name_en',
         'slug',
         'description',
+        'color',
         'sort_order',
+        'is_active',
+        'last_used_at',
     ];
 
     /**
@@ -46,7 +52,9 @@ class Tag extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'sort_order' => 'integer',
+    'sort_order' => 'integer',
+    'is_active' => 'boolean',
+    'last_used_at' => 'datetime',
     ];
 
     /**
@@ -126,6 +134,10 @@ class Tag extends Model
             ->first();
 
         if ($existing) {
+            if (! $existing->last_used_at) {
+                $existing->forceFill(['last_used_at' => now()])->saveQuietly();
+            }
+
             return $existing;
         }
 
@@ -137,6 +149,32 @@ class Tag extends Model
             'slug' => $slug,
             'description' => null,
             'sort_order' => 0,
+            'is_active' => true,
+            'last_used_at' => now(),
         ]);
+    }
+
+    /**
+     * 標籤與公告的關聯。
+     */
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_tag');
+    }
+
+    /**
+     * 標籤與空間的關聯。
+     */
+    public function spaces(): BelongsToMany
+    {
+        return $this->belongsToMany(Space::class, 'space_tag');
+    }
+
+    /**
+     * 查詢範圍：僅啟用的標籤。
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 }

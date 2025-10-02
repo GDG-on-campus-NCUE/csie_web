@@ -23,17 +23,21 @@ class PostFactory extends Factory
     {
         return [
             'category_id' => PostCategory::factory(),
+            'space_id' => null,
             'title' => $title = $this->faker->sentence(),
             'title_en' => $title,
+            'excerpt' => $excerpt = $this->faker->sentences(2, true),
+            'excerpt_en' => $excerpt,
             'summary' => $summary = $this->faker->sentence(),
             'summary_en' => $summary,
             'content' => $content = $this->faker->paragraphs(3, true),
             'content_en' => $content,
             'slug' => $this->faker->slug(),
             'status' => 'draft',
+            'visibility' => 'public',
             'source_type' => 'manual',
             'pinned' => false,
-            'publish_at' => null,
+            'published_at' => null,
             'views' => 0,
             'tags' => [],
             'created_by' => User::factory(),
@@ -45,7 +49,7 @@ class PostFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'published',
-            'publish_at' => now(),
+            'published_at' => now(),
         ]);
     }
 
@@ -53,7 +57,7 @@ class PostFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'draft',
-            'publish_at' => null,
+            'published_at' => null,
         ]);
     }
 }

@@ -40,12 +40,8 @@ class EnsureManageRole
             }
         }
 
-        if (!$hasPermission) {
-            if ($request->expectsJson() || ! $request->isMethod('GET')) {
-                abort(Response::HTTP_FORBIDDEN);
-            }
-
-            return redirect()->route('home');
+        if (! $hasPermission) {
+            abort(Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

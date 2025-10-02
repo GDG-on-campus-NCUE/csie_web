@@ -43,7 +43,7 @@ return new class extends Migration
             $table->string('source_url')
                 ->nullable()
                 ->comment('外部來源網址');
-            $table->timestamp('publish_at')->nullable()->comment('發佈時間')->index();
+            $table->timestamp('published_at')->nullable()->comment('發佈時間')->index();
             $table->timestamp('expire_at')->nullable()->comment('下架時間');
             $table->boolean('pinned')->default(false)->comment('是否置頂')->index();
             $table->string('cover_image_url')->nullable()->comment('封面圖片網址');

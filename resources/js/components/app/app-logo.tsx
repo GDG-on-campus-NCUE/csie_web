@@ -1,8 +1,9 @@
 import { usePage } from '@inertiajs/react';
 import AppLogoIcon from '@/components/app/app-logo-icon';
+import type { SharedData } from '@/types/shared';
 
 export default function AppLogo() {
-    const page = usePage<any>();
+    const page = usePage<SharedData>();
     const { locale } = page.props;
     const isZh = locale?.toLowerCase() === 'zh-tw';
 

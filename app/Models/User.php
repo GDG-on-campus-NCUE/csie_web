@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Space;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -80,7 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+    'email_verified_at' => 'datetime',
+    'last_login_at' => 'datetime',
+    'last_seen_at' => 'datetime',
     ];
 
     /**
@@ -144,6 +148,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * 使用者所屬空間。
+     */
+    public function spaces(): BelongsToMany
+    {
+        return $this->belongsToMany(Space::class, 'space_user')->withTimestamps();
     }
 
     /**

@@ -102,7 +102,6 @@ function makeHero(
 
 const brandPalette = palettes.brand;
 const dashboardPalette = palettes.brand;
-const midnightPalette = palettes.midnight;
 const warmPalette = palettes.warm;
 const slatePalette = palettes.slate;
 
@@ -127,8 +126,8 @@ export const pageLayouts: Record<PageKey, PageLayoutPreset> = {
                 'flex h-full flex-col justify-center gap-5 rounded-[2rem] border border-white/50 bg-white/70 p-6 shadow-lg backdrop-blur',
             ),
             surfaces: {
-            primary: cn(surfaceTokens.panel, 'h-full px-8 py-8 text-neutral-900 md:px-10 md:py-10'),
-            secondary: cn(surfaceTokens.soft, 'h-full space-y-5 px-6 py-6 text-neutral-900 backdrop-blur-lg'),
+                primary: cn(surfaceTokens.panel, 'h-full px-8 py-8 text-neutral-900 md:px-10 md:py-10'),
+                secondary: cn(surfaceTokens.soft, 'h-full space-y-5 px-6 py-6 text-neutral-900 backdrop-blur-lg'),
             },
         }),
         sections: {

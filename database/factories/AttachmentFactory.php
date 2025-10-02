@@ -20,8 +20,10 @@ class AttachmentFactory extends Factory
         $filename = $this->faker->lexify('attachment-????.pdf');
         $path = 'attachments/'.Str::uuid().'.pdf';
 
+        $postMorphAlias = (new Post())->getMorphClass();
+
         return [
-            'attached_to_type' => Post::class,
+            'attached_to_type' => $postMorphAlias,
             'attached_to_id' => Post::factory(),
             'type' => 'document',
             'title' => $filename,

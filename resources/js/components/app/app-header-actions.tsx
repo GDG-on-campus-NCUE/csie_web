@@ -32,7 +32,7 @@ export default function AppHeaderActions({
     onSearchChange,
     onSearchSubmit
 }: AppHeaderActionsProps) {
-    const page = usePage<SharedData & { auth: any }>();
+    const page = usePage<SharedData>();
     const { auth } = page.props;
     const { t } = useTranslator('common');
 

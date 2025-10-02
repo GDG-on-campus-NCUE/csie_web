@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarInset, SidebarProvider, SidebarRail } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
-import { isValidElement, cloneElement, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { LifeBuoy, ShieldCheck } from 'lucide-react';
 
 interface ManageLayoutProps {
@@ -27,6 +27,23 @@ function resolvePrimaryRole(user: User | undefined): 'admin' | 'teacher' | 'user
     }
 
     return 'admin';
+}
+
+function isManagePageElement(node: ReactNode): node is ReactElement<ManagePageProps> {
+    if (!isValidElement(node)) {
+        return false;
+    }
+
+    if (node.type === ManagePage) {
+        return true;
+    }
+
+    if (node.type && (typeof node.type === 'function' || typeof node.type === 'object')) {
+        const maybeDisplayName = (node.type as { displayName?: string | undefined }).displayName;
+        return maybeDisplayName === ManagePage.displayName;
+    }
+
+    return false;
 }
 
 export default function ManageLayout({ children }: ManageLayoutProps) {
@@ -93,8 +110,8 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
 
     let content: ReactNode;
 
-    if (isValidElement(children) && (children.type === ManagePage || (children.type as any)?.displayName === ManagePage.displayName)) {
-        const child = children as ReactElement<ManagePageProps>;
+    if (isManagePageElement(children)) {
+        const child = children;
         content = cloneElement(child, {
             title: child.props.title ?? defaultPageProps.title,
             description: child.props.description ?? defaultPageProps.description,

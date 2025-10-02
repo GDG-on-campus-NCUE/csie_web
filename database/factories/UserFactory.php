@@ -33,6 +33,8 @@ class UserFactory extends Factory
             'locale' => 'en',
             'status' => 'active',
             'role' => 'user',
+            'last_login_at' => now()->subDays(fake()->numberBetween(0, 30)),
+            'last_seen_at' => now()->subDays(fake()->numberBetween(0, 10)),
         ];
     }
 

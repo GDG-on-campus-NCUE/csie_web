@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Settings, Languages, Moon, Sun, Monitor, Globe, Palette } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Settings, Languages, Globe, Palette } from 'lucide-react';
 import { cn } from '@/lib/shared/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useTranslator } from '@/hooks/use-translator';
@@ -12,17 +12,17 @@ interface FloatingSettingsProps {
     variant?: 'fixed' | 'draggable';
 }
 
-export default function FloatingSettings({ 
-    className = '', 
-    variant = 'draggable' 
+export default function FloatingSettings({
+    className = '',
+    variant = 'draggable',
 }: FloatingSettingsProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [position, setPosition] = useState({ x: 20, y: 100 });
     const buttonRef = useRef<HTMLButtonElement>(null);
     const dragStart = useRef({ x: 0, y: 0 });
-    
-    const { locale } = usePage<SharedData>().props as SharedData & { locale: string };
+
+    const { locale = 'zh-TW' } = usePage<SharedData>().props;
     const { t } = useTranslator('common');
 
     const isZh = locale?.toLowerCase() === 'zh-tw';
@@ -30,45 +30,44 @@ export default function FloatingSettings({
     const zhUrl = `${basePath}/zh-TW`;
     const enUrl = `${basePath}/en`;
 
-    const handleMouseDown = (e: React.MouseEvent) => {
-        if (variant !== 'draggable') return;
-        
-        setIsDragging(true);
-        dragStart.current = {
-            x: e.clientX - position.x,
-            y: e.clientY - position.y,
-        };
-        
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = useCallback((event: MouseEvent) => {
         if (!isDragging) return;
-        
-        const newX = e.clientX - dragStart.current.x;
-        const newY = e.clientY - dragStart.current.y;
-        
-        // 限制在視窗範圍內
-        const maxX = window.innerWidth - 56; // 按鈕寬度
-        const maxY = window.innerHeight - 56; // 按鈕高度
-        
+
+        const newX = event.clientX - dragStart.current.x;
+        const newY = event.clientY - dragStart.current.y;
+
+        const maxX = window.innerWidth - 56;
+        const maxY = window.innerHeight - 56;
+
         setPosition({
             x: Math.max(0, Math.min(newX, maxX)),
             y: Math.max(0, Math.min(newY, maxY)),
         });
-    };
+    }, [isDragging]);
 
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         setIsDragging(false);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+    }, [handleMouseMove]);
+
+    const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (variant !== 'draggable') return;
+
+        setIsDragging(true);
+        dragStart.current = {
+            x: event.clientX - position.x,
+            y: event.clientY - position.y,
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
     };
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         // 避免在拖動時觸發點擊事件
         if (isDragging) {
-            e.preventDefault();
+            event.preventDefault();
             return;
         }
         setIsOpen(true);
@@ -85,7 +84,7 @@ export default function FloatingSettings({
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, []);
+    }, [handleMouseMove, handleMouseUp]);
 
     const buttonStyle = variant === 'draggable' ? {
         left: `${position.x}px`,
@@ -109,21 +108,21 @@ export default function FloatingSettings({
                 )}
                 aria-label={t('settings.floating_button', '設置')}
             >
-                <Settings 
+                <Settings
                     className={cn(
                         'h-6 w-6 transition-transform duration-300',
                         isDragging ? 'rotate-45' : 'group-hover:rotate-90'
-                    )} 
+                    )}
                 />
-                
+
                 {/* 小指示點 */}
                 <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-400 ring-2 ring-white" />
             </button>
 
             {/* 設置面板 */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetContent 
-                    side="bottom" 
+                <SheetContent
+                    side="bottom"
                     className="mx-auto max-w-md rounded-t-3xl border-none bg-white/95 p-0 shadow-2xl backdrop-blur-xl"
                 >
                     <SheetHeader className="border-b border-neutral-200 px-6 pb-4 pt-6">
@@ -135,7 +134,7 @@ export default function FloatingSettings({
                             </div>
                         </SheetTitle>
                     </SheetHeader>
-                    
+
                     <div className="p-6 space-y-8">
                         {/* 語言設置 */}
                         <div className="space-y-4">
@@ -152,27 +151,27 @@ export default function FloatingSettings({
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => handleLanguageChange('zh-TW')}
                                     className={cn(
                                         'flex items-center justify-center gap-2 rounded-xl border-2 bg-white px-4 py-3 text-sm font-semibold transition-all',
-                                        isZh 
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                                        isZh
+                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
                                             : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50'
                                     )}
                                 >
                                     <Globe className="h-4 w-4" />
                                     繁體中文
                                 </button>
-                                
+
                                 <button
                                     onClick={() => handleLanguageChange('en')}
                                     className={cn(
                                         'flex items-center justify-center gap-2 rounded-xl border-2 bg-white px-4 py-3 text-sm font-semibold transition-all',
-                                        !isZh 
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                                        !isZh
+                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
                                             : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50'
                                     )}
                                 >
@@ -197,7 +196,7 @@ export default function FloatingSettings({
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <AppearanceToggleTab className="mx-auto" />
                         </div>
 
@@ -206,17 +205,17 @@ export default function FloatingSettings({
                             <h4 className="text-sm font-semibold text-neutral-700">
                                 {t('settings.quick_actions', '快速操作')}
                             </h4>
-                            
+
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <a 
+                                <a
                                     href="#contact"
                                     className="flex items-center gap-2 rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200"
                                     onClick={() => setIsOpen(false)}
                                 >
                                     📧 {t('nav.contact', '聯絡我們')}
                                 </a>
-                                
-                                <a 
+
+                                <a
                                     href="/bulletins"
                                     className="flex items-center gap-2 rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200"
                                     onClick={() => setIsOpen(false)}

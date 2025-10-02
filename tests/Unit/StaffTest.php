@@ -5,12 +5,13 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use App\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class StaffTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_create_a_staff_member()
     {
         $staff = Staff::create([
@@ -39,7 +40,7 @@ class StaffTest extends TestCase
         $this->assertEquals('Ya-Ting Chang', $nameJson['en']);
     }
 
-    /** @test */
+    #[Test]
     public function it_requires_name_and_email()
     {
         $this->expectException(\Illuminate\Database\QueryException::class);
@@ -50,7 +51,7 @@ class StaffTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_by_visible_status()
     {
         Staff::create([
@@ -80,7 +81,7 @@ class StaffTest extends TestCase
         $this->assertEquals('hidden@example.edu', $hiddenStaff->first()->email);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_ordered_by_sort_order()
     {
         Staff::create([
@@ -107,7 +108,7 @@ class StaffTest extends TestCase
         $this->assertEquals('first@example.edu', $orderedStaff->last()->email);
     }
 
-    /** @test */
+    #[Test]
     public function it_has_default_values()
     {
         $staff = Staff::create([
@@ -122,7 +123,7 @@ class StaffTest extends TestCase
         $this->assertEquals(0, $staff->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_by_name_or_email()
     {
         Staff::create([

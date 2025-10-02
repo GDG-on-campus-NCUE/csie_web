@@ -338,7 +338,7 @@ class PostBulkImportService
         $slug = $this->parseSlug($row, $header, $title);
         $summary = $this->parseSummary($row, $header);
         $status = $this->parseStatus($row, $header);
-        $publishAt = $this->parsePublishAt($row, $header, $status);
+        $publishedAt = $this->parsePublishedAt($row, $header, $status);
         $tags = $this->parseTags($row, $header);
 
         // 英文欄位
@@ -368,7 +368,7 @@ class PostBulkImportService
             'content' => $content,
             'content_en' => $contentEn ?? $content,
             'status' => $status,
-            'publish_at' => $publishAt,
+            'published_at' => $publishedAt,
             'tags' => $tags,
             'source_url' => $sourceUrl ?: null,
         ];
@@ -597,26 +597,28 @@ class PostBulkImportService
      * @param string $status
      * @return \Carbon\Carbon|null
      */
-    private function parsePublishAt(array $row, array $header, string $status): ?\Carbon\Carbon
+    private function parsePublishedAt(array $row, array $header, string $status): ?\Carbon\Carbon
     {
-        if (!isset($header['publish_at'])) {
+        if (!isset($header['published_at']) && !isset($header['publish_at'])) {
             return $status === 'published' ? now() : null;
         }
 
-        $publishAtStr = trim((string) ($row[$header['publish_at']] ?? ''));
-        if ($publishAtStr === '') {
+        $columnKey = $header['published_at'] ?? $header['publish_at'];
+
+        $publishedAtStr = trim((string) ($row[$columnKey] ?? ''));
+        if ($publishedAtStr === '') {
             return $status === 'published' ? now() : null;
         }
 
         try {
-            $publishAt = \Carbon\Carbon::parse($publishAtStr);
+            $publishedAt = \Carbon\Carbon::parse($publishedAtStr);
 
-            if ($status === 'scheduled' && $publishAt->isPast()) {
+            if ($status === 'scheduled' && $publishedAt->isPast()) {
                 // 如果是排程狀態但時間已過，改為立即發布
                 return now();
             }
 
-            return $publishAt;
+            return $publishedAt;
         } catch (\Exception $e) {
             // 無法解析時間，根據狀態決定
             return $status === 'published' ? now() : null;
@@ -666,7 +668,7 @@ class PostBulkImportService
             'content' => $postData['content'],
             'content_en' => $postData['content_en'],
             'status' => $postData['status'],
-            'publish_at' => $postData['publish_at'],
+            'published_at' => $postData['published_at'],
             'expire_at' => null,
             'pinned' => false,
             'tags' => $postData['tags'],

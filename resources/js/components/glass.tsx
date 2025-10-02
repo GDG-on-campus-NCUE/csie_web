@@ -62,7 +62,7 @@ function createGlassComponent<TDefault extends ElementType>(
                     'animate-fade-slide',
                     className,
                 )}
-                {...(rest as ComponentPropsWithoutRef<any>)}
+                {...(rest as ComponentPropsWithoutRef<T>)}
             />
         );
     }

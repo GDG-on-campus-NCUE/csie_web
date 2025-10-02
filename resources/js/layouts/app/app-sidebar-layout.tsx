@@ -1,12 +1,12 @@
-import { type BreadcrumbItem } from '@/types/shared';
 import { type ReactNode } from 'react';
+import type { BreadcrumbItem } from '@/types/shared';
 
 interface AppSidebarLayoutProps {
     children: ReactNode;
     breadcrumbs?: BreadcrumbItem[];
 }
 
-export default function AppSidebarLayout({ children, breadcrumbs }: AppSidebarLayoutProps) {
+export default function AppSidebarLayout({ children }: AppSidebarLayoutProps) {
     return (
         <div className="min-h-screen bg-neutral-50">
             <main className="container mx-auto px-4 py-8">

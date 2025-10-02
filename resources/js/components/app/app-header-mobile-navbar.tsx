@@ -48,7 +48,7 @@ export default function AppMobileNavbar({
     onSearchSubmit
 }: AppMobileNavbarProps) {
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-    const page = usePage<SharedData & { auth: any }>();
+    const page = usePage<SharedData>();
     const { auth } = page.props;
     const { t } = useTranslator('common');
 

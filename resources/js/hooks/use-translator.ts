@@ -5,8 +5,11 @@ type LocaleKey = 'zh-TW' | 'en';
 
 type ReplacementValues = Record<string, string | number>;
 
-const resolve = (source: Record<string, any>, path: string) =>
-    path.split('.').reduce<any>((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
+interface NestedMessages {
+    [key: string]: string | NestedMessages;
+}
+
+type NamespacedMessages = Record<LocaleKey, NestedMessages>;
 
 const applyReplacements = (value: string, replacements?: ReplacementValues): string => {
     if (!replacements) {
@@ -18,22 +21,43 @@ const applyReplacements = (value: string, replacements?: ReplacementValues): str
     );
 };
 
+const resolveMessage = (source: NestedMessages, path: string): string | NestedMessages | undefined => {
+    return path.split('.').reduce<string | NestedMessages | undefined>((accumulator, segment) => {
+        if (accumulator === undefined) {
+            return undefined;
+        }
+
+        if (typeof accumulator === 'string') {
+            return accumulator;
+        }
+
+        return accumulator[segment];
+    }, source);
+};
+
 export function useTranslator(namespace: string = 'common') {
-    const page = usePage<SharedData & { i18n?: Record<string, any> }>();
+    const page = usePage<SharedData>();
     const { locale, i18n } = page.props;
     const localeKey: LocaleKey = locale?.toLowerCase() === 'zh-tw' ? 'zh-TW' : 'en';
 
-    const messages = (i18n?.[namespace] ?? {}) as Record<LocaleKey, Record<string, any>>;
-    const current = messages[localeKey] ?? {};
-    const fallback = messages['zh-TW'] ?? {};
+    const namespaceMessages: NamespacedMessages =
+        typeof i18n === 'object' && i18n !== null && namespace in i18n && typeof i18n[namespace] === 'object'
+            ? (i18n[namespace] as NamespacedMessages)
+            : ({
+                  'zh-TW': {},
+                  en: {},
+              } satisfies NamespacedMessages);
+
+    const current = namespaceMessages[localeKey] ?? {};
+    const fallback = namespaceMessages['zh-TW'] ?? {};
 
     const t = (key: string, fallbackText?: string, replacements?: ReplacementValues): string => {
-        const localized = resolve(current, key);
+        const localized = resolveMessage(current, key);
         if (typeof localized === 'string') {
             return applyReplacements(localized, replacements);
         }
 
-        const fallbackValue = resolve(fallback, key);
+        const fallbackValue = resolveMessage(fallback, key);
         if (typeof fallbackValue === 'string') {
             return applyReplacements(fallbackValue, replacements);
         }

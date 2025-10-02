@@ -2,7 +2,7 @@
 // 於測試環境中並不會實際存在，因此在此以 any 型別提供最小化的型別定義。
 
 declare module '@/actions/*' {
-    const controller: any;
+    const controller: (...args: unknown[]) => unknown;
     export default controller;
 }
 
@@ -14,27 +14,34 @@ declare module '@/routes/*' {
     export type RouteFormDefinition<Method extends string | readonly string[] = string> = Method extends readonly string[]
         ? { action: string; method: Method[number] }
         : { action: string; method: Method };
+    export type RouteInvoker = {
+        (...args: unknown[]): string;
+        url: (options?: RouteQueryOptions) => string;
+        form: (...args: unknown[]) => RouteFormDefinition;
+    };
     export function url(options?: RouteQueryOptions): string;
-    export const form: any;
-    export const get: any;
-    export const post: any;
-    export const put: any;
-    export const patch: any;
-    export const head: any;
-    export const destroy: any;
-    export const edit: any;
-    export const request: any;
-    export const send: any;
-    const route: any;
+    export const form: (...args: unknown[]) => RouteFormDefinition;
+    export const get: (...args: unknown[]) => RouteDefinition;
+    export const post: (...args: unknown[]) => RouteDefinition;
+    export const put: (...args: unknown[]) => RouteDefinition;
+    export const patch: (...args: unknown[]) => RouteDefinition;
+    export const head: (...args: unknown[]) => RouteDefinition;
+    export const destroy: (...args: unknown[]) => RouteDefinition;
+    export const edit: (...args: unknown[]) => RouteDefinition;
+    export const request: (...args: unknown[]) => RouteDefinition;
+    export const send: (...args: unknown[]) => RouteDefinition;
+    const route: RouteInvoker;
     export default route;
 }
 
 declare module '@/routes' {
-    export const home: any;
-    export const login: any;
-    export const logout: any;
-    export const register: any;
-    export const dashboard: any;
+    import type { RouteInvoker } from '@/routes/*';
+
+    export const home: RouteInvoker;
+    export const login: RouteInvoker;
+    export const logout: RouteInvoker;
+    export const register: RouteInvoker;
+    export const dashboard: RouteInvoker;
 }
 
 declare module '../wayfinder' {

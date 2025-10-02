@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useTranslator } from '@/hooks/use-translator';
 import { buildSidebarNavGroups } from '@/lib/manage/sidebar-nav-groups';
+import type { SharedData } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
 
 interface ManageSidebarMainProps {
@@ -16,10 +17,11 @@ interface ManageSidebarMainProps {
 
 export default function ManageSidebarMain({ role }: ManageSidebarMainProps) {
     const { t } = useTranslator('manage');
-    const page = usePage();
+    const page = usePage<SharedData>();
     const currentPath = page.url ?? '';
+    const abilities = page.props.abilities;
 
-    const groups = buildSidebarNavGroups(role, t);
+    const groups = buildSidebarNavGroups(role, t, abilities);
 
     return (
         <SidebarMenu>

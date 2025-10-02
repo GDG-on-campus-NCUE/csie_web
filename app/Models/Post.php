@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
@@ -25,8 +26,10 @@ class Post extends Model
     public const STATUS_MAP = [
         'draft' => 0,
         'published' => 1,
+
         'hidden' => 2,
         'scheduled' => 3,
+        'archived' => 4,
     ];
 
     /**
@@ -41,22 +44,37 @@ class Post extends Model
     ];
 
     /**
+     * 公告可見性對應表。
+     *
+     * @var array<string, int>
+     */
+    public const VISIBILITY_MAP = [
+        'public' => 1,
+        'internal' => 2,
+        'private' => 3,
+    ];
+
+    /**
      * 欄位可批次填充設定。
      *
      * @var list<string>
      */
     protected $fillable = [
         'category_id',
+        'space_id',
         'slug',
         'status',
+        'visibility',
         'source_type',
         'source_url',
-        'publish_at',
+        'published_at',
         'expire_at',
         'pinned',
         'cover_image_url',
         'title',
         'title_en',
+        'excerpt',
+        'excerpt_en',
         'summary',
         'summary_en',
         'content',
@@ -72,7 +90,7 @@ class Post extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'publish_at' => 'datetime',
+        'published_at' => 'datetime',
         'expire_at' => 'datetime',
         'pinned' => 'boolean',
         'views' => 'integer',
@@ -124,6 +142,36 @@ class Post extends Model
     }
 
     /**
+     * 設定公告可見性。
+     */
+    protected function visibility(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): string => array_flip(self::VISIBILITY_MAP)[$value] ?? 'public',
+            set: function ($value) {
+                if (is_int($value)) {
+                    return $value;
+                }
+
+                $key = is_string($value) ? strtolower($value) : 'public';
+
+                return self::VISIBILITY_MAP[$key] ?? self::VISIBILITY_MAP['public'];
+            }
+        );
+    }
+
+    /**
+     * 取得或設定公告的發佈時間。
+     */
+    protected function publishedAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? $this->asDateTime($value) : null,
+            set: fn ($value) => $value
+        );
+    }
+
+    /**
      * 多型附件關聯。
      */
     public function attachments(): MorphMany
@@ -137,6 +185,14 @@ class Post extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(PostCategory::class, 'category_id');
+    }
+
+    /**
+     * 綁定的 Space。
+     */
+    public function space(): BelongsTo
+    {
+        return $this->belongsTo(Space::class, 'space_id');
     }
 
     /**
@@ -228,8 +284,8 @@ class Post extends Model
             $builder->where('status', self::STATUS_MAP['published'])
                 ->orWhere(function (Builder $scheduled) {
                     $scheduled->where('status', self::STATUS_MAP['scheduled'])
-                        ->whereNotNull('publish_at')
-                        ->where('publish_at', '<=', now());
+                        ->whereNotNull('published_at')
+                        ->where('published_at', '<=', now());
                 });
         });
     }
@@ -241,7 +297,7 @@ class Post extends Model
     {
         return $query
             ->orderByDesc('pinned')
-            ->orderByDesc('publish_at')
+            ->orderByDesc('published_at')
             ->orderByDesc('created_at');
     }
 
@@ -299,5 +355,30 @@ class Post extends Model
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * 產生唯一的 slug。
+     */
+    public static function generateUniqueSlug(string $title, ?string $preferredSlug = null, ?int $ignoreId = null): string
+    {
+        $base = $preferredSlug ? Str::slug($preferredSlug) : Str::slug($title);
+
+        if ($base === '') {
+            $base = Str::slug(Str::random(8));
+        }
+
+        $candidate = strtolower($base);
+        $suffix = 1;
+
+        while (static::query()
+            ->when($ignoreId, fn (Builder $query) => $query->where('id', '!=', $ignoreId))
+            ->where('slug', $candidate)
+            ->exists()) {
+            $candidate = strtolower($base . '-' . $suffix);
+            $suffix++;
+        }
+
+        return $candidate;
     }
 }

@@ -34,31 +34,26 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonProps = React.ComponentProps<'button'> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button"
-
-  // Prevent props.className from accidentally overwriting the computed
-  // variant classes. Merge in the explicit `className` and any incoming
-  // `props.className` so callers can still add small tweaks without
-  // removing the base styles. This fixes cases where callers passed
-  // `className` to the Button and it replaced the essential button styles.
-  const { className: propsClassName, ...rest } = props as any
-  const mergedClassName = cn(buttonVariants({ variant, size }), className, propsClassName)
+  const mergedClassName = cn(buttonVariants({ variant, size }), className)
 
   return (
     <Comp
       data-slot="button"
       className={mergedClassName}
-      {...rest}
+      {...props}
     />
   )
 }
