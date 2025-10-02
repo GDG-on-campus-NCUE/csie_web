@@ -42,7 +42,7 @@
 #### 3.1.1 資料與 API
 - [x] `Post` 模型加入 `excerpt`, `published_at`, `visibility`, `space_id` 欄位。
 - [x] 附件 morph type 資料清理（統一別名與遷移腳本）。
-- [ ] `Manage\PostController`：
+- [x] `Manage\PostController`：
 	- [x] `index`
 	- [x] `store`
 	- [x] `update`
@@ -54,7 +54,7 @@
 #### 3.1.2 列表頁
 - [x] 表格欄位：標題、分類、狀態、標籤、建立者、最後更新、瀏覽次數。
 - [x] Toolbar：搜尋框（debounce）、狀態篩選、標籤篩選、批次操作下拉（發佈 / 封存 / 刪除）。
-- [ ] 支援多選列；在下方顯示分頁（每頁 10 筆），提供跳頁輸入框。
+- [x] 支援多選列；在下方顯示分頁（每頁 10 筆），提供跳頁輸入框。
 - [x] 空態卡片：提示尚無公告，提供「立即新增」。
 
 #### 3.1.3 建立/編輯表單
@@ -65,17 +65,17 @@
 - [x] 提供「儲存草稿」、「預覽」、「發佈」三個動作按鈕，按鈕停用狀態依提交中更新。
 
 #### 3.1.4 詳細頁（show）
-- [ ] 顯示標題、狀態 badge、發佈資訊、標籤列表、連結 Space 資源摘要。
-- [ ] 附件列出可下載連結 + 檔案大小 + 標籤。
-- [ ] 歷程區塊：顯示最近 5 筆更新紀錄（人員、時間、變更摘要）。
+- [x] 顯示標題、狀態 badge、發佈資訊、標籤列表、連結 Space 資源摘要。
+- [x] 附件列出可下載連結 + 檔案大小 + 標籤。
+- [x] 歷程區塊：顯示最近 5 筆更新紀錄（人員、時間、變更摘要）。
 
 #### 3.1.5 測試
-- [ ] Feature：
+- [x] Feature：
 	- [x] 建立成功（含附件/主圖）
 	- [x] 更新成功（含附件保留/移除）
 	- [x] 批次操作
-	- [ ] 未授權阻擋
-	- [ ] 標籤同步詳測
+	- [x] 未授權阻擋
+	- [x] 標籤同步詳測
 - [ ] Dusk/Browser：建立公告流程、表單錯誤顯示、擷取成功提示。
 
 ### 3.2 標籤管理（/manage/admin/tags）
@@ -93,7 +93,7 @@
 - [ ] 詳細抽屜：基本資料、角色管理、多重 Space 授權、最近 10 次活動。
 - [ ] 角色編輯表單：checkbox 群組 + 儲存按鈕。
 - [ ] Actions：重設密碼連結、模擬登入 (impersonate)、停權/啟用。
-- [ ] 後端：`Manage\\UserController` + `UserFilter` + `UpdateRoleRequest` + Audit log。
+- [x] 後端：`Manage\\UserController` + `UserFilter` + `UpdateRoleRequest` + Audit log。
 
 ### 3.4 附件資源（/manage/admin/attachments）
 - [ ] 資料表新增 `space_id`, `tags`, `description` 欄位。
@@ -104,10 +104,10 @@
 - [ ] Detail Drawer：顯示檔案預覽、metadata、引用紀錄（哪篇公告使用）。
 
 ### 3.5 公告留言/聯絡表單（/manage/admin/messages）
-- [ ] 列表欄位：主旨、發送者、Email、狀態（新訊息/處理中/已結案）、提交時間。
-- [ ] 內有分頁、狀態篩選、關鍵字搜尋。
-- [ ] 詳細視窗：顯示訊息內容、附件、處理紀錄，提供回覆與更改狀態表單。
-- [ ] 後端：`Manage\\MessageController` + `MessageReplyController`，支援記錄處理過程。
+- [x] 列表欄位：主旨、發送者、Email、狀態（新訊息/處理中/已結案）、提交時間。
+- [x] 內有分頁、狀態篩選、關鍵字搜尋。
+- [x] 詳細視窗：顯示訊息內容、附件、處理紀錄，提供回覆與更改狀態表單。
+- [x] 後端：`Manage\MessageController` 完成列表/篩選/統計（`MessageReplyController` 待補強處理歷程）。
 
 ### 3.6 啟動稽核與記錄
 - [ ] 所有敏感操作（公告發佈、標籤合併、user 角色變更）觸發 `ManageActivity` log。

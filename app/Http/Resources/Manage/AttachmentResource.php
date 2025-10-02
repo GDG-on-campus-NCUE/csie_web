@@ -2,7 +2,10 @@
 
 namespace App\Http\Resources\Manage;
 
+use App\Models\Post;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property-read int $id
@@ -31,6 +34,43 @@ class AttachmentResource extends JsonResource
      */
     public function toArray($request): array
     {
+        $downloadUrl = null;
+
+        if (RouteFacade::has('public.attachments.download')) {
+            $downloadUrl = route('public.attachments.download', $this->resource);
+        } elseif ($this->file_url) {
+            $downloadUrl = $this->file_url;
+        } elseif ($this->disk && $this->disk_path) {
+            try {
+                $downloadUrl = Storage::disk($this->disk)->url($this->disk_path);
+            } catch (\Throwable $exception) {
+                $downloadUrl = null;
+            }
+        }
+
+        $attachable = null;
+        if ($this->relationLoaded('attachable') && $this->attachable) {
+            $model = $this->attachable;
+
+            if ($model instanceof Post) {
+                $attachable = [
+                    'type' => 'post',
+                    'id' => $model->id,
+                    'title' => $model->title,
+                    'status' => $model->status,
+                    'space' => $model->relationLoaded('space') && $model->space ? [
+                        'id' => $model->space->id,
+                        'name' => $model->space->name,
+                    ] : null,
+                ];
+            } else {
+                $attachable = [
+                    'type' => class_basename($model),
+                    'id' => $model->getKey(),
+                ];
+            }
+        }
+
         return [
             'id' => $this->id,
             'type' => $this->type,
@@ -51,10 +91,12 @@ class AttachmentResource extends JsonResource
                 'name' => $this->uploader->name,
                 'email' => $this->uploader->email,
             ] : null,
+            'attachable' => $attachable,
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
             'deleted_at' => optional($this->deleted_at)->toIso8601String(),
-            'download_url' => route('public.attachments.download', $this->resource),
+            'uploaded_at' => optional($this->created_at)->toIso8601String(),
+            'download_url' => $downloadUrl,
         ];
     }
 }
