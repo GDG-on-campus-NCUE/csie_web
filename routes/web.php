@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AttachmentDownloadController;
 use App\Http\Controllers\PageController;
 
 // basic page
@@ -10,6 +11,9 @@ Route::get('home', function () {
 // lang settings
 // Named differently to avoid collision with the main home route name
 Route::get('/lang/{locale}', [PageController::class, 'setLang'])->name('lang.set');
+
+Route::get('/attachments/{attachment}/download', AttachmentDownloadController::class)
+    ->name('public.attachments.download');
 
 
 

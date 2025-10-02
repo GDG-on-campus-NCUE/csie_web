@@ -146,4 +146,12 @@ class Attachment extends Model
             Storage::disk($this->disk)->delete($this->disk_path);
         }
     }
+
+    /**
+     * 判斷附件是否為私人可見。
+     */
+    public function isPrivate(): bool
+    {
+        return $this->visibility === 'private';
+    }
 }
