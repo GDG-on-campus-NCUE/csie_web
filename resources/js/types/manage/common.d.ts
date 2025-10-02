@@ -58,3 +58,11 @@ export interface SpaceOption {
     description?: string | null;
     icon?: string | null;
 }
+
+export interface ManageActivityLogItem {
+    id: number | string;
+    action: string;
+    description: string | null;
+    properties: Record<string, unknown> | null;
+    created_at: string | null;
+}

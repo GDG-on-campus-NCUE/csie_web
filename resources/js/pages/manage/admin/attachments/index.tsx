@@ -382,6 +382,20 @@ export default function ManageAdminAttachmentsIndex() {
                                                 : '—',
                                         })}
                                     </div>
+                                    {/* 顯示附件描述內容，協助管理員快速辨識用途 */}
+                                    {attachment.description ? (
+                                        <p className="text-xs text-neutral-500">{attachment.description}</p>
+                                    ) : null}
+                                    {/* 標籤列出時改用膠囊標示，突顯分類資訊 */}
+                                    {attachment.tags && attachment.tags.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                            {attachment.tags.map((tag) => (
+                                                <Badge key={tag} variant="outline" className="text-[10px] capitalize text-neutral-500">
+                                                    #{tag}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                     {attachment.uploader ? (
                                         <div className="text-xs text-neutral-400">
                                             {tAttachments('table.uploader', '由 :name 上傳', { name: attachment.uploader.name })}
@@ -408,6 +422,11 @@ export default function ManageAdminAttachmentsIndex() {
                                             <div className="text-xs text-neutral-400 capitalize">
                                                 {tAttachments(`table.attachable_type.${attachment.attachable.type}`, attachment.attachable.type)}
                                             </div>
+                                        </div>
+                                    ) : attachment.space ? (
+                                        <div>
+                                            <div className="font-medium text-neutral-700">{tAttachments('table.space', '空間：:name', { name: attachment.space.name })}</div>
+                                            <div className="text-xs text-neutral-400">{tAttachments('table.orphan', '尚未綁定資源')}</div>
                                         </div>
                                     ) : (
                                         <span className="text-xs text-neutral-400">{tAttachments('table.orphan', '尚未綁定資源')}</span>
@@ -484,6 +503,20 @@ export default function ManageAdminAttachmentsIndex() {
                                     </Badge>
                                     <span className="text-xs text-neutral-400">{formatFileSize(attachment.size)}</span>
                                 </div>
+                                {/* 描述文字以段落顯示，提供更多上下文 */}
+                                {attachment.description ? (
+                                    <p className="text-xs text-neutral-500">{attachment.description}</p>
+                                ) : null}
+                                {/* 在卡片模式同樣顯示標籤資料 */}
+                                {attachment.tags && attachment.tags.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                        {attachment.tags.map((tag) => (
+                                            <Badge key={tag} variant="outline" className="text-[10px] capitalize text-neutral-500">
+                                                #{tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : null}
                                 {attachment.attachable ? (
                                     <div className="space-y-1 rounded-lg bg-neutral-50/70 p-3 text-xs">
                                         <div className="font-medium text-neutral-700">
@@ -498,6 +531,11 @@ export default function ManageAdminAttachmentsIndex() {
                                         <div className="text-neutral-400 capitalize">
                                             {tAttachments(`table.attachable_type.${attachment.attachable.type}`, attachment.attachable.type)}
                                         </div>
+                                    </div>
+                                ) : attachment.space ? (
+                                    <div className="space-y-1 rounded-lg bg-neutral-50/70 p-3 text-xs">
+                                        <div className="font-medium text-neutral-700">{tAttachments('table.space', '空間：:name', { name: attachment.space.name })}</div>
+                                        <div className="text-neutral-500">{tAttachments('table.orphan', '尚未綁定資源')}</div>
                                     </div>
                                 ) : (
                                     <div className="rounded-lg bg-neutral-50/70 p-3 text-xs text-neutral-400">

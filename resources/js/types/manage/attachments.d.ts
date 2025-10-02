@@ -7,6 +7,12 @@ export interface ManageAttachmentListItem {
     type: string;
     size: number | null;
     visibility: string;
+    description?: string | null;
+    tags?: string[];
+    space?: {
+        id: number;
+        name: string;
+    } | null;
     disk?: string | null;
     disk_path?: string | null;
     file_url?: string | null;

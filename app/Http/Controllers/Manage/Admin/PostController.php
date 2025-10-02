@@ -8,6 +8,7 @@ use App\Http\Requests\Manage\Admin\UpdatePostRequest;
 use App\Http\Resources\Manage\PostDetailResource;
 use App\Http\Resources\Manage\PostResource;
 use App\Models\Attachment;
+use App\Models\ManageActivity;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Tag;
@@ -247,7 +248,7 @@ class PostController extends Controller
             $linkAttachments = [];
         }
 
-        DB::transaction(function () use ($validated, $status, $publishedAt, $slug, $coverImageUrl, $fileAttachments, $linkAttachments, $user, $titleEn, $excerpt, $excerptEn, $summary, $summaryEn, $content, $contentEn) {
+        $post = DB::transaction(function () use ($validated, $status, $publishedAt, $slug, $coverImageUrl, $fileAttachments, $linkAttachments, $user, $titleEn, $excerpt, $excerptEn, $summary, $summaryEn, $content, $contentEn) {
             $post = new Post();
             $post->fill([
                 'category_id' => $validated['category_id'],
@@ -277,7 +278,24 @@ class PostController extends Controller
             $post->save();
 
             $this->storeAttachments($post, $fileAttachments, $linkAttachments, $user?->id, 0);
+            $this->syncAttachmentMetadata($post);
+
+            return $post->fresh(['tags']);
         });
+
+        if ($post instanceof Post) {
+            // 建立活動紀錄，方便後續稽核公告建立歷程
+            ManageActivity::log(
+                $user,
+                'post.created',
+                $post,
+                [
+                    'status' => $post->status,
+                    'space_id' => $post->space_id,
+                    'tag_slugs' => $this->resolvePostTagSlugs($post),
+                ]
+            );
+        }
 
         return redirect()->route('manage.posts.index');
     }
@@ -300,8 +318,9 @@ class PostController extends Controller
         $userId = $request->user()?->id;
         $timestamp = now();
 
-        DB::transaction(function () use ($ids, $action, $userId, $timestamp) {
+        $processed = DB::transaction(function () use ($ids, $action, $userId, $timestamp) {
             $posts = Post::query()->whereIn('id', $ids)->get();
+            $count = 0;
 
             foreach ($posts as $post) {
                 switch ($action) {
@@ -328,6 +347,7 @@ class PostController extends Controller
                         }
                         $post->save();
                         $post->delete();
+                        $count++;
                         continue 2;
                 }
 
@@ -336,8 +356,21 @@ class PostController extends Controller
                 }
 
                 $post->save();
+                $count++;
             }
+            return $count;
         });
+
+        ManageActivity::log(
+            $request->user(),
+            'post.bulk_action',
+            null,
+            [
+                'action' => $action,
+                'post_ids' => $ids,
+                'affected' => $processed,
+            ]
+        );
 
         return redirect()->route('manage.posts.index');
     }
@@ -524,7 +557,11 @@ class PostController extends Controller
             ->values()
             ->all();
 
-        DB::transaction(function () use ($post, $validated, $status, $publishedAt, $slug, $user, $titleEn, $excerpt, $excerptEn, $summary, $summaryEn, $content, $contentEn, $fileAttachments, $linkAttachments, $keepAttachmentIds, $request) {
+        $originalStatus = $post->status;
+        $originalSpaceId = $post->space_id;
+        $originalTags = $this->resolvePostTagSlugs($post->loadMissing('tags'));
+
+        $updatedPost = DB::transaction(function () use ($post, $validated, $status, $publishedAt, $slug, $user, $titleEn, $excerpt, $excerptEn, $summary, $summaryEn, $content, $contentEn, $fileAttachments, $linkAttachments, $keepAttachmentIds, $request) {
             if ($request->hasFile('featured_image')) {
                 // 若上傳新的主視覺，先移除舊檔案並儲存新路徑
                 $this->removeCoverImage($post->cover_image_url);
@@ -561,7 +598,24 @@ class PostController extends Controller
 
             $nextOrder = ($post->attachments()->max('sort_order') ?? -1) + 1;
             $this->storeAttachments($post, $fileAttachments, $linkAttachments, $user?->id, $nextOrder);
+            $this->syncAttachmentMetadata($post);
+
+            return $post->fresh(['tags']);
         });
+
+        if ($updatedPost instanceof Post) {
+            $newTags = $this->resolvePostTagSlugs($updatedPost);
+            ManageActivity::log(
+                $user,
+                'post.updated',
+                $updatedPost,
+                [
+                    'status_changed' => $originalStatus !== $updatedPost->status,
+                    'space_changed' => $originalSpaceId !== $updatedPost->space_id,
+                    'tags_changed' => $originalTags !== $newTags,
+                ]
+            );
+        }
 
         return redirect()->route('manage.posts.index');
     }
@@ -582,6 +636,15 @@ class PostController extends Controller
             $post->delete();
         });
 
+        ManageActivity::log(
+            $request->user(),
+            'post.deleted',
+            $post,
+            [
+                'space_id' => $post->space_id,
+            ]
+        );
+
         return redirect()->route('manage.posts.index');
     }
 
@@ -599,6 +662,15 @@ class PostController extends Controller
             $post->restore();
         });
 
+        ManageActivity::log(
+            $request->user(),
+            'post.restored',
+            $post,
+            [
+                'space_id' => $post->space_id,
+            ]
+        );
+
         return redirect()->route('manage.posts.index');
     }
 
@@ -608,11 +680,17 @@ class PostController extends Controller
      * @param  array<int, UploadedFile>  $files
      * @param  array<int, array<string, mixed>>  $links
      */
-    private function storeAttachments(Post $post, array $files, array $links, ?int $userId = null, int $startingOrder = 0): void
+    private function storeAttachments(Post $post, array $files, array $links, ?int $userId = null, int $startingOrder = 0, ?array $tagSlugs = null): void
     {
         // 根據既有附件數量決定排序初始值，避免覆蓋先前順序
         $order = $startingOrder;
         $directory = 'posts/attachments/' . now()->format('Y/m');
+
+        if ($tagSlugs === null) {
+            // 重新載入標籤以取得最新 slug 清單
+            $post->loadMissing('tags');
+            $tagSlugs = $this->resolvePostTagSlugs($post);
+        }
 
         foreach ($files as $file) {
             if (! $file instanceof UploadedFile) {
@@ -633,6 +711,8 @@ class PostController extends Controller
                 'mime_type' => $file->getClientMimeType(),
                 'size' => $file->getSize(),
                 'uploaded_by' => $userId,
+                'space_id' => $post->space_id,
+                'tags' => $tagSlugs,
                 'visibility' => 'public',
                 'sort_order' => $order++,
             ]);
@@ -655,10 +735,57 @@ class PostController extends Controller
                 'title' => $title,
                 'external_url' => $url,
                 'uploaded_by' => $userId,
+                'space_id' => $post->space_id,
+                'tags' => $tagSlugs,
                 'visibility' => 'public',
                 'sort_order' => $order++,
             ]);
         }
+    }
+
+    /**
+     * 同步附件的 Space 與標籤中繼資料。
+     */
+    private function syncAttachmentMetadata(Post $post): void
+    {
+        $post->loadMissing('attachments', 'tags');
+        $tagSlugs = $this->resolvePostTagSlugs($post);
+
+        $post->attachments->each(function (Attachment $attachment) use ($post, $tagSlugs) {
+            $attachment->fill([
+                'space_id' => $post->space_id,
+                'tags' => $tagSlugs,
+            ]);
+
+            if ($attachment->isDirty(['space_id', 'tags'])) {
+                // 僅在資料變動時更新，減少不必要的寫入
+                $attachment->save();
+            }
+        });
+    }
+
+    /**
+     * 取得公告的標籤 slug 陣列（皆轉為小寫）。
+     *
+     * @return array<int, string>
+     */
+    private function resolvePostTagSlugs(Post $post): array
+    {
+        if ($post->relationLoaded('tags')) {
+            return $post->getRelation('tags')
+                ->pluck('slug')
+                ->filter()
+                ->map(fn ($slug) => Str::lower((string) $slug))
+                ->values()
+                ->all();
+        }
+
+        return $post->tags()
+            ->pluck('tags.slug')
+            ->filter()
+            ->map(fn ($slug) => Str::lower((string) $slug))
+            ->values()
+            ->all();
     }
 
     /**

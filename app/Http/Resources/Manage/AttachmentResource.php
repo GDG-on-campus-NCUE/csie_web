@@ -71,6 +71,14 @@ class AttachmentResource extends JsonResource
             }
         }
 
+        $space = null;
+        if ($this->relationLoaded('space') && $this->space) {
+            $space = [
+                'id' => $this->space->id,
+                'name' => $this->space->name,
+            ];
+        }
+
         return [
             'id' => $this->id,
             'type' => $this->type,
@@ -83,6 +91,9 @@ class AttachmentResource extends JsonResource
             'mime_type' => $this->mime_type,
             'size' => $this->size,
             'visibility' => $this->visibility,
+            'description' => $this->description,
+            'tags' => $this->tags ?? [],
+            'space' => $space,
             'attached_to_type' => $this->attached_to_type,
             'attached_to_id' => $this->attached_to_id,
             'uploaded_by' => $this->uploaded_by,

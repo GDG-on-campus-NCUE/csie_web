@@ -14,6 +14,7 @@ import { Select } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import TableEmpty from '@/components/manage/table-empty';
+import ActivityTimeline from '@/components/manage/activity-timeline';
 import ToastContainer from '@/components/ui/toast-container';
 import { useTranslator } from '@/hooks/use-translator';
 import useToast from '@/hooks/use-toast';
@@ -828,21 +829,13 @@ export default function ManageAdminUsersIndex() {
 
                                 <div className="rounded-lg border border-neutral-200/70 p-4">
                                     <h3 className="text-sm font-semibold text-neutral-700">{t('users.detail.sections.activities', '最近操作紀錄')}</h3>
-                                    <div className="mt-3 space-y-3">
-                                        {detailUser.recent_activities && detailUser.recent_activities.length > 0 ? (
-                                            detailUser.recent_activities.map(activity => (
-                                                <div key={activity.id} className="rounded-lg border border-neutral-200/60 bg-neutral-50/70 p-3">
-                                                    <div className="text-sm font-medium text-neutral-800">{activity.action}</div>
-                                                    <div className="text-xs text-neutral-500">{formatDateTime(activity.created_at, locale)}</div>
-                                                    {activity.description && (
-                                                        <p className="mt-2 text-sm text-neutral-600">{activity.description}</p>
-                                                    )}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-neutral-400">{t('users.detail.no_activities', '尚無操作紀錄。')}</p>
-                                        )}
-                                    </div>
+                                    {/* 以共用時間線元件呈現活動，避免重複模板 */}
+                                    <ActivityTimeline
+                                        className="mt-3"
+                                        activities={detailUser.recent_activities}
+                                        locale={locale}
+                                        emptyText={t('users.detail.no_activities', '尚無操作紀錄。')}
+                                    />
                                 </div>
                             </>
                         )}

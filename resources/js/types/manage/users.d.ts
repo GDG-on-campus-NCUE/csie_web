@@ -1,3 +1,5 @@
+import type { ManageActivityLogItem } from './common';
+
 export interface ManageUserSpace {
     id: number;
     name: string;
@@ -8,13 +10,7 @@ export interface ManageUserProfileSummary {
     bio?: string | null;
 }
 
-export interface ManageUserActivityEntry {
-    id: number;
-    action: string;
-    description: string | null;
-    properties: Record<string, unknown> | null;
-    created_at: string | null;
-}
+export type ManageUserActivityEntry = ManageActivityLogItem;
 
 export interface ManageUser {
     id: number;
