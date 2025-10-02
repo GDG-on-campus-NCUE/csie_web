@@ -35,7 +35,10 @@ class AttachmentFactory extends Factory
             'mime_type' => 'application/pdf',
             'size' => $this->faker->numberBetween(1024, 2048),
             'uploaded_by' => User::factory(),
+            'space_id' => null,
             'visibility' => 'public',
+            'description' => $this->faker->optional()->sentence(),
+            'tags' => [],
             'sort_order' => 0,
         ];
     }

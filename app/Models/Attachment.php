@@ -55,9 +55,12 @@ class Attachment extends Model
         'mime_type',
         'size',
         'uploaded_by',
+        'space_id',
         'visibility',
         'alt_text',
         'alt_text_en',
+        'description',
+        'tags',
         'sort_order',
     ];
 
@@ -69,6 +72,7 @@ class Attachment extends Model
     protected $casts = [
         'size' => 'integer',
         'sort_order' => 'integer',
+        'tags' => 'array',
     ];
 
     /**
@@ -131,6 +135,14 @@ class Attachment extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * 所屬 Space 關聯。
+     */
+    public function space(): BelongsTo
+    {
+        return $this->belongsTo(Space::class, 'space_id');
     }
 
     /**

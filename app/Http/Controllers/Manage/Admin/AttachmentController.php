@@ -48,6 +48,7 @@ class AttachmentController extends Controller
         $query = Attachment::query()
             ->with([
                 'uploader:id,name,email',
+                'space:id,name',
                 'attachable' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Post::class => ['space:id,name'],
@@ -73,19 +74,27 @@ class AttachmentController extends Controller
 
         if ($filters['space']) {
             $spaceId = $filters['space'];
-            $query->whereHasMorph('attachable', [Post::class], function ($postQuery) use ($spaceId) {
-                $postQuery->where('space_id', $spaceId);
+
+            $query->where(function ($builder) use ($spaceId) {
+                // 以欄位與關聯雙重條件篩選，確保舊資料仍可被查詢
+                $builder->where('space_id', $spaceId)
+                    ->orWhereHasMorph('attachable', [Post::class], function ($postQuery) use ($spaceId) {
+                        $postQuery->where('space_id', $spaceId);
+                    });
             });
         }
 
         if ($filters['tag']) {
             $tagValue = Str::lower($filters['tag']);
-            $query->whereHasMorph('attachable', [Post::class], function ($postQuery) use ($tagValue) {
-                $postQuery->whereHas('tags', function ($tagQuery) use ($tagValue) {
-                    $tagQuery->whereRaw('LOWER(tags.slug) = ?', [$tagValue])
-                        ->orWhereRaw('LOWER(tags.name) = ?', [$tagValue])
-                        ->orWhere('tags.id', $tagValue);
-                });
+            $query->where(function ($builder) use ($tagValue) {
+                $builder->whereJsonContains('tags', $tagValue)
+                    ->orWhereHasMorph('attachable', [Post::class], function ($postQuery) use ($tagValue) {
+                        $postQuery->whereHas('tags', function ($tagQuery) use ($tagValue) {
+                            $tagQuery->whereRaw('LOWER(tags.slug) = ?', [$tagValue])
+                                ->orWhereRaw('LOWER(tags.name) = ?', [$tagValue])
+                                ->orWhere('tags.id', $tagValue);
+                        });
+                    });
             });
         }
 

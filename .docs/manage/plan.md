@@ -96,9 +96,9 @@
 - [x] 後端：`Manage\\UserController` + `UserFilter` + `UpdateRoleRequest` + Audit log。
 
 ### 3.4 附件資源（/manage/admin/attachments）
-- [ ] 資料表新增 `space_id`, `tags`, `description` 欄位。
+- [x] 資料表新增 `space_id`, `tags`, `description` 欄位。
 - [ ] 列表支援 Grid/List 切換；欄位有縮圖、檔名、大小、標籤、綁定 Space、建立者。
-- [ ] 篩選：檔案類型、標籤、space、日期。
+- [x] 篩選：檔案類型、標籤、space、日期。
 - [ ] 批次操作：下載、改標籤、移轉 Space、刪除。
 - [ ] 上傳流程：拖放區 + 進度條 + 失敗重試；成功後可直接編輯名稱/備註。
 - [ ] Detail Drawer：顯示檔案預覽、metadata、引用紀錄（哪篇公告使用）。
@@ -111,7 +111,7 @@
 
 ### 3.6 啟動稽核與記錄
 - [ ] 所有敏感操作（公告發佈、標籤合併、user 角色變更）觸發 `ManageActivity` log。
-- [ ] `resources/js/components/manage/activity-timeline.tsx` 顯示最新 20 筆記錄。
+- [x] `resources/js/components/manage/activity-timeline.tsx` 顯示最新 20 筆記錄。
 
 ## 4. 教師模組（role = teacher）
 ### 4.1 教師公告/課程管理
