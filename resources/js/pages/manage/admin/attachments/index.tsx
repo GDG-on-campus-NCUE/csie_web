@@ -2,16 +2,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
+import AttachmentUploadModal from '@/components/manage/admin/attachment-upload-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/pagination';
 import { Select } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import TableEmpty from '@/components/manage/table-empty';
+import ToastContainer from '@/components/ui/toast-container';
 import { useTranslator } from '@/hooks/use-translator';
-import { formatBytes } from '@/lib/shared/utils';
+import useToast from '@/hooks/use-toast';
+import { apiClient, isManageApiError } from '@/lib/manage/api-client';
+import { cn, formatBytes } from '@/lib/shared/utils';
 import type {
     ManageAttachmentFilterOptions,
     ManageAttachmentFilterState,
@@ -21,7 +29,7 @@ import type {
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
-import { ArrowUpDown, CloudUpload, Download, Filter, LayoutGrid, List as ListIcon, RefreshCcw } from 'lucide-react';
+import { ArrowUpDown, CheckCircle2, CloudUpload, Download, Eye, Filter, LayoutGrid, List as ListIcon, RefreshCcw, Trash2 } from 'lucide-react';
 
 interface ManageAdminAttachmentsPageProps extends SharedData {
     attachments: ManageAttachmentListResponse;
@@ -117,11 +125,23 @@ export default function ManageAdminAttachmentsIndex() {
     }), [attachments.meta.per_page, filters.keyword, filters.type, filters.visibility, filters.space, filters.tag, filters.from, filters.to, filters.per_page, filters.sort, filters.direction, viewMode]);
 
     const [filterForm, setFilterForm] = useState<FilterFormState>(defaultFilterForm);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [pendingBulkAction, setPendingBulkAction] = useState<'download' | 'delete' | null>(null);
+    const [confirmBulkOpen, setConfirmBulkOpen] = useState(false);
+    const [detailAttachment, setDetailAttachment] = useState<ManageAttachmentListItem | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const keywordTimer = useRef<number | null>(null);
+
+    const { toasts, showSuccess, showError, dismissToast } = useToast();
 
     useEffect(() => {
         setFilterForm(defaultFilterForm);
     }, [defaultFilterForm]);
+
+    useEffect(() => {
+        setSelectedIds([]);
+    }, [attachments.data.map(att => att.id).join('-')]);
 
     const applyFilters = useCallback(
         (overrides: Partial<FilterFormState> = {}, options: { replace?: boolean } = {}) => {
@@ -225,6 +245,75 @@ export default function ManageAdminAttachmentsIndex() {
         applyFilters(defaultFilterForm, { replace: true });
     };
 
+    /**
+     * 處理全選/取消全選附件。
+     */
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(attachments.data.map(att => att.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    /**
+     * 處理單一附件的選取狀態。
+     */
+    const handleRowSelect = (id: number, checked: boolean) => {
+        setSelectedIds(prev => {
+            if (checked) {
+                return [...new Set([...prev, id])];
+            }
+            return prev.filter(item => item !== id);
+        });
+    };
+
+    /**
+     * 批次刪除附件：呼叫後端 API 並重新載入列表。
+     */
+    const executeBulkDelete = async () => {
+        try {
+            const response = await apiClient.post<{ message?: string }>('/admin/attachments/bulk-delete', {
+                attachment_ids: selectedIds,
+            });
+            showSuccess(response.data.message ?? tAttachments('bulk.delete_success', '已批次刪除附件。'));
+            router.reload({ only: ['attachments'] });
+        } catch (error) {
+            if (isManageApiError(error)) {
+                showError(error.message);
+            } else {
+                showError(tAttachments('bulk.delete_error', '批次刪除失敗。'));
+            }
+        } finally {
+            setPendingBulkAction(null);
+            setConfirmBulkOpen(false);
+        }
+    };
+
+    /**
+     * 批次下載附件：逐一開啟下載連結（瀏覽器會處理多檔下載）。
+     */
+    const executeBulkDownload = () => {
+        const selectedAttachments = attachments.data.filter(att => selectedIds.includes(att.id));
+        selectedAttachments.forEach((att) => {
+            const href = att.download_url ?? att.external_url ?? att.file_url;
+            if (href) {
+                window.open(href, '_blank');
+            }
+        });
+        showSuccess(tAttachments('bulk.download_success', '已開啟所有下載連結。'));
+        setPendingBulkAction(null);
+        setConfirmBulkOpen(false);
+    };
+
+    /**
+     * 開啟附件詳細資訊抽屜。
+     */
+    const openDetail = (attachment: ManageAttachmentListItem) => {
+        setDetailAttachment(attachment);
+        setDetailOpen(true);
+    };
+
     const toolbar = (
         <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <form className="flex flex-wrap items-center gap-2" onSubmit={handleFilterSubmit}>
@@ -305,6 +394,43 @@ export default function ManageAdminAttachmentsIndex() {
             </form>
 
             <div className="flex flex-wrap items-center gap-2">
+                {/* 批次操作選單：提供下載與刪除功能 */}
+                {selectedIds.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="outline" className="gap-2">
+                                <CheckCircle2 className="h-4 w-4" />
+                                {tAttachments('bulk.actions', '批次操作')} ({selectedIds.length})
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuLabel>{tAttachments('bulk.title', '選擇批次動作')}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    setPendingBulkAction('download');
+                                    setConfirmBulkOpen(true);
+                                }}
+                                className="gap-2"
+                            >
+                                <Download className="h-4 w-4" />
+                                {tAttachments('bulk.download', '批次下載')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                disabled={!abilities.canDelete}
+                                onSelect={() => {
+                                    setPendingBulkAction('delete');
+                                    setConfirmBulkOpen(true);
+                                }}
+                                className="gap-2 text-red-600"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                {tAttachments('bulk.delete', '批次刪除')}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+
                 <Select value={filterForm.sort} onChange={handleSortChange} className="w-40" aria-label={tAttachments('filters.sort_label', '排序方式')}>
                     {sortOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -339,7 +465,11 @@ export default function ManageAdminAttachmentsIndex() {
                     </Button>
                 </div>
                 {abilities.canUpload ? (
-                    <Button size="sm" className="gap-2">
+                    <Button
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setUploadModalOpen(true)}
+                    >
                         <CloudUpload className="h-4 w-4" />
                         {tAttachments('actions.upload', '上傳附件')}
                     </Button>
@@ -357,10 +487,17 @@ export default function ManageAdminAttachmentsIndex() {
             <Table>
                 <TableHeader>
                     <TableRow className="border-neutral-200/80">
-                        <TableHead className="w-[36%] text-neutral-500">{tAttachments('table.title', '附件')}</TableHead>
-                        <TableHead className="w-[18%] text-neutral-500">{tAttachments('table.type', '類型與可見性')}</TableHead>
-                        <TableHead className="w-[24%] text-neutral-500">{tAttachments('table.attachable', '所屬資源')}</TableHead>
-                        <TableHead className="w-[14%] text-neutral-500">{tAttachments('table.size', '檔案大小')}</TableHead>
+                        <TableHead className="w-10">
+                            <Checkbox
+                                checked={selectedIds.length > 0 && selectedIds.length === items.length}
+                                onCheckedChange={checked => handleSelectAll(Boolean(checked))}
+                                aria-label={tAttachments('table.select_all', '全選')}
+                            />
+                        </TableHead>
+                        <TableHead className="w-[34%] text-neutral-500">{tAttachments('table.title', '附件')}</TableHead>
+                        <TableHead className="w-[16%] text-neutral-500">{tAttachments('table.type', '類型與可見性')}</TableHead>
+                        <TableHead className="w-[22%] text-neutral-500">{tAttachments('table.attachable', '所屬資源')}</TableHead>
+                        <TableHead className="w-[12%] text-neutral-500">{tAttachments('table.size', '檔案大小')}</TableHead>
                         <TableHead className="w-[8%] text-right text-neutral-500">{tAttachments('table.actions', '操作')}</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -370,6 +507,13 @@ export default function ManageAdminAttachmentsIndex() {
 
                         return (
                             <TableRow key={attachment.id} className="border-neutral-200/60">
+                                <TableCell>
+                                    <Checkbox
+                                        checked={selectedIds.includes(attachment.id)}
+                                        onCheckedChange={checked => handleRowSelect(attachment.id, Boolean(checked))}
+                                        aria-label={tAttachments('table.select_row', '選擇附件')}
+                                    />
+                                </TableCell>
                                 <TableCell className="space-y-1">
                                     <div className="font-medium text-neutral-800">{attachment.title ?? attachment.filename ?? tAttachments('table.untitled', '未命名附件')}</div>
                                     <div className="text-xs text-neutral-500">
@@ -434,25 +578,33 @@ export default function ManageAdminAttachmentsIndex() {
                                 </TableCell>
                                 <TableCell className="text-sm text-neutral-600">{formatFileSize(attachment.size)}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-1"
-                                        asChild={!!downloadHref}
-                                        disabled={!downloadHref}
-                                    >
-                                        {downloadHref ? (
-                                            <Link href={downloadHref} target={attachment.external_url ? '_blank' : undefined} rel={attachment.external_url ? 'noopener noreferrer' : undefined}>
-                                                <Download className="h-4 w-4" />
-                                                {tAttachments('table.download', '下載')}
-                                            </Link>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 text-neutral-400">
-                                                <Download className="h-4 w-4" />
-                                                {tAttachments('table.download', '下載')}
-                                            </span>
-                                        )}
-                                    </Button>
+                                    <div className="flex items-center justify-end gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => openDetail(attachment)}
+                                            className="gap-1"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-1"
+                                            asChild={!!downloadHref}
+                                            disabled={!downloadHref}
+                                        >
+                                            {downloadHref ? (
+                                                <Link href={downloadHref} target={attachment.external_url ? '_blank' : undefined} rel={attachment.external_url ? 'noopener noreferrer' : undefined}>
+                                                    <Download className="h-4 w-4" />
+                                                </Link>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-neutral-400">
+                                                    <Download className="h-4 w-4" />
+                                                </span>
+                                            )}
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         );
@@ -581,6 +733,7 @@ export default function ManageAdminAttachmentsIndex() {
     return (
         <>
             <Head title={pageTitle} />
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
             <ManagePage
                 title={pageTitle}
                 description={t('attachments.description', '管理公告使用的文件與媒體資源。')}
@@ -588,16 +741,207 @@ export default function ManageAdminAttachmentsIndex() {
                 toolbar={toolbar}
             >
                 <section className="rounded-xl border border-neutral-200/80 bg-white/95 p-4 shadow-sm">
+                    {/* 顯示選擇狀態統計資訊 */}
+                    {selectedIds.length > 0 && (
+                        <div className="mb-3 rounded-lg bg-blue-50/70 p-3 text-sm text-blue-700">
+                            {tAttachments('selection.count', '已選擇 {count} 筆附件', { count: selectedIds.length })}
+                        </div>
+                    )}
+
                     {filterForm.view === 'grid'
                         ? renderGridView(attachments.data)
                         : renderListView(attachments.data)}
                     <Pagination
-                        meta={meta}
+                        meta={{
+                            current_page: meta.current_page,
+                            from: meta.from ?? 0,
+                            to: meta.to ?? 0,
+                            total: meta.total,
+                            last_page: meta.last_page,
+                            per_page: meta.per_page,
+                            links: meta.links ?? [],
+                        }}
                         onPerPageChange={(value) => handlePerPageChange(String(value))}
                         className="mt-4"
                     />
                 </section>
             </ManagePage>
+
+            {/* 批次操作確認對話框 */}
+            <ConfirmDialog
+                open={confirmBulkOpen}
+                onOpenChange={setConfirmBulkOpen}
+                title={
+                    pendingBulkAction === 'download'
+                        ? tAttachments('bulk.confirm_download_title', '確認批次下載')
+                        : tAttachments('bulk.confirm_delete_title', '確認批次刪除')
+                }
+                description={
+                    pendingBulkAction === 'download'
+                        ? tAttachments('bulk.confirm_download_description', '將開啟所有選取附件的下載連結，是否繼續？')
+                        : tAttachments('bulk.confirm_delete_description', '將永久刪除所有選取的附件，此動作無法還原，是否繼續？')
+                }
+                onConfirm={() => {
+                    if (pendingBulkAction === 'download') {
+                        executeBulkDownload();
+                    } else if (pendingBulkAction === 'delete') {
+                        executeBulkDelete();
+                    }
+                }}
+                variant={pendingBulkAction === 'delete' ? 'destructive' : 'default'}
+            />
+
+            {/* 附件詳細資訊抽屜：顯示完整 metadata 與引用紀錄 */}
+            <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
+                <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+                    <SheetHeader>
+                        <SheetTitle>
+                            {detailAttachment?.title ?? detailAttachment?.filename ?? tAttachments('detail.title', '附件詳情')}
+                        </SheetTitle>
+                        <SheetDescription>
+                            {tAttachments('detail.description', '檢視附件的完整資訊與引用紀錄。')}
+                        </SheetDescription>
+                    </SheetHeader>
+
+                    {detailAttachment && (
+                        <div className="grid gap-6 px-4 pb-8 pt-6">
+                            {/* 基本資訊區塊 */}
+                            <div className="rounded-lg border border-neutral-200/70 p-4">
+                                <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                    {tAttachments('detail.sections.basic', '基本資訊')}
+                                </h3>
+                                <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.filename', '檔案名稱')}</dt>
+                                        <dd className="text-neutral-700">{detailAttachment.filename ?? '—'}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.size', '檔案大小')}</dt>
+                                        <dd className="text-neutral-700">{formatFileSize(detailAttachment.size)}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.type', '類型')}</dt>
+                                        <dd className="text-neutral-700 capitalize">{detailAttachment.type}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.visibility', '可見性')}</dt>
+                                        <dd>
+                                            <Badge variant={visibilityVariantMap[detailAttachment.visibility] ?? 'outline'} className="capitalize">
+                                                {detailAttachment.visibility}
+                                            </Badge>
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.created_at', '建立時間')}</dt>
+                                        <dd className="text-neutral-700">
+                                            {detailAttachment.created_at
+                                                ? new Date(detailAttachment.created_at).toLocaleString(page.props.locale ?? 'zh-TW')
+                                                : '—'}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.uploader', '上傳者')}</dt>
+                                        <dd className="text-neutral-700">
+                                            {detailAttachment.uploader?.name ?? tAttachments('detail.uploader_unknown', '未知')}
+                                        </dd>
+                                    </div>
+                                </dl>
+
+                                {detailAttachment.description && (
+                                    <div className="mt-4">
+                                        <dt className="text-neutral-400">{tAttachments('detail.fields.description', '描述')}</dt>
+                                        <dd className="mt-1 text-sm text-neutral-700">{detailAttachment.description}</dd>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 標籤資訊 */}
+                            {detailAttachment.tags && detailAttachment.tags.length > 0 && (
+                                <div className="rounded-lg border border-neutral-200/70 p-4">
+                                    <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                        {tAttachments('detail.sections.tags', '標籤')}
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {detailAttachment.tags.map((tag) => (
+                                            <Badge key={tag} variant="outline" className="text-xs capitalize">
+                                                #{tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 引用資源資訊 */}
+                            <div className="rounded-lg border border-neutral-200/70 p-4">
+                                <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                    {tAttachments('detail.sections.usage', '引用紀錄')}
+                                </h3>
+                                {detailAttachment.attachable ? (
+                                    <div className="space-y-2 rounded-lg bg-neutral-50/70 p-3 text-sm">
+                                        <div className="font-medium text-neutral-700">
+                                            {detailAttachment.attachable.title ?? tAttachments('detail.unknown_resource', '未知資源')}
+                                        </div>
+                                        <div className="text-xs text-neutral-500 capitalize">
+                                            {tAttachments(`table.attachable_type.${detailAttachment.attachable.type}`, detailAttachment.attachable.type)}
+                                        </div>
+                                        {detailAttachment.attachable.space && (
+                                            <div className="text-xs text-neutral-600">
+                                                {tAttachments('table.space', '空間：:name', { name: detailAttachment.attachable.space.name })}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : detailAttachment.space ? (
+                                    <div className="space-y-2 rounded-lg bg-neutral-50/70 p-3 text-sm">
+                                        <div className="font-medium text-neutral-700">
+                                            {tAttachments('table.space', '空間：:name', { name: detailAttachment.space.name })}
+                                        </div>
+                                        <div className="text-xs text-neutral-500">{tAttachments('table.orphan', '尚未綁定資源')}</div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-neutral-500">
+                                        {tAttachments('detail.no_usage', '此附件尚未被任何資源引用。')}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* 操作按鈕 */}
+                            <div className="flex items-center justify-end gap-3 border-t border-neutral-200/70 pt-4">
+                                {detailAttachment.download_url ?? detailAttachment.external_url ?? detailAttachment.file_url ? (
+                                    <Button
+                                        variant="outline"
+                                        asChild
+                                        className="gap-2"
+                                    >
+                                        <Link
+                                            href={detailAttachment.download_url ?? detailAttachment.external_url ?? detailAttachment.file_url ?? ''}
+                                            target={detailAttachment.external_url ? '_blank' : undefined}
+                                            rel={detailAttachment.external_url ? 'noopener noreferrer' : undefined}
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            {tAttachments('detail.actions.download', '下載')}
+                                        </Link>
+                                    </Button>
+                                ) : null}
+                                <Button variant="ghost" onClick={() => setDetailOpen(false)}>
+                                    {tAttachments('detail.actions.close', '關閉')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </SheetContent>
+            </Sheet>
+
+            {/* 上傳附件對話框 */}
+            <AttachmentUploadModal
+                open={uploadModalOpen}
+                onOpenChange={setUploadModalOpen}
+                onUploadComplete={() => {
+                    router.reload({ only: ['attachments'] });
+                }}
+                filterOptions={filterOptions}
+                onError={showError}
+                onSuccess={showSuccess}
+            />
         </>
     );
 }

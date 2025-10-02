@@ -379,6 +379,8 @@ class UserController extends Controller
 
     /**
      * 解析多選篩選值。
+     * 處理 array 或 comma-separated string 格式的輸入，
+     * 統一轉換為陣列格式並過濾空值。
      */
     protected function parseMultiSelect(null|array|string $value): array
     {
@@ -395,6 +397,8 @@ class UserController extends Controller
 
     /**
      * 將狀態篩選值轉為數值代碼。
+     * 支援別名轉換（如 'active' -> 1, 'inactive' -> 0），
+     * 確保資料庫查詢使用正確的數值型態。
      */
     protected function normalizeStatusFilters(array $statuses): array
     {
@@ -410,6 +414,8 @@ class UserController extends Controller
 
     /**
      * 製作分頁結果。
+     * 將 Builder 查詢結果轉換為 LengthAwarePaginator，
+     * 並保留查詢字串參數以支援分頁導航。
      */
     protected function paginateUsers(Builder $query, int $perPage): LengthAwarePaginator
     {
@@ -420,7 +426,8 @@ class UserController extends Controller
     }
 
     /**
-     * 取得能力。
+     * 取得當前使用者能力清單。
+     * 根據使用者角色與權限，判斷可執行的操作項目。
      */
     protected function resolveAbilities(?User $actor): array
     {

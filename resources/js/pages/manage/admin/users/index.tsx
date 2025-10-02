@@ -31,7 +31,7 @@ import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, router, usePage } from '@inertiajs/react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback } from 'react';
-import { MoreHorizontal, ShieldAlert, ShieldCheck, SquarePen, UserCheck, UserMinus, UserPlus } from 'lucide-react';
+import { MoreHorizontal, RefreshCcw, ShieldAlert, ShieldCheck, SquarePen, UserCheck, UserMinus, UserPlus } from 'lucide-react';
 
 type ManageAdminUsersPageProps = Omit<SharedData, 'abilities'> & {
     users: ManageUserListResponse;
@@ -766,19 +766,20 @@ export default function ManageAdminUsersIndex() {
             />
 
             <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
-                <SheetContent className="w-full sm:max-w-2xl">
+                <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
                     <SheetHeader>
                         <SheetTitle>{detailUser?.name ?? t('users.detail.title', '使用者詳情')}</SheetTitle>
                         <SheetDescription>
                             {detailUser?.email ?? t('users.detail.description', '檢視使用者基本資料、角色與活動紀錄。')}
                         </SheetDescription>
                     </SheetHeader>
-                    <div className="grid gap-6 px-4 pb-8">
+                    <div className="grid gap-6 px-4 pb-8 pt-6">
                         {detailLoading && (
                             <div className="text-center text-sm text-neutral-500">{t('users.detail.loading', '載入中...')}</div>
                         )}
-                        {!detailLoading && detailUser && (
+                        {!detailLoading && detailUser && detailForm && (
                             <>
+                                {/* 使用者基本資訊區塊（唯讀） */}
                                 <div className="rounded-lg border border-neutral-200/70 p-4">
                                     <div className="flex items-center gap-4">
                                         <Avatar className="h-14 w-14">
@@ -813,20 +814,107 @@ export default function ManageAdminUsersIndex() {
                                     </dl>
                                 </div>
 
-                                <div className="rounded-lg border border-neutral-200/70 p-4">
-                                    <h3 className="text-sm font-semibold text-neutral-700">{t('users.detail.sections.spaces', '綁定 Space')}</h3>
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {detailUser.spaces.length === 0 && (
-                                            <span className="text-sm text-neutral-400">{t('users.detail.no_spaces', '尚未綁定任何空間')}</span>
-                                        )}
-                                        {detailUser.spaces.map(space => (
-                                            <Badge key={space.id} variant="outline">
-                                                {space.name}
-                                            </Badge>
-                                        ))}
+                                {/* 角色編輯區塊：提供角色選項勾選，支援多角色切換 */}
+                                {abilities.canAssignRoles && (
+                                    <div className="rounded-lg border border-neutral-200/70 p-4">
+                                        <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                            {t('users.detail.sections.role', '角色管理')}
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {roleOptions.map((option) => {
+                                                const isSelected = detailForm.role === option.value;
+                                                return (
+                                                    <label
+                                                        key={String(option.value)}
+                                                        className={cn(
+                                                            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
+                                                            isSelected
+                                                                ? 'border-blue-300 bg-blue-50/60'
+                                                                : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+                                                        )}
+                                                    >
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={() => handleDetailRoleToggle(String(option.value))}
+                                                        />
+                                                        <span className="text-sm font-medium text-neutral-700">{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
+                                {/* 狀態編輯區塊：啟用/停用選擇器 */}
+                                {abilities.canUpdate && (
+                                    <div className="rounded-lg border border-neutral-200/70 p-4">
+                                        <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                            {t('users.detail.sections.status', '帳號狀態')}
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {statusOptions.map((option) => {
+                                                const isSelected = detailForm.status === option.value;
+                                                return (
+                                                    <label
+                                                        key={String(option.value)}
+                                                        className={cn(
+                                                            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
+                                                            isSelected
+                                                                ? 'border-emerald-300 bg-emerald-50/60'
+                                                                : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+                                                        )}
+                                                    >
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={() => handleDetailStatusChange(String(option.value))}
+                                                        />
+                                                        <span className="text-sm font-medium text-neutral-700">{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Space 多選區塊：讓管理員為使用者綁定多個 Space */}
+                                {abilities.canAssignRoles && spaceOptions.length > 0 && (
+                                    <div className="rounded-lg border border-neutral-200/70 p-4">
+                                        <h3 className="mb-3 text-sm font-semibold text-neutral-700">
+                                            {t('users.detail.sections.spaces', '綁定 Space')}
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {spaceOptions.map((option) => {
+                                                const isSelected = detailForm.spaces.includes(Number(option.value));
+                                                return (
+                                                    <label
+                                                        key={String(option.value)}
+                                                        className={cn(
+                                                            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
+                                                            isSelected
+                                                                ? 'border-purple-300 bg-purple-50/60'
+                                                                : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+                                                        )}
+                                                    >
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={(checked) =>
+                                                                handleDetailSpaceToggle(Number(option.value), Boolean(checked))
+                                                            }
+                                                        />
+                                                        <span className="text-sm font-medium text-neutral-700">{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        {detailForm.spaces.length === 0 && (
+                                            <p className="mt-2 text-xs text-neutral-500">
+                                                {t('users.detail.no_spaces_selected', '尚未選擇任何空間。')}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* 最近操作紀錄區塊：顯示最近 10 筆活動 */}
                                 <div className="rounded-lg border border-neutral-200/70 p-4">
                                     <h3 className="text-sm font-semibold text-neutral-700">{t('users.detail.sections.activities', '最近操作紀錄')}</h3>
                                     {/* 以共用時間線元件呈現活動，避免重複模板 */}
@@ -836,6 +924,33 @@ export default function ManageAdminUsersIndex() {
                                         locale={locale}
                                         emptyText={t('users.detail.no_activities', '尚無操作紀錄。')}
                                     />
+                                </div>
+
+                                {/* 儲存按鈕區塊：集中在底部方便操作 */}
+                                <div className="flex items-center justify-end gap-3 border-t border-neutral-200/70 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setDetailOpen(false)}
+                                        disabled={detailSaving}
+                                    >
+                                        {t('users.detail.actions.cancel', '取消')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleDetailSave}
+                                        disabled={detailSaving || (!abilities.canUpdate && !abilities.canAssignRoles)}
+                                        className="gap-2"
+                                    >
+                                        {detailSaving ? (
+                                            <>
+                                                <RefreshCcw className="h-4 w-4 animate-spin" />
+                                                {t('users.detail.actions.saving', '儲存中...')}
+                                            </>
+                                        ) : (
+                                            <>{t('users.detail.actions.save', '儲存變更')}</>
+                                        )}
+                                    </Button>
                                 </div>
                             </>
                         )}

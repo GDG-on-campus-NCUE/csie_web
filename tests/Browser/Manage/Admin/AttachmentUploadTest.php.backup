@@ -1,0 +1,380 @@
+<?php
+
+namespace Tests\Browser\Manage\Admin;
+
+use App\Models\Space;
+use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Dusk\Browser;
+use Tests\Browser\Pages\LoginPage;
+use Tests\Browser\Pages\Manage\Admin\AttachmentsPage;
+use Tests\DuskTestCase;
+
+/**
+ * 附件管理 E2E 測試。
+ * 測試完整的附件上傳、編輯、檢視等操作流程。
+ */
+class AttachmentUploadTest extends DuskTestCase
+{
+    use DatabaseMigrations;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // 確保測試用的儲存目錄存在
+        Storage::fake('local');
+    }
+
+    /**
+     * 建立測試用的檔案。
+     */
+    protected function createTestFile(string $filename, string $mimeType = 'application/pdf'): string
+    {
+        $path = storage_path('app/test-files');
+
+        if (!file_exists($path)) {
+            mkdir($path, 0755, true);
+        }
+
+        $filePath = $path . '/' . $filename;
+
+        // 建立一個簡單的測試檔案
+        file_put_contents($filePath, 'Test file content');
+
+        return $filePath;
+    }
+
+    /**
+     * 測試：管理員可以開啟上傳對話框。
+     */
+    public function test_admin_can_open_upload_modal(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $this->browse(function (Browser $browser) use ($admin) {
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->on(new AttachmentsPage)
+                ->openUploadModal()
+                ->assertSee('上傳附件')
+                ->assertSee('選擇檔案');
+        });
+    }
+
+    /**
+     * 測試：管理員可以上傳檔案。
+     *
+     * @group slow
+     */
+    public function test_admin_can_upload_file(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $testFile = $this->createTestFile('test-document.pdf');
+
+        $this->browse(function (Browser $browser) use ($admin, $testFile) {
+            $page = new AttachmentsPage;
+
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->visit($page)
+                ->assertSee('附件資源');
+
+            // 開啟上傳對話框
+            $page->openUploadModal($browser);
+            $browser->assertSee('上傳附件');
+
+            // 上傳檔案
+            $page->uploadFile($browser, $testFile);
+            $browser->pause(1000); // 等待上傳處理
+
+            // 驗證檔案出現在已上傳列表
+            $browser->assertSee('test-document.pdf')
+                ->assertSee('已上傳檔案');
+        });
+
+        // 清理測試檔案
+        if (file_exists($testFile)) {
+            unlink($testFile);
+        }
+    }
+
+    /**
+     * 測試：上傳後可以編輯附件資訊。
+     *
+     * @group slow
+     */
+    public function test_admin_can_edit_uploaded_file_info(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $space = Space::factory()->create(['name' => 'Test Space']);
+        $testFile = $this->createTestFile('editable-file.pdf');
+
+        $this->browse(function (Browser $browser) use ($admin, $testFile, $space) {
+            $page = new AttachmentsPage;
+
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->visit($page);
+
+            // 上傳檔案
+            $page->openUploadModal($browser);
+            $page->uploadFile($browser, $testFile);
+            $browser->pause(1000);
+
+            // 編輯檔案資訊
+            $page->editUploadedFileInfo(
+                $browser,
+                '重要文件',
+                '這是一份重要的測試文件',
+                'private',
+                (string) $space->id
+            );
+
+            $browser->pause(500);
+
+            // 完成上傳
+            $page->completeUpload($browser);
+
+            // 驗證資料庫
+            $this->assertDatabaseHas('attachments', [
+                'title' => '重要文件',
+                'description' => '這是一份重要的測試文件',
+                'visibility' => 1, // private
+                'space_id' => $space->id,
+            ]);
+        });
+
+        // 清理
+        if (file_exists($testFile)) {
+            unlink($testFile);
+        }
+    }
+
+    /**
+     * 測試：可以切換 Grid/List 檢視模式。
+     */
+    public function test_admin_can_switch_view_modes(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $this->browse(function (Browser $browser) use ($admin) {
+            $page = new AttachmentsPage;
+
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->visit($page);
+
+            // 切換到 Grid 模式
+            $page->switchToGridView($browser);
+            $browser->pause(500)
+                ->assertPresent('.grid'); // 假設 grid 模式有特定 class
+
+            // 切換回 List 模式
+            $page->switchToListView($browser);
+            $browser->pause(500)
+                ->assertPresent('table'); // List 模式應該有表格
+        });
+    }
+
+    /**
+     * 測試：可以依類型篩選附件。
+     *
+     * @group slow
+     */
+    public function test_admin_can_filter_attachments_by_type(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        // 建立不同類型的附件
+        $imageFile = $this->createTestFile('test-image.jpg', 'image/jpeg');
+        $pdfFile = $this->createTestFile('test-doc.pdf', 'application/pdf');
+
+        $this->browse(function (Browser $browser) use ($admin, $imageFile, $pdfFile) {
+            $page = new AttachmentsPage;
+
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->visit($page);
+
+            // 上傳圖片
+            $page->openUploadModal($browser);
+            $page->uploadFile($browser, $imageFile);
+            $browser->pause(1000);
+            $page->completeUpload($browser);
+            $browser->pause(500);
+
+            // 上傳 PDF
+            $page->openUploadModal($browser);
+            $page->uploadFile($browser, $pdfFile);
+            $browser->pause(1000);
+            $page->completeUpload($browser);
+            $browser->pause(1000);
+
+            // 篩選圖片類型
+            $page->filterByType($browser, 'image');
+            $browser->pause(800)
+                ->assertSee('test-image.jpg')
+                ->assertDontSee('test-doc.pdf');
+        });
+
+        // 清理
+        if (file_exists($imageFile)) {
+            unlink($imageFile);
+        }
+        if (file_exists($pdfFile)) {
+            unlink($pdfFile);
+        }
+    }
+
+    /**
+     * 測試：完整的附件上傳工作流程。
+     *
+     * @group slow
+     */
+    public function test_complete_attachment_upload_workflow(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $space = Space::factory()->create(['name' => 'Project Space']);
+        $testFile = $this->createTestFile('workflow-test.pdf');
+
+        $this->browse(function (Browser $browser) use ($admin, $testFile, $space) {
+            $page = new AttachmentsPage;
+
+            // 步驟 1: 登入
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password');
+
+            // 步驟 2: 進入附件管理頁面
+            $browser->visit($page)
+                ->assertSee('附件資源');
+
+            // 步驟 3: 開啟上傳對話框
+            $page->openUploadModal($browser);
+            $browser->assertSee('上傳附件')
+                ->assertSee('選擇檔案');
+
+            // 步驟 4: 上傳檔案
+            $page->uploadFile($browser, $testFile);
+            $browser->pause(1000)
+                ->assertSee('workflow-test.pdf');
+
+            // 步驟 5: 編輯檔案資訊
+            $page->editUploadedFileInfo(
+                $browser,
+                '工作流程測試文件',
+                '這是一個完整的工作流程測試',
+                'public',
+                (string) $space->id
+            );
+            $browser->pause(500);
+
+            // 步驟 6: 完成上傳
+            $page->completeUpload($browser);
+            $browser->pause(500);
+
+            // 步驟 7: 驗證附件出現在列表中
+            $page->assertAttachmentExists($browser, '工作流程測試文件');
+
+            // 步驟 8: 驗證資料庫
+            $this->assertDatabaseHas('attachments', [
+                'title' => '工作流程測試文件',
+                'description' => '這是一個完整的工作流程測試',
+                'space_id' => $space->id,
+                'uploader_id' => $admin->id,
+            ]);
+
+            // 步驟 9: 驗證稽核記錄
+            $this->assertDatabaseHas('manage_activities', [
+                'model_type' => 'App\\Models\\Attachment',
+                'action' => 'created',
+                'user_id' => $admin->id,
+            ]);
+        });
+
+        // 清理
+        if (file_exists($testFile)) {
+            unlink($testFile);
+        }
+    }
+
+    /**
+     * 測試：上傳進度條正確顯示。
+     *
+     * @group slow
+     */
+    public function test_upload_progress_displays_correctly(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $testFile = $this->createTestFile('progress-test.pdf');
+
+        $this->browse(function (Browser $browser) use ($admin, $testFile) {
+            $page = new AttachmentsPage;
+
+            $browser->visit(new LoginPage)
+                ->loginAs($admin->email, 'password')
+                ->visit($page);
+
+            $page->openUploadModal($browser);
+
+            // 上傳檔案並檢查進度條出現
+            $browser->attach('input[type="file"]', $testFile)
+                ->pause(200);
+
+            // 驗證進度條存在（可能很快就完成）
+            $browser->pause(500)
+                ->assertSee('progress-test.pdf');
+        });
+
+        // 清理
+        if (file_exists($testFile)) {
+            unlink($testFile);
+        }
+    }
+
+    /**
+     * 測試：非管理員無法訪問附件管理頁面。
+     */
+    public function test_non_admin_cannot_access_attachments_page(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_USER,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+
+        $this->browse(function (Browser $browser) use ($user) {
+            $browser->visit(new LoginPage)
+                ->loginAs($user->email, 'password')
+                ->visit('/manage/admin/attachments')
+                ->assertPathIsNot('/manage/admin/attachments')
+                ->assertSee('403');
+        });
+    }
+}

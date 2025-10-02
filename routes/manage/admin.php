@@ -27,6 +27,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             Route::post('users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
             Route::post('users/stop-impersonate', [UserController::class, 'stopImpersonate'])->name('users.stop-impersonate');
             Route::resource('users', UserController::class);
+            Route::post('attachments/upload', [AttachmentController::class, 'store'])->name('attachments.upload');
+            Route::post('attachments/bulk-delete', [AttachmentController::class, 'bulkDelete'])->name('attachments.bulk-delete');
             Route::resource('attachments', AttachmentController::class);
             Route::resource('messages', MessageController::class);
         });
