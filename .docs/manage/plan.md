@@ -216,11 +216,11 @@
   - 完整表單（與新增頁面相同）
   - 預填現有資料
   - 成員同步更新
-- [ ] Labs 詳情頁面 (`resources/js/pages/manage/teacher/labs/show.tsx`)
-  - 實驗室基本資訊顯示
-  - 成員列表與角色
-  - 活動時間軸
-  - 操作按鈕（編輯、刪除）
+- [x] Labs 詳情頁面 (`resources/js/pages/manage/teacher/labs/show.tsx`)
+  - 實驗室基本資訊顯示 ✅
+  - 成員列表與角色 ✅
+  - 活動時間軸 ✅（整合 ManageActivity）
+  - 操作按鈕（編輯、刪除）✅
 - [x] Controller：完整 CRUD + 成員管理
 - [x] Resource：LabResource 格式化輸出
 - [x] Policy：權限控制（教師只能管理自己負責的）

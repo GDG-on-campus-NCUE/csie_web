@@ -88,6 +88,19 @@ class LabResource extends JsonResource
                 });
             }),
 
+            'recent_activities' => $this->when(
+                $this->recent_activities ?? false,
+                collect($this->recent_activities)->map(function ($activity) {
+                    return [
+                        'id' => $activity->id,
+                        'action' => $activity->action,
+                        'description' => $activity->description,
+                        'properties' => $activity->properties ? (array) $activity->properties : null,
+                        'created_at' => $activity->created_at?->toISOString(),
+                    ];
+                })
+            ),
+
             // 時間戳記
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
