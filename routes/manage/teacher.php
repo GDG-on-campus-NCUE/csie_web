@@ -13,5 +13,12 @@ Route::middleware(['auth', 'verified', 'role:admin,teacher'])
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::resource('posts', PostController::class);
         Route::resource('labs', LabController::class);
+
+        // 實驗室成員管理
+        Route::post('labs/{lab}/members', [LabController::class, 'addMember'])
+            ->name('labs.members.add');
+        Route::delete('labs/{lab}/members/{user}', [LabController::class, 'removeMember'])
+            ->name('labs.members.remove');
+
         Route::resource('projects', ProjectController::class);
     });

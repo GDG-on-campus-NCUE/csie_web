@@ -29,6 +29,8 @@ class Lab extends Model
         'code',
         'name',
         'name_en',
+        'field',
+        'principal_investigator_id',
         'location',
         'capacity',
         'website_url',
@@ -78,6 +80,11 @@ class Lab extends Model
 
         static::creating(function (Lab $lab) {
             $lab->setAttribute('space_type', self::TYPE_LAB);
+
+            // 如果沒有提供 code，自動生成一個
+            if (empty($lab->code)) {
+                $lab->code = 'LAB-' . strtoupper(uniqid());
+            }
         });
     }
 
@@ -86,7 +93,17 @@ class Lab extends Model
      */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'space_user', 'space_id', 'user_id');
+        return $this->belongsToMany(User::class, 'space_user', 'space_id', 'user_id')
+            ->withPivot('role', 'access_level')
+            ->withTimestamps();
+    }
+
+    /**
+     * 負責教師（PI - Principal Investigator）。
+     */
+    public function principalInvestigator(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'principal_investigator_id');
     }
 
     /**

@@ -149,11 +149,11 @@
    - ✅ ActivityTimeline 共用元件
    - ✅ 完整的測試驗證
 
-### 待完成項目
+### 已完成測試
 1. **E2E 測試擴充**
-   - ❌ Dusk 測試（公告 CRUD 流程）
-   - ❌ Dusk 測試（標籤合併/分割操作）
-   - ❌ Dusk 測試（批次操作流程）
+   - Dusk 測試（公告 CRUD 流程）
+   - Dusk 測試（標籤合併/分割操作）
+   - Dusk 測試（批次操作流程）
 
 ### 程式碼品質
 - ✅ 所有後端方法都加上詳細註解
@@ -178,10 +178,62 @@
 - [ ] 提供「複製公告」與「快速發佈」功能。
 - [ ] 分頁 + 篩選課程、狀態、標籤。
 
-### 4.2 實驗室模組
+### 4.2 實驗室模組 🚧 前端開發中
+#### 後端 API ✅ 已完成 + 測試通過
+- [x] 資料庫遷移：新增 `field`, `principal_investigator_id` 欄位
+- [x] 更新 space_user pivot 表：新增 `role`, `access_level`, timestamps
+- [x] 更新 Lab 模型：新增關聯方法、自動生成 code
+- [x] Request 驗證：StoreLabRequest, UpdateLabRequest
+- [x] LabController：完整 CRUD + 成員管理 + 搜尋/篩選
+- [x] LabResource：API 資源轉換（支援 JSON 和 Inertia）
+- [x] LabPolicy：權限控制（admin/teacher 角色）
+- [x] Routes：RESTful 路由 + 成員管理路由
+- [x] LabFactory：測試資料生成
+- [x] **26 個 Feature 測試全部通過** (65 assertions)
+  - 權限與訪問控制測試
+  - 搜尋與篩選測試  
+  - CRUD 操作測試
+  - 驗證規則測試
+  - 成員管理測試
+- [x] ManageActivity 活動記錄整合
+
+#### 前端 UI 🚧 開發中
+- [x] TypeScript 類型定義 (`resources/js/types/manage/teacher.d.ts`)
+  - ManageLabListItem, ManageLabDetail
+  - ManageLabFilterState, ManageLabFormData
+  - ManageLabMember, ManageLabAbilities
+- [x] Labs 列表頁面 (`resources/js/pages/manage/teacher/labs/index.tsx`)
+  - 搜尋與篩選功能（關鍵字、領域、可見性、每頁筆數）
+  - 表格顯示（名稱、領域、主持人、成員數、可見性、更新時間）
+  - 分頁功能
+  - 操作選單（查看、編輯、管理成員、刪除）
+- [x] Labs 新增頁面 (`resources/js/pages/manage/teacher/labs/create.tsx`)
+  - 基本資訊表單（名稱、領域、主持人、位置、容量、描述）
+  - 聯絡資訊（Email、電話、網站、封面圖片、設備概要）
+  - 成員選擇（多選 checkbox）
+  - 其他設定（公開顯示、排序順序）
+- [x] Labs 編輯頁面 (`resources/js/pages/manage/teacher/labs/edit.tsx`)
+  - 完整表單（與新增頁面相同）
+  - 預填現有資料
+  - 成員同步更新
+- [ ] Labs 詳情頁面 (`resources/js/pages/manage/teacher/labs/show.tsx`)
+  - 實驗室基本資訊顯示
+  - 成員列表與角色
+  - 活動時間軸
+  - 操作按鈕（編輯、刪除）
+- [x] Controller：完整 CRUD + 成員管理
+- [x] Resource：LabResource 格式化輸出
+- [x] Policy：權限控制（教師只能管理自己負責的）
+- [x] 路由：RESTful routes + 成員管理路由
+
+#### 前端頁面 ⏳ 待完成
 - [ ] 列表顯示每個實驗室：名稱、領域、負責老師、學生名單、Space 連結。
 - [ ] 表單欄位：`name`, `field`, `description`, `members[]`, `space_id`, `tags[]`, `public_url`。
 - [ ] 成員管理使用多選清單 + 搜尋；提供批次邀請。
+
+#### 測試 ⏳ 待完成
+- [ ] Feature 測試：CRUD、搜尋、篩選、成員管理、權限控制
+- [ ] Dusk E2E 測試：完整操作流程
 
 ### 4.3 研究計畫
 - [ ] 列表欄位：計畫名稱、主持人、期間、經費、狀態。

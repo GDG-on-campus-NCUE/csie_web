@@ -15,7 +15,11 @@ class LabPolicy
      */
     public function before(User $user): bool|null
     {
-        // 管理員大多數情境皆可操作，細部限制由各方法處理
+        // 管理員可以執行所有操作
+        if ($user->role === 'admin') {
+            return true;
+        }
+
         return null;
     }
 
@@ -24,7 +28,8 @@ class LabPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true; // All users can view lab list
+        // Admin 和 Teacher 可以查看實驗室列表
+        return in_array($user->role, ['admin', 'teacher']);
     }
 
     /**
@@ -32,7 +37,19 @@ class LabPolicy
      */
     public function view(User $user, Lab $lab): bool
     {
-        return true; // All users can view individual labs
+        // Admin 可以查看所有實驗室
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        // Teacher 可以查看自己負責或參與的實驗室
+        if ($user->role === 'teacher') {
+            return $lab->principal_investigator_id === $user->id
+                || $lab->members->contains($user);
+        }
+
+        // 一般使用者可以查看公開的實驗室
+        return $lab->visible;
     }
 
     /**
@@ -40,7 +57,8 @@ class LabPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        // Admin 和 Teacher 可以建立實驗室
+        return in_array($user->role, ['admin', 'teacher']);
     }
 
     /**
@@ -48,14 +66,14 @@ class LabPolicy
      */
     public function update(User $user, Lab $lab): bool
     {
-        // 管理員可更新任何實驗室
-        if ($user->isAdmin()) {
+        // Admin 可更新任何實驗室
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // 教師若為該實驗室成員即可更新資料
-        if ($user->isTeacher()) {
-            return $this->isLabMember($user, $lab);
+        // 只有負責教師（PI）可以更新實驗室
+        if ($user->role === 'teacher') {
+            return $lab->principal_investigator_id === $user->id;
         }
 
         return false;
@@ -66,7 +84,17 @@ class LabPolicy
      */
     public function delete(User $user, Lab $lab): bool
     {
-        return $user->isAdmin();
+        // Admin 可刪除任何實驗室
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        // 負責教師可以刪除自己的實驗室
+        if ($user->role === 'teacher') {
+            return $lab->principal_investigator_id === $user->id;
+        }
+
+        return false;
     }
 
     /**
@@ -74,7 +102,7 @@ class LabPolicy
      */
     public function restore(User $user, Lab $lab): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -82,7 +110,7 @@ class LabPolicy
      */
     public function forceDelete(User $user, Lab $lab): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -90,70 +118,17 @@ class LabPolicy
      */
     public function manageMembers(User $user, Lab $lab): bool
     {
-        // 管理員可管理任何實驗室成員
-        if ($user->isAdmin()) {
+        // Admin 可管理任何實驗室成員
+        if ($user->role === 'admin') {
             return true;
         }
 
-        // 教師若為實驗室成員即可調整成員資訊
-        if ($user->isTeacher()) {
-            return $this->isLabMember($user, $lab);
+        // 負責教師可以管理成員
+        if ($user->role === 'teacher') {
+            return $lab->principal_investigator_id === $user->id;
         }
 
         return false;
-    }
-
-    /**
-     * Determine whether the user can view lab analytics.
-     */
-    public function viewAnalytics(User $user, Lab $lab): bool
-    {
-        // 管理員可檢視所有實驗室統計
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // 教師若為實驗室成員即可檢視統計資訊
-        if ($user->isTeacher()) {
-            return $this->isLabMember($user, $lab);
-        }
-
-        return false;
-    }
-
-    /**
-     * Determine whether the user can manage lab posts.
-     */
-    public function managePosts(User $user, Lab $lab): bool
-    {
-        // 管理員可管理任何實驗室相關貼文
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // 教師若為實驗室成員即可管理貼文
-        if ($user->isTeacher()) {
-            return $this->isLabMember($user, $lab);
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if the user is a member of the lab.
-     */
-    public function isLabMember(User $user, Lab $lab): bool
-    {
-        // 僅教師具備加入實驗室的資格
-        if (! $user->isTeacher()) {
-            return false;
-        }
-
-        // 確認使用者具備教師資料並與該實驗室綁定
-        if (! $user->teacherProfile) {
-            return false;
-        }
-
-        return $lab->teachers()->where('teacher_id', $user->teacherProfile->id)->exists();
     }
 }
+

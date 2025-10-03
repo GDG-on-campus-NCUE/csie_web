@@ -5,3 +5,4 @@ export * from './tags';
 export * from './users';
 export * from './attachments';
 export * from './messages';
+export * from './teacher';
