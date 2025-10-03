@@ -1,6 +1,7 @@
 import ManagePage, { type ManagePageProps } from '@/layouts/manage/manage-page';
 import ManageSidebar, { type ManageSidebarProps } from '@/layouts/manage/manage-siderbar';
 import { useTranslator } from '@/hooks/use-translator';
+import { buildSidebarNavGroups } from '@/lib/manage/sidebar-nav-groups';
 import type { SharedData, User } from '@/types/shared';
 import { Sidebar, SidebarInset, SidebarProvider, SidebarRail } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
@@ -48,9 +49,6 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
     const { t } = useTranslator('manage');
     const user = page.props.auth?.user;
     const role = resolvePrimaryRole(user);
-    const locales = page.props.locales ?? ['zh-TW', 'en'];
-    const currentLocale = page.props.locale ?? locales[0] ?? 'zh-TW';
-
     const brandCopy: ManageSidebarProps['brand'] = {
         primary: t(`layout.brand.${role}.primary`, role === 'teacher' ? 'CSIE Teacher' : role === 'user' ? 'CSIE Member' : 'CSIE Admin'),
         secondary: t(
@@ -87,6 +85,10 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
         ],
     };
 
+    const navGroups = buildSidebarNavGroups(role, t, page.props.abilities);
+    const quickNavItems = navGroups.flatMap((group) => group.items);
+    const currentPath = page.url ?? '/manage';
+
     let content: ReactNode = children;
 
     if (isManagePageElement(children)) {
@@ -95,6 +97,8 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
             title: child.props.title ?? defaultPageProps.title,
             description: child.props.description ?? defaultPageProps.description,
             breadcrumbs: child.props.breadcrumbs ?? defaultPageProps.breadcrumbs,
+            quickNavItems: child.props.quickNavItems ?? quickNavItems,
+            currentPath: child.props.currentPath ?? currentPath,
         });
     }
 
@@ -103,7 +107,21 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
             <Sidebar>
                 <ManageSidebar {...sidebarProps} />
             </Sidebar>
-            <SidebarInset className="bg-neutral-50 text-neutral-900">{content}</SidebarInset>
+            <SidebarInset className="bg-neutral-50 text-neutral-900">
+                {isManagePageElement(content) ? (
+                    content
+                ) : (
+                    <ManagePage
+                        title={defaultPageProps.title}
+                        description={defaultPageProps.description}
+                        breadcrumbs={defaultPageProps.breadcrumbs}
+                        quickNavItems={quickNavItems}
+                        currentPath={currentPath}
+                    >
+                        {content}
+                    </ManagePage>
+                )}
+            </SidebarInset>
             <SidebarRail />
         </SidebarProvider>
     );

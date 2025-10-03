@@ -1,16 +1,20 @@
 import ManageMain, { type ManageMainProps } from '@/layouts/manage/manage-main';
+import ManageQuickNav from '@/components/manage/manage-quick-nav';
 import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTranslator } from '@/hooks/use-translator';
 import { cn } from '@/lib/shared/utils';
-import type { SharedData } from '@/types/shared';
+import type { NavItem, SharedData } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
 import { LogOut, User } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 export interface ManagePageProps extends ManageMainProps {
     className?: string;
+    quickNavItems?: NavItem[];
+    quickNavLabel?: string;
+    currentPath?: string;
 }
 
 function ManagePage({
@@ -18,13 +22,19 @@ function ManagePage({
     description,
     breadcrumbs,
     actions,
+    toolbar,
     footer,
     className,
+    quickNavItems,
+    quickNavLabel,
+    currentPath,
     children,
 }: ManagePageProps) {
     const { t } = useTranslator('manage');
     const page = usePage<SharedData>();
     const user = page.props.auth?.user;
+    const navItems = quickNavItems ?? [];
+    const resolvedPath = currentPath ?? page.url ?? '';
 
     return (
         <div className={cn('flex min-h-full flex-1 flex-col', className)}>
@@ -53,16 +63,26 @@ function ManagePage({
                     </Button>
                 </div>
             </header>
-            <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
-                <ManageMain
-                    title={title}
-                    description={description}
-                    breadcrumbs={breadcrumbs}
-                    actions={actions}
-                    footer={footer}
-                >
-                    {children}
-                </ManageMain>
+            <main className="flex-1 overflow-y-auto">
+                <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:px-8">
+                    {navItems.length ? (
+                        <ManageQuickNav
+                            items={navItems}
+                            currentPath={resolvedPath}
+                            label={quickNavLabel ?? t('layout.quick_nav', '管理快速路徑')}
+                        />
+                    ) : null}
+                    <ManageMain
+                        title={title}
+                        description={description}
+                        breadcrumbs={breadcrumbs}
+                        actions={actions}
+                        toolbar={toolbar}
+                        footer={footer}
+                    >
+                        {children}
+                    </ManageMain>
+                </div>
             </main>
         </div>
     );

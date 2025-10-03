@@ -15,7 +15,8 @@ import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, CheckSquare, FilePlus2, Filter, Megaphone, MegaphoneOff, Tag as TagIcon, Trash2, Users } from 'lucide-react';
+import { Archive, CheckSquare, FilePlus2, FileText, Filter, CalendarClock, Megaphone, MegaphoneOff, EyeOff, Tag as TagIcon, Trash2, Users } from 'lucide-react';
+import StatusFilterTabs from '@/components/manage/status-filter-tabs';
 
 type ManageAdminPostsPageProps = SharedData & {
     posts: ManagePostListResponse;
@@ -318,6 +319,36 @@ export default function ManageAdminPostsIndex() {
     const pageTitle = t('sidebar.admin.posts', '公告訊息');
     const hasPosts = posts.data.length > 0;
 
+    // 狀態篩選選項
+    const statusFilterOptions = useMemo(() => [
+        {
+            value: '',
+            label: tPosts('filters.status_all', '全部'),
+            count: Object.values(statusSummary).reduce((sum, count) => sum + count, 0),
+            icon: Megaphone
+        },
+        ...statusOptions.map((status) => {
+            // 根據狀態選擇不同的圖標
+            let icon = Megaphone;
+            if (status.value === 'draft') icon = FileText;
+            else if (status.value === 'scheduled') icon = CalendarClock;
+            else if (status.value === 'hidden') icon = EyeOff;
+            else if (status.value === 'archived') icon = Archive;
+
+            return {
+                value: String(status.value),
+                label: status.label,
+                count: status.count ?? statusSummary[status.value] ?? 0,
+                icon
+            };
+        })
+    ], [statusOptions, statusSummary, tPosts]);
+
+    const handleStatusFilterChange = (value: string) => {
+        updateFilterForm('status', value);
+        applyFilters({ status: value });
+    };
+
     const toolbar = (
         <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <form className="flex flex-wrap items-center gap-2" onSubmit={handleFilterSubmit}>
@@ -335,19 +366,6 @@ export default function ManageAdminPostsIndex() {
                         {tPosts('filters.apply', '套用')}
                     </Button>
                 </div>
-                <Select
-                    value={filterForm.status}
-                    onChange={handleStatusChange}
-                    aria-label={tPosts('filters.status_label', '狀態篩選')}
-                    className="w-40"
-                >
-                    <option value="">{tPosts('filters.status_all', '全部狀態')}</option>
-                    {statusOptions.map((status) => (
-                        <option key={status.value} value={String(status.value)}>
-                            {status.label}
-                        </option>
-                    ))}
-                </Select>
                 <Select
                     value={filterForm.tag}
                     onChange={handleTagChange}
@@ -450,22 +468,16 @@ export default function ManageAdminPostsIndex() {
                 breadcrumbs={breadcrumbs}
                 toolbar={toolbar}
             >
-                <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    {statusOptions.map((status) => (
-                        <Card key={status.value} className="border border-neutral-200/80">
-                            <CardContent className="flex flex-col gap-1 px-4 py-3">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                                    {tPosts(`status.${status.value}`, status.label)}
-                                </span>
-                                <span className="text-2xl font-semibold text-neutral-900">
-                                    {status.count ?? statusSummary[status.value] ?? 0}
-                                </span>
-                            </CardContent>
-                        </Card>
-                    ))}
+                {/* 狀態篩選標籤 */}
+                <section className="mb-4">
+                    <StatusFilterTabs
+                        options={statusFilterOptions}
+                        value={filterForm.status}
+                        onChange={handleStatusFilterChange}
+                    />
                 </section>
 
-                <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
+                <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-neutral-200/80">

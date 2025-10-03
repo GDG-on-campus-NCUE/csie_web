@@ -18,7 +18,7 @@ export default function ManageMainHeaderBreadcrumb({ breadcrumbs }: ManageMainHe
           ];
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex w-full flex-col gap-2">
             <Breadcrumbs breadcrumbs={resolvedBreadcrumbs} />
         </div>
     );
