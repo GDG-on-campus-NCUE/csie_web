@@ -165,14 +165,34 @@ class LabController extends Controller
     /**
      * 顯示實驗室詳細資訊。
      */
-    public function show(Lab $lab): Response
+    public function show(Request $request, Lab $lab): Response
     {
         $this->authorize('view', $lab);
 
-        $lab->load(['principalInvestigator', 'members', 'tags']);
+        $lab->load([
+            'principalInvestigator',
+            'members' => fn ($query) => $query
+                ->select(['users.id', 'users.name', 'users.email', 'users.role'])
+                ->withPivot(['role', 'access_level', 'created_at']),
+            'tags',
+        ]);
+
+        $recentActivities = ManageActivity::query()
+            ->where('subject_type', Lab::class)
+            ->where('subject_id', $lab->getKey())
+            ->latest()
+            ->limit(20)
+            ->get(['id', 'action', 'description', 'properties', 'created_at']);
+
+        $lab->setAttribute('recent_activities', $recentActivities);
 
         return Inertia::render('manage/teacher/labs/show', [
             'lab' => new LabResource($lab),
+            'abilities' => [
+                'canUpdate' => $request->user()->can('update', $lab),
+                'canDelete' => $request->user()->can('delete', $lab),
+                'canManageMembers' => $request->user()->can('manageMembers', $lab),
+            ],
         ]);
     }
 
