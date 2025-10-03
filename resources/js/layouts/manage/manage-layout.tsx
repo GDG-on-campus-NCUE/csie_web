@@ -2,12 +2,9 @@ import ManagePage, { type ManagePageProps } from '@/layouts/manage/manage-page';
 import ManageSidebar, { type ManageSidebarProps } from '@/layouts/manage/manage-siderbar';
 import { useTranslator } from '@/hooks/use-translator';
 import type { SharedData, User } from '@/types/shared';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarInset, SidebarProvider, SidebarRail } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { LifeBuoy, ShieldCheck } from 'lucide-react';
 
 interface ManageLayoutProps {
     children: ReactNode;
@@ -65,8 +62,6 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
     const sidebarProps: ManageSidebarProps = {
         brand: brandCopy,
         role,
-        currentLocale,
-        locales,
     };
 
     const dashboardHref = '/manage/dashboard';
@@ -79,7 +74,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
 
     const defaultPageProps: Omit<ManagePageProps, 'children'> = {
         title: t(dashboardTitleKey, '系統總覽'),
-        description: t('access.denied_description', '歡迎回到管理後台。'),
+        description: t('layout.welcome_message', '歡迎回到管理後台，快速查看系統狀態與最新活動。'),
         breadcrumbs: [
             {
                 title: t('layout.breadcrumbs.dashboard', '管理後台'),
@@ -92,23 +87,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
         ],
     };
 
-    const defaultToolbar = (
-        <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium tracking-wide">
-                {t(`sidebar.${role}.nav_label`, role === 'teacher' ? '教學' : role === 'user' ? '會員' : '管理')}
-            </Badge>
-            <Button variant="ghost" size="sm" className="gap-2 text-neutral-600 hover:text-neutral-900">
-                <ShieldCheck className="h-4 w-4" />
-                {t('settings.title', '帳號設定')}
-            </Button>
-            <Button variant="ghost" size="sm" className="gap-2 text-neutral-600 hover:text-neutral-900">
-                <LifeBuoy className="h-4 w-4" />
-                {t('sidebar.footer.docs', '使用說明')}
-            </Button>
-        </div>
-    );
-
-    let content: ReactNode;
+    let content: ReactNode = children;
 
     if (isManagePageElement(children)) {
         const child = children;
@@ -116,19 +95,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
             title: child.props.title ?? defaultPageProps.title,
             description: child.props.description ?? defaultPageProps.description,
             breadcrumbs: child.props.breadcrumbs ?? defaultPageProps.breadcrumbs,
-            toolbar: child.props.toolbar ?? defaultToolbar,
         });
-    } else {
-        content = (
-            <ManagePage
-                title={defaultPageProps.title}
-                description={defaultPageProps.description}
-                breadcrumbs={defaultPageProps.breadcrumbs}
-                toolbar={defaultToolbar}
-            >
-                {children}
-            </ManagePage>
-        );
     }
 
     return (

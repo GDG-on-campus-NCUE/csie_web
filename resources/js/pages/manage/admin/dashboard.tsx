@@ -124,24 +124,24 @@ const OverviewCards = ({ metrics, locale, t }: { metrics: AdminDashboardMetric[]
                 : null;
 
             return (
-                <Card key={metric.key} className="border border-neutral-200/80">
-                    <CardHeader className="flex flex-row items-start justify-between gap-3">
+                <Card key={metric.key} className="border border-neutral-200/60 bg-white shadow-sm">
+                    <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
                         <div className="flex flex-1 flex-col gap-1">
-                            <CardTitle className="text-sm font-medium text-neutral-500">
+                            <CardTitle className="text-sm font-medium text-neutral-600">
                                 {t(`admin.metrics.${metric.key}`, metric.label ?? metric.key)}
                             </CardTitle>
-                            <div className="text-2xl font-semibold text-neutral-900">{displayValue}</div>
+                            <div className="text-2xl font-bold text-neutral-900">{displayValue}</div>
                         </div>
-                        <span className="rounded-full bg-neutral-100 p-2 text-neutral-500">
+                        <span className="rounded-lg bg-blue-50 p-2 text-blue-600">
                             <Icon className="h-4 w-4" />
                         </span>
                     </CardHeader>
                     <CardContent className="space-y-2 text-xs text-neutral-500">
                         {metric.key === 'storage_usage' && usageSummary && usageCapacity ? (
                             <div className="space-y-3">
-                                <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
                                     <div
-                                        className="h-full rounded-full bg-blue-500 transition-all"
+                                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
                                         style={{ width: `${Math.min(100, Math.max(0, metric.value))}%` }}
                                     />
                                 </div>
@@ -188,10 +188,10 @@ const RecentActivities = ({
     t: TranslatorFn;
     tManage: TranslatorFn;
 }) => (
-    <Card className="border border-neutral-200/80">
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
+    <Card className="border border-neutral-200/60 bg-white shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-4">
             <div className="flex flex-col">
-                <CardTitle className="text-base font-semibold text-neutral-900">
+                <CardTitle className="text-base font-bold text-neutral-900">
                     {t('admin.activities.title', 'Recent activity')}
                 </CardTitle>
                 <span className="text-xs text-neutral-500">
@@ -220,8 +220,8 @@ const RecentActivities = ({
                             : null;
 
                         return (
-                            <li key={activity.id} className="flex gap-3 rounded-lg border border-neutral-200/80 bg-white/60 p-3 shadow-sm">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                            <li key={activity.id} className="flex gap-3 rounded-lg border border-neutral-200/60 bg-neutral-50/50 p-3 transition-colors hover:bg-neutral-50">
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                                     <Icon className="h-4 w-4" />
                                 </span>
                                 <div className="flex flex-1 flex-col gap-1">
@@ -276,9 +276,9 @@ const QuickActions = ({
     const visibleQuickLinks = quickLinks.filter((link) => !link.ability || abilities[link.ability]);
 
     return (
-        <Card className="border border-neutral-200/80">
-            <CardHeader className="flex flex-col gap-2">
-                <CardTitle className="text-base font-semibold text-neutral-900">
+        <Card className="border border-neutral-200/60 bg-white shadow-sm">
+            <CardHeader className="flex flex-col gap-2 pb-4">
+                <CardTitle className="text-base font-bold text-neutral-900">
                     {t('admin.quick_actions.title', 'Quick actions')}
                 </CardTitle>
                 <span className="text-xs text-neutral-500">
@@ -299,7 +299,7 @@ const QuickActions = ({
                                 <Link
                                     key={link.key}
                                     href={link.href}
-                                    className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white/70 px-4 py-3 text-sm text-neutral-700 transition-shadow hover:border-blue-200 hover:shadow-md"
+                                    className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200/60 bg-white px-4 py-3 text-sm text-neutral-700 transition-all hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="rounded-full bg-blue-50 p-2 text-blue-600">
@@ -343,7 +343,7 @@ const QuickActions = ({
                                 return (
                                     <li
                                         key={todo.key}
-                                        className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white/70 px-3 py-2 text-xs text-neutral-600"
+                                        className="flex items-start gap-3 rounded-lg border border-neutral-200/60 bg-white px-3 py-2 text-xs text-neutral-600"
                                     >
                                         <StatusIcon className={cn('mt-0.5 h-4 w-4', color)} />
                                         <div className="flex flex-1 flex-col">
@@ -393,43 +393,30 @@ export default function ManageAdminDashboard() {
         },
     ];
 
-    const pageTitle = t('admin.title', 'System overview');
-    const pageDescription = t('admin.description', 'Monitor announcements, attachments, and contact messages in real time.');
-
-    const toolbar = (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-            <Badge variant="outline" className="rounded-full border-neutral-200 px-3 py-1 text-[11px] font-semibold text-neutral-600">
-                {t('admin.badge', 'Admin dashboard')}
-            </Badge>
-            {dashboard ? (
-                <span>{t('admin.generated_at', 'Updated at :time', { time: formatDateTime(dashboard.generatedAt, locale) })}</span>
-            ) : null}
-        </div>
-    );
+    const pageTitle = t('admin.title', '系統總覽');
+    const pageDescription = t('admin.description', '即時掌握公告、附件與聯絡訊息狀態，協助團隊快速行動。');
 
     return (
-        <>
+        <ManagePage title={pageTitle} description={pageDescription} breadcrumbs={breadcrumbs}>
             <Head title={pageTitle} />
-            <ManagePage title={pageTitle} description={pageDescription} breadcrumbs={breadcrumbs} toolbar={toolbar}>
-                {!dashboard ? (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/70 p-10 text-center">
-                        <Inbox className="h-10 w-10 text-neutral-400" />
-                        <div className="space-y-1">
-                            <h2 className="text-lg font-semibold text-neutral-800">{t('admin.empty.title', 'Dashboard data unavailable')}</h2>
-                            <p className="text-sm text-neutral-500">{t('admin.empty.description', 'Ensure backend metrics are configured.')}</p>
-                        </div>
+            {!dashboard ? (
+                <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/70 p-10 text-center">
+                    <Inbox className="h-10 w-10 text-neutral-400" />
+                    <div className="space-y-1">
+                        <h2 className="text-lg font-semibold text-neutral-800">{t('admin.empty.title', 'Dashboard data unavailable')}</h2>
+                        <p className="text-sm text-neutral-500">{t('admin.empty.description', 'Ensure backend metrics are configured.')}</p>
                     </div>
-                ) : (
-                    <div className="space-y-6">
-                        <OverviewCards metrics={dashboard.metrics} locale={locale} t={t} />
-                        <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-                            <RecentActivities activities={dashboard.activities} locale={locale} t={t} tManage={tManage} />
-                            <QuickActions quickLinks={dashboard.quickLinks} todos={dashboard.personalTodos} abilities={abilities} locale={locale} t={t} />
-                        </div>
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    <OverviewCards metrics={dashboard.metrics} locale={locale} t={t} />
+                    <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+                        <RecentActivities activities={dashboard.activities} locale={locale} t={t} tManage={tManage} />
+                        <QuickActions quickLinks={dashboard.quickLinks} todos={dashboard.personalTodos} abilities={abilities} locale={locale} t={t} />
                     </div>
-                )}
-            </ManagePage>
-        </>
+                </div>
+            )}
+        </ManagePage>
     );
 }
 
