@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Form } from '@inertiajs/react';
 import { useRef } from 'react';
 import { useTranslator } from '@/hooks/use-translator';
-import { profile } from '@/routes/manage/settings';
+import settings from '@/routes/manage/settings';
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -36,7 +36,7 @@ export default function DeleteUser() {
                         <DialogDescription>{t('settings.profile.delete.dialog.description')}</DialogDescription>
 
                         <Form
-                            action={profile.url()}
+                            action={settings.profile.update.url()}
                             method="delete"
                             options={{
                                 preserveScroll: true,

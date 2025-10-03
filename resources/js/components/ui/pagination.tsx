@@ -15,9 +15,9 @@ interface PaginationMeta {
     last_page: number;
     per_page: number;
     total: number;
-    from: number;
-    to: number;
-    links: PaginationLink[];
+    from: number | null;
+    to: number | null;
+    links?: PaginationLink[];
 }
 
 interface PaginationProps {
@@ -50,7 +50,7 @@ export default function Pagination({
         <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
             {/* Results info */}
             <div className="text-sm text-gray-700">
-                顯示第 <span className="font-medium">{from}</span> 到 <span className="font-medium">{to}</span> 項，
+                顯示第 <span className="font-medium">{from ?? 0}</span> 到 <span className="font-medium">{to ?? 0}</span> 項，
                 共 <span className="font-medium">{total}</span> 項結果
             </div>
 

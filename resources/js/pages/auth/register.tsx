@@ -36,10 +36,10 @@ export default function Register() {
     return (
         <AuthLayout title={copy.title} description={copy.description}>
             <Head title={copy.title} />
-            <Form
-                {...RegisteredUserController.store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
-                disableWhileProcessing
+                        <Form
+                action={RegisteredUserController.store().url}
+                method={RegisteredUserController.store().method}
+                resetOnSuccess={['password']}
                 className="space-y-8"
             >
                 {({ processing, errors }) => (

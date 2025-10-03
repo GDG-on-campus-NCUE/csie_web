@@ -26,7 +26,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
 
             {status && <div className={formStatusClass}>{status}</div>}
 
-            <Form {...EmailVerificationNotificationController.store.form()} className="space-y-6 text-center">
+            <Form action={EmailVerificationNotificationController.store().url} method={EmailVerificationNotificationController.store().method} className="space-y-6 text-center">
                 {({ processing }) => (
                     <>
                         <Button disabled={processing} size="lg" className={`${formButtonClass} w-full`}>

@@ -79,9 +79,12 @@ class Post extends Model
         'summary_en',
         'content',
         'content_en',
+        'target_audience',
         'views',
         'created_by',
         'updated_by',
+        'course_start_at',
+        'course_end_at',
     ];
 
     /**
@@ -92,6 +95,8 @@ class Post extends Model
     protected $casts = [
         'published_at' => 'datetime',
         'expire_at' => 'datetime',
+        'course_start_at' => 'datetime',
+        'course_end_at' => 'datetime',
         'pinned' => 'boolean',
         'views' => 'integer',
     ];

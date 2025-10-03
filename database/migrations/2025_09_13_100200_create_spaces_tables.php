@@ -17,6 +17,12 @@ return new class extends Migration
                 ->index();
             $table->string('name')->comment('空間名稱');
             $table->string('name_en')->nullable()->comment('空間英文名稱');
+            $table->string('field')->nullable()->comment('研究領域（實驗室使用）');
+            $table->foreignId('principal_investigator_id')
+                ->nullable()
+                ->comment('負責教師ID（實驗室使用）')
+                ->constrained('users')
+                ->nullOnDelete();
             $table->string('location')->nullable()->comment('空間位置或樓層');
             $table->integer('capacity')->nullable()->comment('容納人數');
             $table->string('website_url')->nullable()->comment('官方網站網址');
@@ -42,6 +48,9 @@ return new class extends Migration
                 ->comment('使用者 ID')
                 ->constrained('users')
                 ->cascadeOnDelete();
+            $table->string('role', 50)->nullable()->comment('成員角色');
+            $table->string('access_level', 20)->nullable()->comment('存取權限等級');
+            $table->timestamps();
             $table->unique(['space_id', 'user_id']);
         });
 

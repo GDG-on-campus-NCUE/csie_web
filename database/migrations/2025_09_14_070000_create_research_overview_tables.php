@@ -13,12 +13,15 @@ return new class extends Migration
             $table->date('start_date')->comment('研究計畫開始日期');
             $table->date('end_date')->nullable()->comment('研究計畫結束日期，未結束時可為空值');
             $table->string('title')->comment('研究計畫名稱');
+            $table->string('title_en')->nullable()->comment('研究計畫英文名稱');
             $table->string('sponsor')->comment('研究計畫執行單位或出資單位');
             $table->unsignedBigInteger('total_budget')->nullable()->comment('研究計畫總經費，若未知可為空值');
             $table->string('principal_investigator')->comment('研究計畫主持人');
             $table->text('summary')->nullable()->comment('研究計畫摘要說明');
+            $table->foreignId('space_id')->nullable()->constrained('spaces')->nullOnDelete()->comment('關聯的 Space 資源');
             $table->timestamp('created_at')->nullable()->comment('建立時間');
             $table->timestamp('updated_at')->nullable()->comment('最後更新時間');
+            $table->softDeletes()->comment('軟刪除時間');
         });
 
         Schema::create('papers', function (Blueprint $table) {

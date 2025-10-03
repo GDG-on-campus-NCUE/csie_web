@@ -28,11 +28,18 @@ return new class extends Migration
                 ->comment('上傳者使用者 ID')
                 ->constrained('users')
                 ->nullOnDelete();
+            $table->foreignId('space_id')
+                ->nullable()
+                ->comment('所屬 Space ID')
+                ->constrained('spaces')
+                ->nullOnDelete();
             $table->unsignedTinyInteger('visibility')
                 ->default(1)
                 ->comment('可見性：1=公開、2=私人，於服務層轉換名稱');
             $table->string('alt_text')->nullable()->comment('替代文字');
             $table->string('alt_text_en')->nullable()->comment('替代文字英文版');
+            $table->text('description')->nullable()->comment('附件備註說明');
+            $table->json('tags')->nullable()->comment('附件標籤快取，儲存 slug 陣列');
             $table->integer('sort_order')->default(0)->comment('排序數值');
             $table->timestamp('deleted_at')->nullable()->comment('軟刪除時間');
             $table->timestamp('created_at')->nullable()->comment('建立時間');

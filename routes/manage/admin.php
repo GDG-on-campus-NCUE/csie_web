@@ -18,7 +18,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             Route::post('posts/bulk', [PostController::class, 'bulk'])->name('posts.bulk');
             Route::patch('posts/{post}/restore', [PostController::class, 'restore'])->name('posts.restore');
             Route::resource('posts', PostController::class);
-            Route::get('tags/options', [TagController::class, 'options'])->name('tags.options');
+            Route::get('tags/options', [TagController::class, 'getOptions'])->name('tags.getOptions');
             Route::post('tags/merge', [TagController::class, 'merge'])->name('tags.merge');
             Route::post('tags/split', [TagController::class, 'split'])->name('tags.split');
             Route::resource('tags', TagController::class);

@@ -31,10 +31,19 @@ return new class extends Migration
                 ->comment('所屬分類 ID')
                 ->constrained('post_categories')
                 ->cascadeOnDelete();
+            $table->foreignId('space_id')
+                ->nullable()
+                ->comment('綁定的 Space ID')
+                ->constrained('spaces')
+                ->nullOnDelete();
             $table->string('slug')->comment('文章代碼')->unique();
             $table->unsignedTinyInteger('status')
                 ->default(0)
                 ->comment('文章狀態：0=草稿、1=公開、2=隱藏，於服務層轉換名稱')
+                ->index();
+            $table->unsignedTinyInteger('visibility')
+                ->default(1)
+                ->comment('可見性：1=公開、2=內部、3=私人')
                 ->index();
             $table->unsignedTinyInteger('source_type')
                 ->default(1)
@@ -44,13 +53,18 @@ return new class extends Migration
                 ->nullable()
                 ->comment('外部來源網址');
             $table->timestamp('published_at')->nullable()->comment('發佈時間')->index();
+            $table->dateTime('course_start_at')->nullable()->comment('課程開始時間');
+            $table->dateTime('course_end_at')->nullable()->comment('課程結束時間');
             $table->timestamp('expire_at')->nullable()->comment('下架時間');
             $table->boolean('pinned')->default(false)->comment('是否置頂')->index();
             $table->string('cover_image_url')->nullable()->comment('封面圖片網址');
             $table->string('title')->comment('文章標題');
             $table->string('title_en')->comment('文章英文標題');
+            $table->text('excerpt')->nullable()->comment('公告摘要');
+            $table->text('excerpt_en')->nullable()->comment('公告英文摘要');
             $table->text('summary')->nullable()->comment('文章摘要');
             $table->text('summary_en')->nullable()->comment('文章英文摘要');
+            $table->string('target_audience')->nullable()->comment('目標對象');
             $table->longText('content')->comment('文章內容');
             $table->longText('content_en')->comment('文章英文內容');
             $table->unsignedBigInteger('views')->default(0)->comment('瀏覽次數');

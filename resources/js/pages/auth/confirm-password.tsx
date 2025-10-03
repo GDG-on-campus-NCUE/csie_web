@@ -22,7 +22,7 @@ export default function ConfirmPassword() {
         <AuthLayout title={copy.title} description={copy.description}>
             <Head title={copy.title} />
 
-            <Form {...ConfirmablePasswordController.store.form()} resetOnSuccess={['password']} className="space-y-8">
+            <Form action={ConfirmablePasswordController.store().url} method={ConfirmablePasswordController.store().method} resetOnSuccess={['password']} className="space-y-8">
                 {({ processing, errors }) => (
                     <div className={formSectionClass}>
                         <AuthPasswordInput

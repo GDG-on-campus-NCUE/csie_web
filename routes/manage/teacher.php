@@ -11,7 +11,9 @@ Route::middleware(['auth', 'verified', 'role:admin,teacher'])
     ->as('manage.teacher.')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
-        Route::resource('posts', PostController::class);
+    Route::post('posts/{post}/duplicate', [PostController::class, 'duplicate'])->name('posts.duplicate');
+    Route::post('posts/{post}/quick-publish', [PostController::class, 'quickPublish'])->name('posts.quick-publish');
+    Route::resource('posts', PostController::class);
         Route::resource('labs', LabController::class);
 
         // 實驗室成員管理

@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
             'Publication' => Publication::class,
             'Program' => Program::class,
             'Classroom' => Classroom::class,
+            'SupportTicket' => \App\Models\SupportTicket::class,
         ]);
 
         $this->ensureDefaultPostCategories();

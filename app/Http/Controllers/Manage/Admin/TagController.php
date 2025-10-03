@@ -270,7 +270,7 @@ class TagController extends Controller
     /**
      * 提供標籤選項列表給前端即時搜尋。
      */
-    public function options(Request $request): HttpResponse
+    public function getOptions(Request $request): HttpResponse
     {
         $this->authorize('viewAny', Tag::class);
 

@@ -34,7 +34,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
             {status && <div className={formStatusClass}>{status}</div>}
 
-            <Form {...PasswordResetLinkController.store.form()} className={formSectionClass}>
+            <Form action={PasswordResetLinkController.store().url} method={PasswordResetLinkController.store().method} className={formSectionClass}>
                 {({ processing, errors }) => (
                     <>
                         <AuthInput

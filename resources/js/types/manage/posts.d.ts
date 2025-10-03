@@ -10,6 +10,9 @@ export interface ManagePostListItem {
     visibility: string;
     pinned: boolean;
     published_at?: string | null;
+    course_start_at?: string | null;
+    course_end_at?: string | null;
+    target_audience?: string | null;
     updated_at?: string | null;
     created_at?: string | null;
     category?: {
@@ -95,6 +98,9 @@ export interface ManagePostDetail {
     source_type: string;
     pinned: boolean;
     published_at?: string | null;
+    course_start_at?: string | null;
+    course_end_at?: string | null;
+    target_audience?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
     views: number;
