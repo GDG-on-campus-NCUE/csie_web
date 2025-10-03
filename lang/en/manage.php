@@ -227,6 +227,26 @@ return [
             'back_to_overview' => 'Back to overview',
             'quick_actions' => 'Quick actions',
         ],
+        'components' => [
+            'stat_card' => [
+                'view_details' => 'View details',
+            ],
+            'filter_panel' => [
+                'title' => 'Filters',
+                'apply' => 'Apply',
+                'reset' => 'Reset',
+                'collapse' => 'Collapse filters',
+                'expand' => 'Expand filters',
+            ],
+            'detail_drawer' => [
+                'close' => 'Close',
+            ],
+            'data_card' => [
+                'view' => 'View',
+                'edit' => 'Edit',
+                'delete' => 'Delete',
+            ],
+        ],
         'admin' => [
             'badge' => 'Admin dashboard',
             'title' => 'System overview',
@@ -236,12 +256,61 @@ return [
                 'view_posts' => 'View announcements',
             ],
             'metrics' => [
-                'total_posts' => 'Total announcements',
-                'published_posts' => 'Published',
-                'draft_posts' => 'Drafts',
-                'archived_posts' => 'Archived',
-                'pinned_posts' => 'Pinned',
-                'total_users' => 'Total users',
+                'delta_label' => 'vs last week',
+                'total_posts' => 'Total posts',
+                'published_posts' => 'Published posts',
+                'draft_posts' => 'Draft posts',
+                'scheduled_posts' => 'Scheduled posts',
+                'archived_posts' => 'Archived posts',
+                'pinned_posts' => 'Pinned posts',
+                'total_users' => 'Users',
+                'storage_usage' => 'Storage usage',
+            ],
+            'activities' => [
+                'title' => 'Recent activity',
+                'subtitle' => 'Latest announcements and contact messages.',
+                'empty' => 'No activity yet.',
+            ],
+            'quick_actions' => [
+                'title' => 'Quick actions',
+                'description' => 'Recommended shortcuts based on your permissions.',
+                'empty' => 'No quick actions available.',
+                'manage' => 'Go to management center',
+                'create_post' => [
+                    'label' => 'Create announcement',
+                    'description' => 'Draft and publish a new announcement.',
+                ],
+                'view_posts' => [
+                    'label' => 'Review announcements',
+                    'description' => 'Open the announcement list for administering records.',
+                ],
+                'invite_teacher' => [
+                    'label' => 'Invite teacher',
+                    'description' => 'Create a new teacher account and assign roles.',
+                ],
+                'upload_attachment' => [
+                    'label' => 'Upload attachment',
+                    'description' => 'Organise files inside the shared resource library.',
+                ],
+            ],
+            'todos' => [
+                'title' => 'Personal checklist',
+                'empty' => 'All clear, nothing queued!',
+                'review_drafts' => [
+                    'label' => 'Review drafts',
+                    'pending' => ':count draft(s) pending review.',
+                    'completed' => 'No drafts pending review.',
+                ],
+                'review_scheduled' => [
+                    'label' => 'Review scheduled posts',
+                    'pending' => ':count scheduled announcement(s) awaiting review.',
+                    'completed' => 'All scheduled announcements are confirmed.',
+                ],
+                'reply_contact' => [
+                    'label' => 'Reply to contact messages',
+                    'pending' => ':count new message(s) awaiting reply.',
+                    'completed' => 'All contact messages have been answered.',
+                ],
             ],
             'attachments' => [
                 'title' => 'Attachment summary',

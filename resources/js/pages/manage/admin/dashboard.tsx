@@ -13,6 +13,7 @@ import type {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StatCard } from '@/components/manage/stat-card';
 import { cn } from '@/lib/shared/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -105,16 +106,13 @@ const resolveDeltaLabel = (delta?: number | null) => {
 };
 
 const OverviewCards = ({ metrics, locale, t }: { metrics: AdminDashboardMetric[]; locale: string; t: TranslatorFn }) => (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {metrics.map((metric) => {
             const Icon = metricIconMap[metric.key] ?? ActivityIcon;
             const meta = (metric.meta ?? {}) as Record<string, unknown>;
             const displayValue = metric.unit === '%'
                 ? `${Number.isFinite(metric.value) ? metric.value.toFixed(1) : metric.value}%`
                 : formatNumber(metric.value, locale);
-            const deltaLabel = resolveDeltaLabel(metric.delta);
-            const isPositive = (metric.trend ?? 'flat') === 'up' && (metric.delta ?? 0) > 0;
-            const isNegative = (metric.trend ?? 'flat') === 'down' && (metric.delta ?? 0) < 0;
 
             const usageSummary = metric.key === 'storage_usage'
                 ? formatBytes((meta.usedBytes as number) ?? 0, locale)
@@ -124,54 +122,30 @@ const OverviewCards = ({ metrics, locale, t }: { metrics: AdminDashboardMetric[]
                 : null;
 
             return (
-                <Card key={metric.key} className="border border-neutral-200/60 bg-white shadow-sm">
-                    <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
-                        <div className="flex flex-1 flex-col gap-1">
-                            <CardTitle className="text-sm font-medium text-neutral-600">
-                                {t(`admin.metrics.${metric.key}`, metric.label ?? metric.key)}
-                            </CardTitle>
-                            <div className="text-2xl font-bold text-neutral-900">{displayValue}</div>
+                <StatCard
+                    key={metric.key}
+                    title={t(`admin.metrics.${metric.key}`, metric.label ?? metric.key)}
+                    value={displayValue}
+                    icon={Icon}
+                    trend={metric.trend ?? 'flat'}
+                    delta={metric.delta ?? undefined}
+                    deltaLabel={t('admin.metrics.delta_label', 'vs last week')}
+                    suffix={metric.unit === '%' ? '' : undefined}
+                >
+                    {metric.key === 'storage_usage' && usageSummary && usageCapacity ? (
+                        <div className="space-y-2">
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+                                <div
+                                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                                    style={{ width: `${Math.min(100, Math.max(0, metric.value))}%` }}
+                                />
+                            </div>
+                            <p className="text-xs font-medium text-neutral-600">
+                                {usageSummary} / {usageCapacity}
+                            </p>
                         </div>
-                        <span className="rounded-lg bg-blue-50 p-2 text-blue-600">
-                            <Icon className="h-4 w-4" />
-                        </span>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-xs text-neutral-500">
-                        {metric.key === 'storage_usage' && usageSummary && usageCapacity ? (
-                            <div className="space-y-3">
-                                <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-                                    <div
-                                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
-                                        style={{ width: `${Math.min(100, Math.max(0, metric.value))}%` }}
-                                    />
-                                </div>
-                                <p className="font-medium text-neutral-600">
-                                    {t('admin.storage.summary', `${usageSummary} / ${usageCapacity}`, {
-                                        used: usageSummary,
-                                        capacity: usageCapacity,
-                                    })}
-                                </p>
-                            </div>
-                        ) : null}
-                        {deltaLabel ? (
-                            <div className="flex items-center gap-1 text-[11px]">
-                                {isPositive ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : null}
-                                {isNegative ? <ArrowDownRight className="h-3 w-3 text-rose-500" /> : null}
-                                {!isPositive && !isNegative ? <Minus className="h-3 w-3 text-neutral-400" /> : null}
-                                <span className={cn('font-medium', {
-                                    'text-emerald-600': isPositive,
-                                    'text-rose-600': isNegative,
-                                })}
-                                >
-                                    {deltaLabel}
-                                </span>
-                                <span className="text-neutral-500">
-                                    {t('admin.metrics.delta_label', 'vs last week')}
-                                </span>
-                            </div>
-                        ) : null}
-                    </CardContent>
-                </Card>
+                    ) : null}
+                </StatCard>
             );
         })}
     </section>
@@ -336,9 +310,20 @@ const QuickActions = ({
                                 const StatusIcon = emptyStateIconMap[statusKey];
                                 const color = todo.completed ? 'text-emerald-600' : 'text-amber-500';
                                 const label = t(`admin.todos.${todo.key}.label`, todo.label ?? todo.key);
-                                const description = t(`admin.todos.${todo.key}.description`, todo.description ?? '', {
-                                    count: todo.count ?? 0,
-                                });
+                                const fallbackLegacyDescription = t(
+                                    `admin.todos.${todo.key}.description`,
+                                    todo.description ?? '',
+                                    {
+                                        count: todo.count ?? 0,
+                                    }
+                                );
+                                const description = t(
+                                    `admin.todos.${todo.key}.${statusKey}`,
+                                    fallbackLegacyDescription,
+                                    {
+                                        count: todo.count ?? 0,
+                                    }
+                                );
 
                                 return (
                                     <li

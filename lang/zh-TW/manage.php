@@ -208,6 +208,26 @@ return [
             'back_to_overview' => '回到管理首頁',
             'quick_actions' => '常用操作',
         ],
+        'components' => [
+            'stat_card' => [
+                'view_details' => '檢視詳情',
+            ],
+            'filter_panel' => [
+                'title' => '篩選條件',
+                'apply' => '套用',
+                'reset' => '重設',
+                'collapse' => '收合篩選',
+                'expand' => '展開篩選',
+            ],
+            'detail_drawer' => [
+                'close' => '關閉',
+            ],
+            'data_card' => [
+                'view' => '檢視',
+                'edit' => '編輯',
+                'delete' => '刪除',
+            ],
+        ],
         'admin' => [
             'badge' => '管理儀表板',
             'title' => '系統總覽',
@@ -217,12 +237,61 @@ return [
                 'view_posts' => '檢視公告列表',
             ],
             'metrics' => [
+                'delta_label' => '較上週',
                 'total_posts' => '公告總數',
-                'published_posts' => '已發布',
-                'draft_posts' => '草稿',
-                'archived_posts' => '封存',
+                'published_posts' => '已發布公告',
+                'draft_posts' => '草稿公告',
+                'scheduled_posts' => '排程公告',
+                'archived_posts' => '封存公告',
                 'pinned_posts' => '置頂公告',
                 'total_users' => '使用者數',
+                'storage_usage' => '儲存使用量',
+            ],
+            'activities' => [
+                'title' => '近期動態',
+                'subtitle' => '掌握最新公告與聯絡訊息。',
+                'empty' => '目前尚無任何動態。',
+            ],
+            'quick_actions' => [
+                'title' => '常用操作',
+                'description' => '依您的權限提供建議捷徑。',
+                'empty' => '目前沒有可用的捷徑。',
+                'manage' => '前往管理中心',
+                'create_post' => [
+                    'label' => '建立公告',
+                    'description' => '快速撰寫並發布新公告。',
+                ],
+                'view_posts' => [
+                    'label' => '檢視公告列表',
+                    'description' => '打開公告列表以管理公告。',
+                ],
+                'invite_teacher' => [
+                    'label' => '邀請教師',
+                    'description' => '建立新的教師帳號並指派角色。',
+                ],
+                'upload_attachment' => [
+                    'label' => '上傳附件',
+                    'description' => '管理共享資源庫中的檔案。',
+                ],
+            ],
+            'todos' => [
+                'title' => '個人代辦清單',
+                'empty' => '一切就緒，沒有待辦事項！',
+                'review_drafts' => [
+                    'label' => '審查草稿',
+                    'pending' => '尚有 :count 筆草稿待審查。',
+                    'completed' => '目前沒有草稿待審查。',
+                ],
+                'review_scheduled' => [
+                    'label' => '審查排程公告',
+                    'pending' => '尚有 :count 筆排程公告等待確認。',
+                    'completed' => '所有排程公告皆已確認。',
+                ],
+                'reply_contact' => [
+                    'label' => '回覆聯絡訊息',
+                    'pending' => '尚有 :count 則新訊息待回覆。',
+                    'completed' => '所有聯絡訊息皆已回覆。',
+                ],
             ],
             'attachments' => [
                 'title' => '附件概況',
