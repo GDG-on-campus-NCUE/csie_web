@@ -4,6 +4,7 @@ import LanguageSwitcher from '@/components/app/app-lang-switcher';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTranslator } from '@/hooks/use-translator';
+import { useManageLayoutContext } from '@/layouts/manage/manage-layout-context';
 import { cn } from '@/lib/shared/utils';
 import type { NavItem, SharedData } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
@@ -33,15 +34,14 @@ function ManagePage({
     const { t } = useTranslator('manage');
     const page = usePage<SharedData>();
     const user = page.props.auth?.user;
-    // 注意：不要在這裡使用 ?? []，讓 undefined 保持 undefined
-    // 這樣 ManageLayout 才能正確注入 quickNavItems
-    const navItems = quickNavItems;
-    const resolvedPath = currentPath ?? page.url ?? '';
-
-    // 調試輸出
-    console.log('=== ManagePage 調試 ===');
-    console.log('接收到的 quickNavItems:', quickNavItems);
-    console.log('navItems 長度:', navItems ? navItems.length : 'undefined');
+    const layoutContext = useManageLayoutContext();
+    const resolvedQuickNavItems = quickNavItems ?? layoutContext?.quickNavItems;
+    const navItems = resolvedQuickNavItems ?? [];
+    const resolvedPath = currentPath ?? layoutContext?.currentPath ?? page.url ?? '';
+    const resolvedQuickNavLabel = quickNavLabel ?? layoutContext?.quickNavLabel ?? t('layout.quick_nav', '管理快速路徑');
+    const resolvedTitle = title ?? layoutContext?.defaultTitle;
+    const resolvedDescription = description ?? layoutContext?.defaultDescription;
+    const resolvedBreadcrumbs = breadcrumbs ?? layoutContext?.defaultBreadcrumbs;
 
     return (
         <div className={cn('flex min-h-full flex-1 flex-col', className)}>
@@ -72,17 +72,17 @@ function ManagePage({
             </header>
             <main className="flex-1 overflow-y-auto">
                 <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:px-8">
-                    {navItems && navItems.length > 0 ? (
+                    {navItems.length > 0 ? (
                         <ManageQuickNav
                             items={navItems}
                             currentPath={resolvedPath}
-                            label={quickNavLabel ?? t('layout.quick_nav', '管理快速路徑')}
+                            label={resolvedQuickNavLabel}
                         />
                     ) : null}
                     <ManageMain
-                        title={title}
-                        description={description}
-                        breadcrumbs={breadcrumbs}
+                        title={resolvedTitle}
+                        description={resolvedDescription}
+                        breadcrumbs={resolvedBreadcrumbs}
                         actions={actions}
                         toolbar={toolbar}
                         footer={footer}
