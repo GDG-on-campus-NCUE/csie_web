@@ -1,5 +1,6 @@
-import ManagePage, { type ManagePageProps } from '@/layouts/manage/manage-page';
 import ManageSidebar, { type ManageSidebarProps } from '@/layouts/manage/manage-siderbar';
+import { ManageLayoutProvider } from '@/layouts/manage/manage-layout-context';
+import type { ManagePageProps } from '@/layouts/manage/manage-page';
 import { useTranslator } from '@/hooks/use-translator';
 import { buildSidebarNavGroups, type SidebarNavGroup } from '@/lib/manage/sidebar-nav-groups';
 import type { SharedData, User, NavItem } from '@/types/shared';
@@ -16,17 +17,7 @@ import {
     Tag,
     Users,
 } from 'lucide-react';
-import {
-    Children,
-    cloneElement,
-    isValidElement,
-    type ReactElement,
-    type ReactNode,
-} from 'react';
-
-interface ManageLayoutProps {
-    children: ReactNode;
-}
+import { type ReactNode } from 'react';
 
 function resolvePrimaryRole(user: User | undefined): 'admin' | 'teacher' | 'user' {
     if (!user) {
@@ -46,40 +37,8 @@ function resolvePrimaryRole(user: User | undefined): 'admin' | 'teacher' | 'user
     return 'admin';
 }
 
-function isManagePageElement(node: ReactNode): node is ReactElement<ManagePageProps> {
-    if (!isValidElement(node)) {
-        return false;
-    }
-
-    if (node.type === ManagePage) {
-        return true;
-    }
-
-    if (node.type && (typeof node.type === 'function' || typeof node.type === 'object')) {
-        const maybeDisplayName = (node.type as { displayName?: string | undefined }).displayName;
-        return maybeDisplayName === ManagePage.displayName;
-    }
-
-    return false;
-}
-
-function extractManagePage(children: ReactNode): {
-    page: ReactElement<ManagePageProps> | null;
-    rest: ReactNode[];
-} {
-    let resolvedPage: ReactElement<ManagePageProps> | null = null;
-    const rest: ReactNode[] = [];
-
-    Children.toArray(children).forEach((child) => {
-        if (!resolvedPage && isManagePageElement(child)) {
-            resolvedPage = child;
-            return;
-        }
-
-        rest.push(child);
-    });
-
-    return { page: resolvedPage, rest };
+interface ManageLayoutProps {
+    children: ReactNode;
 }
 
 export default function ManageLayout({ children }: ManageLayoutProps) {
@@ -165,42 +124,19 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
     const navGroups: SidebarNavGroup[] = buildSidebarNavGroups(role, t, sidebarAbilities);
     const currentPath = page.url ?? '/manage';
 
-    // 調試輸出
-    console.log('=== 新架構調試 ===');
-    console.log('Role:', role);
-    console.log('QuickNavItems:', quickNavItems);
-    console.log('QuickNavItems Length:', quickNavItems.length);
-
-
-
-    const { page: providedManagePage, rest } = extractManagePage(children);
-
-    const mergedManagePage: ReactNode = providedManagePage
-        ? cloneElement(providedManagePage, {
-              title: providedManagePage.props.title ?? defaultPageProps.title,
-              description: providedManagePage.props.description ?? defaultPageProps.description,
-              breadcrumbs: providedManagePage.props.breadcrumbs ?? defaultPageProps.breadcrumbs,
-              quickNavItems: providedManagePage.props.quickNavItems ?? quickNavItems,
-              currentPath: providedManagePage.props.currentPath ?? currentPath,
-          })
-        : (
-              <ManagePage
-                  title={defaultPageProps.title}
-                  description={defaultPageProps.description}
-                  breadcrumbs={defaultPageProps.breadcrumbs}
-                  quickNavItems={quickNavItems}
-                  currentPath={currentPath}
-              >
-                  {children}
-              </ManagePage>
-          );
-
-    const leadingSiblings = providedManagePage ? rest : [];
-
     const sidebarProps: ManageSidebarProps = {
         brand: brandCopy,
         groups: navGroups,
         currentPath,
+    };
+
+    const layoutContextValue = {
+        quickNavItems,
+        quickNavLabel: t('layout.quick_nav', '管理快速路徑'),
+        currentPath,
+        defaultTitle: defaultPageProps.title,
+        defaultDescription: defaultPageProps.description,
+        defaultBreadcrumbs: defaultPageProps.breadcrumbs,
     };
 
     return (
@@ -209,8 +145,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
                 <ManageSidebar {...sidebarProps} />
             </Sidebar>
             <SidebarInset className="bg-neutral-50 text-neutral-900">
-                {leadingSiblings}
-                {mergedManagePage}
+                <ManageLayoutProvider value={layoutContextValue}>{children}</ManageLayoutProvider>
             </SidebarInset>
             <SidebarRail />
         </SidebarProvider>
