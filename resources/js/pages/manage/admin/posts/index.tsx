@@ -361,7 +361,7 @@ export default function ManageAdminPostsIndex() {
                         className="w-56"
                         aria-label={tPosts('filters.keyword_label', '搜尋公告')}
                     />
-                    <Button type="submit" size="sm" className="gap-1">
+                    <Button type="submit" size="sm" variant="tonal" className="gap-1">
                         <Filter className="h-4 w-4" />
                         {tPosts('filters.apply', '套用')}
                     </Button>
@@ -448,7 +448,7 @@ export default function ManageAdminPostsIndex() {
                     </DropdownMenu>
                 ) : null}
                 {abilities.canCreate ? (
-                    <Button size="sm" className="gap-2" asChild>
+                    <Button size="sm" variant="tonal" className="gap-2" asChild>
                         <Link href="/manage/admin/posts/create">
                             <FilePlus2 className="h-4 w-4" />
                             {t('sidebar.admin.posts_create', '新增公告')}

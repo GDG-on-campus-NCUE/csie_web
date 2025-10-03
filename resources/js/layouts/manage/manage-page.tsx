@@ -33,8 +33,15 @@ function ManagePage({
     const { t } = useTranslator('manage');
     const page = usePage<SharedData>();
     const user = page.props.auth?.user;
-    const navItems = quickNavItems ?? [];
+    // 注意：不要在這裡使用 ?? []，讓 undefined 保持 undefined
+    // 這樣 ManageLayout 才能正確注入 quickNavItems
+    const navItems = quickNavItems;
     const resolvedPath = currentPath ?? page.url ?? '';
+
+    // 調試輸出
+    console.log('=== ManagePage 調試 ===');
+    console.log('接收到的 quickNavItems:', quickNavItems);
+    console.log('navItems 長度:', navItems ? navItems.length : 'undefined');
 
     return (
         <div className={cn('flex min-h-full flex-1 flex-col', className)}>
@@ -65,7 +72,7 @@ function ManagePage({
             </header>
             <main className="flex-1 overflow-y-auto">
                 <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:px-8">
-                    {navItems.length ? (
+                    {navItems && navItems.length > 0 ? (
                         <ManageQuickNav
                             items={navItems}
                             currentPath={resolvedPath}

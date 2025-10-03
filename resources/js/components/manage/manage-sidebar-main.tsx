@@ -6,28 +6,20 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useTranslator } from '@/hooks/use-translator';
-import { buildSidebarNavGroups } from '@/lib/manage/sidebar-nav-groups';
-import type { SharedData } from '@/types/shared';
-import { Link, usePage } from '@inertiajs/react';
+import type { SidebarNavGroup } from '@/lib/manage/sidebar-nav-groups';
+import { Link } from '@inertiajs/react';
 
 interface ManageSidebarMainProps {
-    role: 'admin' | 'teacher' | 'user';
+    groups: SidebarNavGroup[];
+    currentPath: string;
 }
 
-export default function ManageSidebarMain({ role }: ManageSidebarMainProps) {
-    const { t } = useTranslator('manage');
-    const page = usePage<SharedData>();
-    const currentPath = page.url ?? '';
-    const abilities = page.props.abilities;
-
-    const groups = buildSidebarNavGroups(role, t, abilities);
-
+export default function ManageSidebarMain({ groups, currentPath }: ManageSidebarMainProps) {
     return (
         <SidebarMenu>
             {groups.map((group) => (
                 <SidebarGroup key={group.title} className="space-y-2">
-                    <SidebarGroupLabel className="px-2 text-xs font-semibold uppercase tracking-wider text-white/60">
+                    <SidebarGroupLabel className="px-2 text-xs font-semibold uppercase tracking-wider text-white/80">
                         {group.title}
                     </SidebarGroupLabel>
                     <SidebarGroupContent className="space-y-1">
@@ -50,5 +42,3 @@ export default function ManageSidebarMain({ role }: ManageSidebarMainProps) {
         </SidebarMenu>
     );
 }
-
-

@@ -474,13 +474,13 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-all duration-300 ease-out cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:drop-shadow-[0_2px_8px_rgba(255,255,255,0.05)] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md border border-transparent p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-all duration-300 ease-out cursor-pointer hover:bg-white/15 hover:text-white hover:shadow-[0_8px_20px_rgba(15,23,42,0.3)] focus-visible:ring-2 active:bg-white/20 active:text-white disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-white/70 data-[active=true]:bg-white data-[active=true]:font-semibold data-[active=true]:text-neutral-900 data-[active=true]:shadow-[0_16px_40px_rgba(15,23,42,0.35)] data-[active=true]:hover:bg-white data-[active=true]:hover:text-neutral-900 data-[state=open]:hover:bg-white/18 data-[state=open]:hover:text-white group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        default: "",
         outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+          "bg-white/10 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.18)] hover:bg-white/20 hover:text-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.3)]",
       },
       size: {
         default: "h-8 text-sm",

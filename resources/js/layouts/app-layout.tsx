@@ -13,6 +13,8 @@ export default function AppLayout({ children, breadcrumbs, ...props }: AppLayout
     const page = usePage();
     const isManage = page.url.startsWith('/manage');
 
+
+
     if (isManage) {
         return <ManageLayout>{children}</ManageLayout>;
     }

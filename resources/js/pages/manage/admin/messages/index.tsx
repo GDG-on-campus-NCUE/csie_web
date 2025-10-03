@@ -171,7 +171,7 @@ export default function ManageAdminMessagesIndex() {
                         className="w-60"
                         aria-label={tMessages('filters.keyword_label', '搜尋訊息')}
                     />
-                    <Button type="submit" size="sm" className="gap-1">
+                    <Button type="submit" size="sm" variant="tonal" className="gap-1">
                         <Filter className="h-4 w-4" />
                         {tMessages('filters.apply', '套用')}
                     </Button>
@@ -219,7 +219,7 @@ export default function ManageAdminMessagesIndex() {
                         {tMessages('actions.export', '匯出紀錄')}
                     </Link>
                 </Button>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" variant="tonal" className="gap-2">
                     <MailPlus className="h-4 w-4" />
                     {tMessages('actions.new', '建立新訊息')}
                 </Button>

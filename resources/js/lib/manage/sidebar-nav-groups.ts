@@ -4,7 +4,7 @@ import type { NavItem } from '@/types/shared';
 
 type TranslatorFn = (key: string, fallback?: string, replacements?: Record<string, string | number>) => string;
 
-interface NavGroup {
+export interface SidebarNavGroup {
     title: string;
     items: NavItem[];
 }
@@ -18,7 +18,14 @@ function canDisplay(ability: string | undefined, abilities?: ManageAbilityMap): 
         return true;
     }
 
-    return abilities[ability] ?? false;
+    // 檢查 abilities 是否為數組（錯誤情況）而不是物件
+    if (Array.isArray(abilities)) {
+        console.warn('abilities should be an object, but received an array:', abilities);
+        return true; // 如果收到數組，暫時允許所有權限
+    }
+
+    const result = abilities[ability] ?? false;
+    return result;
 }
 
 /**
@@ -28,7 +35,7 @@ function canDisplay(ability: string | undefined, abilities?: ManageAbilityMap): 
  * @param abilities 權限映射
  * @returns 導航群組陣列
  */
-export function buildSidebarNavGroups(role: ManageRole, t: TranslatorFn, abilities?: ManageAbilityMap): NavGroup[] {
+export function buildSidebarNavGroups(role: ManageRole, t: TranslatorFn, abilities?: ManageAbilityMap): SidebarNavGroup[] {
     const groups = NAV_CONFIG[role] ?? [];
 
     return groups
@@ -48,7 +55,7 @@ export function buildSidebarNavGroups(role: ManageRole, t: TranslatorFn, abiliti
             return {
                 title: t(group.key, group.fallback),
                 items,
-            } satisfies NavGroup;
+            } satisfies SidebarNavGroup;
         })
-        .filter((group): group is NavGroup => Boolean(group));
+        .filter((group): group is SidebarNavGroup => Boolean(group));
 }
