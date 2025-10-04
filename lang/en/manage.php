@@ -92,6 +92,7 @@ return [
             'settings' => 'System settings',
             'docs' => 'Documentation',
             'repo' => 'Repository',
+            'logout' => 'Log out',
         ],
     ],
     'access' => [

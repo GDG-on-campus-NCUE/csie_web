@@ -73,6 +73,7 @@ return [
             'settings' => '系統設定',
             'docs' => '說明文件',
             'repo' => '原始碼庫',
+            'logout' => '登出',
         ],
     ],
     'access' => [

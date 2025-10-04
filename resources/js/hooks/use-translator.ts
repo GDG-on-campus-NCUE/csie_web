@@ -40,16 +40,31 @@ export function useTranslator(namespace: string = 'common') {
     const { locale, i18n } = page.props;
     const localeKey: LocaleKey = locale?.toLowerCase() === 'zh-tw' ? 'zh-TW' : 'en';
 
-    const namespaceMessages: NamespacedMessages =
-        typeof i18n === 'object' && i18n !== null && namespace in i18n && typeof i18n[namespace] === 'object'
-            ? (i18n[namespace] as NamespacedMessages)
-            : ({
-                  'zh-TW': {},
-                  en: {},
-              } satisfies NamespacedMessages);
+    const [baseNamespaceRaw, ...nestedSegments] = namespace.split('.');
+    const baseNamespace = baseNamespaceRaw || 'common';
 
-    const current = namespaceMessages[localeKey] ?? {};
-    const fallback = namespaceMessages['zh-TW'] ?? {};
+    const namespaceMessages: NamespacedMessages =
+        typeof i18n === 'object'
+            && i18n !== null
+            && baseNamespace in i18n
+            && typeof i18n[baseNamespace as keyof typeof i18n] === 'object'
+            ? (i18n[baseNamespace as keyof typeof i18n] as NamespacedMessages)
+            : ({ 'zh-TW': {}, en: {} } satisfies NamespacedMessages);
+
+    const resolveNamespace = (messages: NestedMessages): NestedMessages => {
+        return nestedSegments.reduce<NestedMessages>((accumulator, segment) => {
+            const next = accumulator[segment];
+
+            if (typeof next === 'object' && next !== null) {
+                return next as NestedMessages;
+            }
+
+            return {};
+        }, messages);
+    };
+
+    const current = resolveNamespace(namespaceMessages[localeKey] ?? {});
+    const fallback = resolveNamespace(namespaceMessages['zh-TW'] ?? {});
 
     const t = (key: string, fallbackText?: string, replacements?: ReplacementValues): string => {
         const localized = resolveMessage(current, key);
