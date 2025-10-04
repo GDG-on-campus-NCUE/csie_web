@@ -19,7 +19,7 @@ import type {
 } from '@/types/manage';
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import type { ChangeEvent, FormEvent, ReactElement } from 'react';
+import type { ChangeEvent, FocusEvent, FormEvent, MouseEvent, ReactElement } from 'react';
 import { Download, Filter, Mail, MailPlus, User as UserIcon } from 'lucide-react';
 
 interface ManageAdminMessagesPageProps extends SharedData {
@@ -143,6 +143,11 @@ export default function ManageAdminMessagesIndex() {
         applyFilters({ [field]: value } as Partial<FilterFormState>);
     };
 
+    const openDatePicker = useCallback((event: FocusEvent<HTMLInputElement> | MouseEvent<HTMLInputElement>) => {
+        const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
+        input.showPicker?.();
+    }, []);
+
     const handlePerPageChange = (value: string) => {
         setFilterForm((prev) => ({ ...prev, per_page: value }));
         applyFilters({ per_page: value }, { replace: true });
@@ -198,15 +203,23 @@ export default function ManageAdminMessagesIndex() {
                     <Input
                         id="filter-from"
                         type="date"
+                        name="from"
                         value={filterForm.from}
                         onChange={handleDateChange('from')}
+                        onClick={openDatePicker}
+                        onFocus={openDatePicker}
                         className="h-9 w-36"
                     />
                     <span className="text-neutral-400">~</span>
                     <Input
+                        id="filter-to"
                         type="date"
+                        name="to"
+                        aria-label={tMessages('filters.to', '結束日期')}
                         value={filterForm.to}
                         onChange={handleDateChange('to')}
+                        onClick={openDatePicker}
+                        onFocus={openDatePicker}
                         className="h-9 w-36"
                     />
                 </div>
