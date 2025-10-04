@@ -848,6 +848,51 @@ return [
             ],
         ],
     ],
+    'messages' => [
+        'description' => '追蹤與回覆訪客的聯絡資訊。',
+        'filters' => [
+            'keyword_label' => '搜尋訊息',
+            'keyword_placeholder' => '搜尋主旨或聯絡人',
+            'apply' => '套用',
+            'reset' => '重設',
+            'status_label' => '狀態篩選',
+            'status_all' => '全部狀態',
+            'from' => '起始日期',
+            'to' => '結束日期',
+        ],
+        'actions' => [
+            'export' => '匯出紀錄',
+            'new' => '建立新訊息',
+        ],
+        'empty' => [
+            'title' => '尚無訊息',
+            'description' => '目前沒有符合條件的聯絡表單紀錄。',
+        ],
+        'table' => [
+            'subject' => '主旨',
+            'status' => '狀態',
+            'created' => '建立時間',
+            'processed' => '處理時間',
+            'no_subject' => '未填寫主旨',
+            'unprocessed' => '尚未處理',
+        ],
+        'status' => [
+            'new' => '新進訊息',
+            'processing' => '處理中',
+            'resolved' => '已完成',
+            'spam' => '垃圾訊息',
+        ],
+        'detail' => [
+            'no_subject' => '未填寫主旨',
+            'subheading' => '檢視訪客傳送的聯絡資訊與內容。',
+            'locale' => '語系：:locale',
+            'processed_at' => '處理時間：:time',
+            'not_processed' => '尚未紀錄處理時間',
+            'processor' => '處理人員：:name',
+            'attachment' => '下載附件',
+            'close' => '關閉',
+        ],
+    ],
     'staff' => [
         'index' => [
             'title' => '師資與職員管理',
