@@ -42,7 +42,7 @@ export function StatCard({
     const isNegative = trend === 'down' && (delta ?? 0) < 0;
 
     const content = (
-        <Card className={cn('border border-neutral-200/60 bg-white shadow-sm transition-all hover:shadow-md', className)}>
+        <Card className={cn('rounded-xl border border-neutral-200/80 bg-white/80 shadow-sm transition-all hover:shadow-md', className)}>
             <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
                 <div className="flex flex-1 flex-col gap-1">
                     <CardTitle className="text-sm font-medium text-neutral-600">

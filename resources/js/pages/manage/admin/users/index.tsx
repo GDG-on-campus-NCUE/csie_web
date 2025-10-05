@@ -18,6 +18,7 @@ import ActivityTimeline from '@/components/manage/activity-timeline';
 import ToastContainer from '@/components/ui/toast-container';
 import { useTranslator } from '@/hooks/use-translator';
 import useToast from '@/hooks/use-toast';
+import { formatDateTime } from '@/lib/shared/format';
 import { apiClient, isManageApiError } from '@/lib/manage/api-client';
 import { cn } from '@/lib/shared/utils';
 import type {
@@ -60,20 +61,6 @@ type DetailFormState = {
 };
 
 const PER_PAGE_OPTIONS = ['10', '15', '25', '50'] as const;
-
-function formatDateTime(value: string | null | undefined, locale: string): string {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleString(locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
 
 function getInitials(name: string): string {
     const full = name.trim();
@@ -450,15 +437,15 @@ export default function ManageAdminUsersIndex() {
     return (
         <>
             <Head title={pageTitle} />
-            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} position="top-right" />
             <ManagePage
                 title={pageTitle}
                 description={t('users.description', '管理使用者角色、權限與登入狀態。')}
                 breadcrumbs={breadcrumbs}
                 toolbar={(
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                         {abilities.canCreate && (
-                            <Button size="sm" className="gap-2">
+                            <Button size="sm" className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white border-transparent">
                                 <UserPlus className="h-4 w-4" />
                                 {t('users.invite', '邀請新成員')}
                             </Button>
@@ -626,8 +613,8 @@ export default function ManageAdminUsersIndex() {
                                     <TableHead className="min-w-[220px] text-neutral-500">{t('users.table.email', '電子郵件')}</TableHead>
                                     <TableHead className="min-w-[120px] text-neutral-500">{t('users.table.role', '角色')}</TableHead>
                                     <TableHead className="min-w-[120px] text-neutral-500">{t('users.table.status', '狀態')}</TableHead>
-                                    <TableHead className="min-w-[160px] text-neutral-500">{t('users.table.last_login', '最近登入')}</TableHead>
-                                    <TableHead className="min-w-[200px] text-neutral-500">{t('users.table.spaces', '所屬 Space')}</TableHead>
+                                    <TableHead className="hidden min-w-[160px] text-neutral-500 lg:table-cell">{t('users.table.last_login', '最近登入')}</TableHead>
+                                    <TableHead className="hidden min-w-[200px] text-neutral-500 lg:table-cell">{t('users.table.spaces', '所屬 Space')}</TableHead>
                                     <TableHead className="w-16 text-right text-neutral-500">{t('users.table.actions', '操作')}</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -665,8 +652,8 @@ export default function ManageAdminUsersIndex() {
                                         <TableCell className="text-neutral-600">{user.email}</TableCell>
                                         <TableCell>{renderRoleBadge(user)}</TableCell>
                                         <TableCell>{renderStatusBadge(user)}</TableCell>
-                                        <TableCell className="text-neutral-500">{formatDateTime(user.last_login_at, locale)}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="hidden text-neutral-500 lg:table-cell">{formatDateTime(user.last_login_at, locale)}</TableCell>
+                                        <TableCell className="hidden lg:table-cell">
                                             <div className="flex flex-wrap gap-1">
                                                 {user.spaces.length === 0 && (
                                                     <span className="text-xs text-neutral-400">{t('users.table.no_spaces', '尚未綁定')}</span>
@@ -940,7 +927,7 @@ export default function ManageAdminUsersIndex() {
                                         type="button"
                                         onClick={handleDetailSave}
                                         disabled={detailSaving || (!abilities.canUpdate && !abilities.canAssignRoles)}
-                                        className="gap-2"
+                                        className="gap-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent"
                                     >
                                         {detailSaving ? (
                                             <>

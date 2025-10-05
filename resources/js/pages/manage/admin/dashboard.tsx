@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import { useTranslator } from '@/hooks/use-translator';
+import { formatDateTime, formatBytes } from '@/lib/shared/format';
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import type {
     AdminDashboardActivity,
@@ -71,32 +72,6 @@ const emptyStateIconMap: Record<'completed' | 'pending', LucideIcon> = {
 
 const formatNumber = (value: number, locale: string) => new Intl.NumberFormat(locale).format(value);
 
-const formatBytes = (value: number, locale: string) => {
-    if (! Number.isFinite(value) || value <= 0) {
-        return '0 B';
-    }
-
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
-    const num = value / 1024 ** exponent;
-
-    return `${new Intl.NumberFormat(locale, { maximumFractionDigits: num >= 100 ? 0 : 1 }).format(num)} ${units[exponent]}`;
-};
-
-const formatDateTime = (value: string | null | undefined, locale: string) => {
-    if (! value) {
-        return '';
-    }
-
-    return new Date(value).toLocaleString(locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
-
 const resolveDeltaLabel = (delta?: number | null) => {
     if (delta === undefined || delta === null) {
         return null;
@@ -106,7 +81,7 @@ const resolveDeltaLabel = (delta?: number | null) => {
 };
 
 const OverviewCards = ({ metrics, locale, t }: { metrics: AdminDashboardMetric[]; locale: string; t: TranslatorFn }) => (
-    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => {
             const Icon = metricIconMap[metric.key] ?? ActivityIcon;
             const meta = (metric.meta ?? {}) as Record<string, unknown>;
@@ -162,7 +137,7 @@ const RecentActivities = ({
     t: TranslatorFn;
     tManage: TranslatorFn;
 }) => (
-    <Card className="border border-neutral-200/60 bg-white shadow-sm">
+    <Card className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-4">
             <div className="flex flex-col">
                 <CardTitle className="text-base font-bold text-neutral-900">
@@ -250,7 +225,7 @@ const QuickActions = ({
     const visibleQuickLinks = quickLinks.filter((link) => !link.ability || abilities[link.ability]);
 
     return (
-        <Card className="border border-neutral-200/60 bg-white shadow-sm">
+        <Card className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
             <CardHeader className="flex flex-col gap-2 pb-4">
                 <CardTitle className="text-base font-bold text-neutral-900">
                     {t('admin.quick_actions.title', 'Quick actions')}
@@ -273,10 +248,10 @@ const QuickActions = ({
                                 <Link
                                     key={link.key}
                                     href={link.href}
-                                    className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200/60 bg-white px-4 py-3 text-sm text-neutral-700 transition-all hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm"
+                                    className="flex items-center justify-between gap-4 rounded-lg border border-blue-200/80 bg-gradient-to-r from-blue-50/80 to-blue-50/40 px-4 py-3 text-sm text-neutral-700 shadow-sm transition-all hover:border-blue-300 hover:from-blue-100/80 hover:to-blue-50/60 hover:shadow-md"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="rounded-full bg-blue-50 p-2 text-blue-600">
+                                        <span className="rounded-full bg-blue-100 p-2 text-blue-600 shadow-sm">
                                             <Icon className="h-4 w-4" />
                                         </span>
                                         <div className="flex flex-col">
@@ -328,7 +303,7 @@ const QuickActions = ({
                                 return (
                                     <li
                                         key={todo.key}
-                                        className="flex items-start gap-3 rounded-lg border border-neutral-200/60 bg-white px-3 py-2 text-xs text-neutral-600"
+                                        className="flex items-start gap-3 rounded-lg border border-neutral-200/70 bg-white px-3 py-2 text-xs text-neutral-600"
                                     >
                                         <StatusIcon className={cn('mt-0.5 h-4 w-4', color)} />
                                         <div className="flex flex-1 flex-col">
@@ -347,7 +322,12 @@ const QuickActions = ({
                     </ul>
                 </div>
 
-                <Button variant="outline" size="sm" asChild>
+                <Button
+                    variant="default"
+                    size="sm"
+                    asChild
+                    className="w-full bg-[#1E293B] text-white shadow-sm hover:bg-[#0F172A] hover:shadow-md"
+                >
                     <Link href={visibleQuickLinks[0]?.href ?? '/manage/dashboard'} className="gap-2">
                         <Clock3 className="h-4 w-4" />
                         {t('admin.quick_actions.manage', 'Go to management center')}

@@ -165,78 +165,104 @@ export default function ManageAdminMessagesIndex() {
     const closeDetail = () => setSelectedMessage(null);
 
     const toolbar = (
-        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <form className="flex flex-wrap items-center gap-2" onSubmit={handleFilterSubmit}>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="search"
-                        value={filterForm.keyword}
-                        onChange={handleKeywordChange}
-                        placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
-                        className="w-60"
-                        aria-label={tMessages('filters.keyword_label', '搜尋訊息')}
-                    />
-                    <Button type="submit" size="sm" variant="tonal" className="gap-1">
-                        <Filter className="h-4 w-4" />
-                        {tMessages('filters.apply', '套用')}
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" className="text-neutral-500" onClick={handleResetFilters}>
-                        {tMessages('filters.reset', '重設')}
-                    </Button>
+        <div className="flex w-full flex-col gap-3">
+            <form onSubmit={handleFilterSubmit} className="w-full">
+                {/* Row 1: search + status */}
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="grid gap-1.5 lg:w-60">
+                        <label htmlFor="filter-keyword" className="text-xs font-medium text-neutral-600">
+                            {tMessages('filters.keyword_label', '搜尋訊息')}
+                        </label>
+                        <Input
+                            id="filter-keyword"
+                            type="search"
+                            value={filterForm.keyword}
+                            onChange={handleKeywordChange}
+                            placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
+                        />
+                    </div>
+
+                    <div className="grid gap-1.5">
+                        <label htmlFor="filter-status" className="text-xs font-medium text-neutral-600">
+                            {tMessages('filters.status_label', '狀態篩選')}
+                        </label>
+                        <Select id="filter-status" value={filterForm.status} onChange={handleStatusChange} className="w-full sm:w-40">
+                            <option value="">{tMessages('filters.status_all', '全部狀態')}</option>
+                            {filterOptions.statuses.map((option) => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                    {option.count !== undefined ? ` (${option.count})` : ''}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
                 </div>
-                <Select
-                    value={filterForm.status}
-                    onChange={handleStatusChange}
-                    className="w-40"
-                    aria-label={tMessages('filters.status_label', '狀態篩選')}
-                >
-                    <option value="">{tMessages('filters.status_all', '全部狀態')}</option>
-                    {filterOptions.statuses.map((option) => (
-                        <option key={String(option.value)} value={String(option.value)}>
-                            {option.label}
-                            {option.count !== undefined ? ` (${option.count})` : ''}
-                        </option>
-                    ))}
-                </Select>
-                <div className="flex items-center gap-2 text-xs text-neutral-500">
-                    <label htmlFor="filter-from">{tMessages('filters.from', '起始日期')}</label>
-                    <Input
-                        id="filter-from"
-                        type="date"
-                        name="from"
-                        value={filterForm.from}
-                        onChange={handleDateChange('from')}
-                        onClick={openDatePicker}
-                        onFocus={openDatePicker}
-                        className="h-9 w-36"
-                    />
-                    <span className="text-neutral-400">~</span>
-                    <Input
-                        id="filter-to"
-                        type="date"
-                        name="to"
-                        aria-label={tMessages('filters.to', '結束日期')}
-                        value={filterForm.to}
-                        onChange={handleDateChange('to')}
-                        onClick={openDatePicker}
-                        onFocus={openDatePicker}
-                        className="h-9 w-36"
-                    />
+
+                {/* Row 2: dates left, actions right */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mt-3">
+                    <div className="flex items-center gap-4">
+                        <div className="grid gap-1.5">
+                            <label htmlFor="filter-from" className="text-xs font-medium text-neutral-600">
+                                {tMessages('filters.from', '起始日期')}
+                            </label>
+                            <Input
+                                id="filter-from"
+                                type="date"
+                                name="from"
+                                value={filterForm.from}
+                                onChange={handleDateChange('from')}
+                                onClick={openDatePicker}
+                                onFocus={openDatePicker}
+                                className="h-9 w-full sm:w-36"
+                            />
+                        </div>
+
+                        <div className="text-neutral-400">~</div>
+
+                        <div className="grid gap-1.5">
+                            <label htmlFor="filter-to" className="text-xs font-medium text-neutral-600">
+                                {tMessages('filters.to', '結束日期')}
+                            </label>
+                            <Input
+                                id="filter-to"
+                                type="date"
+                                name="to"
+                                aria-label={tMessages('filters.to', '結束日期')}
+                                value={filterForm.to}
+                                onChange={handleDateChange('to')}
+                                onClick={openDatePicker}
+                                onFocus={openDatePicker}
+                                className="h-9 w-full sm:w-36"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Button size="sm" className="gap-1 bg-[#1E293B] hover:bg-[#0F172A] text-white border-transparent" asChild>
+                            <Link href="#">
+                                <Download className="h-4 w-4" />
+                                {tMessages('actions.export', '匯出紀錄')}
+                            </Link>
+                        </Button>
+
+                        <Button size="sm" className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white border-transparent">
+                            <MailPlus className="h-4 w-4" />
+                            {tMessages('actions.new', '建立新訊息')}
+                        </Button>
+
+                        <div className="w-px h-6 bg-neutral-200" />
+
+                        <Button type="submit" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent">
+                            <Filter className="h-4 w-4" />
+                            {tMessages('filters.apply', '套用')}
+                        </Button>
+
+                        <Button type="button" size="sm" className="gap-1 bg-[#EF4444] hover:bg-[#DC2626] text-white border-transparent" onClick={handleResetFilters}>
+                            {tMessages('filters.reset', '重設')}
+                        </Button>
+                    </div>
                 </div>
             </form>
-
-            <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="gap-1" asChild>
-                    <Link href="#">
-                        <Download className="h-4 w-4" />
-                        {tMessages('actions.export', '匯出紀錄')}
-                    </Link>
-                </Button>
-                <Button size="sm" variant="tonal" className="gap-2">
-                    <MailPlus className="h-4 w-4" />
-                    {tMessages('actions.new', '建立新訊息')}
-                </Button>
-            </div>
         </div>
     );
 
@@ -286,7 +312,7 @@ export default function ManageAdminMessagesIndex() {
     const statusCards = (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {filterOptions.statuses.map((status) => (
-                <div key={String(status.value)} className="rounded-xl border border-neutral-200/70 bg-white/80 px-4 py-3">
+                <div key={String(status.value)} className="rounded-xl border border-neutral-200/80 bg-white/80 px-4 py-3 shadow-sm">
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                         {tMessages(`status.${status.value}`, status.label)}
                     </div>

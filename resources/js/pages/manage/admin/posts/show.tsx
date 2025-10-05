@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { useTranslator } from '@/hooks/use-translator';
 import { formatBytes } from '@/lib/shared/utils';
+import { formatDateTime } from '@/lib/shared/format';
 import type { ManagePostDetail } from '@/types/manage';
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -34,20 +35,6 @@ const visibilityToneMap: Record<string, string> = {
     internal: 'bg-amber-100 text-amber-700 border-amber-200',
     private: 'bg-rose-100 text-rose-700 border-rose-200',
 };
-
-function formatDateTime(value: string | null | undefined, locale: string) {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleString(locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
 
 export default function ManageAdminPostsShow() {
     const page = usePage<ManageAdminPostsShowPageProps>();

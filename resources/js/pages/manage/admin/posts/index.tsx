@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslator } from '@/hooks/use-translator';
 import { cn } from '@/lib/shared/utils';
+import { formatDateTime } from '@/lib/shared/format';
 import type { ManagePostFilterOptions, ManagePostFilterState, ManagePostListResponse } from '@/types/manage';
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -55,20 +56,6 @@ const visibilityToneMap: Record<string, string> = {
     public: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     internal: 'bg-amber-100 text-amber-700 border-amber-200',
     private: 'bg-rose-100 text-rose-700 border-rose-200',
-};
-
-const formatDateTime = (value: string | null | undefined, locale: string) => {
-    if (!value) {
-        return '';
-    }
-
-    return new Date(value).toLocaleString(locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
 };
 
 const truncate = (value: string | null | undefined, length = 120) => {
@@ -361,7 +348,7 @@ export default function ManageAdminPostsIndex() {
                         className="w-56"
                         aria-label={tPosts('filters.keyword_label', '搜尋公告')}
                     />
-                    <Button type="submit" size="sm" variant="tonal" className="gap-1">
+                    <Button type="submit" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent">
                         <Filter className="h-4 w-4" />
                         {tPosts('filters.apply', '套用')}
                     </Button>
@@ -410,7 +397,7 @@ export default function ManageAdminPostsIndex() {
                 {abilities.canBulkUpdate ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-1" disabled={bulkDisabled}>
+                            <Button variant="default" size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700" disabled={bulkDisabled}>
                                 <Filter className="h-4 w-4" />
                                 {tPosts('bulk.menu', '批次操作')}
                             </Button>
@@ -448,7 +435,7 @@ export default function ManageAdminPostsIndex() {
                     </DropdownMenu>
                 ) : null}
                 {abilities.canCreate ? (
-                    <Button size="sm" variant="tonal" className="gap-2" asChild>
+                    <Button size="sm" className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white border-transparent" asChild>
                         <Link href="/manage/admin/posts/create">
                             <FilePlus2 className="h-4 w-4" />
                             {t('sidebar.admin.posts_create', '新增公告')}
@@ -477,7 +464,7 @@ export default function ManageAdminPostsIndex() {
                     />
                 </section>
 
-                <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+                <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-neutral-200/80">
@@ -490,7 +477,7 @@ export default function ManageAdminPostsIndex() {
                                 </TableHead>
                                 <TableHead className="w-[38%] text-neutral-500">{tPosts('table.title', '標題與摘要')}</TableHead>
                                 <TableHead className="w-[20%] text-neutral-500">{tPosts('table.status', '狀態')}</TableHead>
-                                <TableHead className="w-[20%] text-neutral-500">{tPosts('table.meta', '分類 / 空間')}</TableHead>
+                                <TableHead className="hidden w-[20%] text-neutral-500 lg:table-cell">{tPosts('table.meta', '分類 / 空間')}</TableHead>
                                 <TableHead className="w-[22%] text-right text-neutral-500">{tPosts('table.timestamps', '時間 / 負責人')}</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -506,7 +493,7 @@ export default function ManageAdminPostsIndex() {
                                     const isSelected = selectedIds.includes(post.id);
 
                                     return (
-                                        <TableRow key={post.id} className={cn('border-neutral-200/60 transition-colors duration-150', isSelected && 'bg-blue-50/50')}>
+                                        <TableRow key={post.id} className={cn('border-neutral-200/60 transition-colors duration-150 hover:bg-blue-50/50', isSelected && 'bg-blue-50/50')}>
                                             <TableCell className="align-top">
                                                 <Checkbox
                                                     checked={isSelected}
@@ -563,7 +550,7 @@ export default function ManageAdminPostsIndex() {
                                                     </span>
                                                 ) : null}
                                             </TableCell>
-                                            <TableCell className="space-y-1 text-sm text-neutral-600">
+                                            <TableCell className="hidden space-y-1 text-sm text-neutral-600 lg:table-cell">
                                                 <div>
                                                     <span className="font-medium text-neutral-800">
                                                         {post.category?.name ?? tPosts('table.uncategorized', '未分類')}
@@ -609,7 +596,7 @@ export default function ManageAdminPostsIndex() {
                         </span>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" disabled={!paginationLinks.prev} asChild>
+                                <Button variant="default" size="sm" disabled={!paginationLinks.prev} className="bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-300 disabled:text-neutral-500" asChild>
                                     <Link
                                         href={paginationLinks.prev ?? '#'}
                                         preserveState
@@ -618,7 +605,7 @@ export default function ManageAdminPostsIndex() {
                                         {tPosts('pagination.prev', '上一頁')}
                                     </Link>
                                 </Button>
-                                <Button variant="outline" size="sm" disabled={!paginationLinks.next} asChild>
+                                <Button variant="default" size="sm" disabled={!paginationLinks.next} className="bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-300 disabled:text-neutral-500" asChild>
                                     <Link
                                         href={paginationLinks.next ?? '#'}
                                         preserveState
@@ -657,7 +644,7 @@ export default function ManageAdminPostsIndex() {
                                     className="h-8 w-20 border-neutral-200 text-sm"
                                 />
                                 <span className="text-neutral-400">/ {posts.meta.last_page ?? 1}</span>
-                                <Button type="submit" size="sm" variant="outline" className="text-xs">
+                                <Button type="submit" size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700 text-xs">
                                     {tPosts('pagination.go', '前往')}
                                 </Button>
                             </form>

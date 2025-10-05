@@ -315,7 +315,7 @@ export default function ManageAdminAttachmentsIndex() {
     };
 
     const toolbar = (
-        <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <form className="flex flex-wrap items-center gap-2" onSubmit={handleFilterSubmit}>
                 <div className="flex items-center gap-2">
                     <Input
@@ -326,7 +326,7 @@ export default function ManageAdminAttachmentsIndex() {
                         className="w-56"
                         aria-label={tAttachments('filters.keyword_label', '搜尋附件')}
                     />
-                    <Button type="submit" size="sm" className="gap-1">
+                    <Button type="submit" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent">
                         <Filter className="h-4 w-4" />
                         {tAttachments('filters.apply', '套用')}
                     </Button>
@@ -467,7 +467,7 @@ export default function ManageAdminAttachmentsIndex() {
                 {abilities.canUpload ? (
                     <Button
                         size="sm"
-                        className="gap-2"
+                        className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white border-transparent"
                         onClick={() => setUploadModalOpen(true)}
                     >
                         <CloudUpload className="h-4 w-4" />
@@ -733,7 +733,7 @@ export default function ManageAdminAttachmentsIndex() {
     return (
         <>
             <Head title={pageTitle} />
-            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} position="top-right" />
             <ManagePage
                 title={pageTitle}
                 description={t('attachments.description', '管理公告使用的文件與媒體資源。')}
