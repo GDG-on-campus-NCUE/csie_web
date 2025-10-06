@@ -30,3 +30,5 @@ yarn-error.log
 # git spec kit
 .specify
 .idx
+*storybook.log
+storybook-static

@@ -68,6 +68,24 @@
 - `app/`、`auth/`、`manage/` 等：對應領域的展示元件，盡量無狀態，所需資料由頁面或版型傳入。
 - `components.json` 定義的設計系統 Token 與組件清單需同步調整匯入路徑。
 
+**Manage 元件分類**：
+- **容器元件**：`ManageFilterGrid`、`ManageToolbar`、`ResponsiveDataView`、`DetailDrawer`
+- **展示元件**：`DataCard`、`StatCard`、`TableEmpty`、`TableLoading`
+- **複合元件**：`ManageFilterGrid` (含 `ManageFilterField`、`ManageFilterActions`)
+- 📚 詳細對應表請參考 `.docs/manage/STORYBOOK_COMPONENT_MAP.md`
+
+#### `*.stories.tsx` (Storybook)
+
+- Storybook 故事文件放置於對應元件旁邊，使用 `.stories.tsx` 後綴。
+- 配置文件位於 `.storybook/` 目錄，包含 `main.ts` 和 `preview.ts`。
+- Storybook 會掃描 `stories/**/*.stories.tsx` 和 `resources/js/**/*.stories.tsx`。
+- 每個元件的 story 應包含：
+  - 基本範例 (Default/Standard)
+  - 各種狀態變化 (Loading, Empty, Error 等)
+  - 不同配置組合 (尺寸、顏色、排列方式)
+- Story 標題命名規範：`領域/元件名稱`，例如 `Manage/ManageFilterGrid`。
+- 📚 啟動 Storybook: `npm run storybook`，訪問 `http://localhost:6006`
+
 #### `lib/`
 
 - 依領域拆分：

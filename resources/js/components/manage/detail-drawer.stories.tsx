@@ -81,7 +81,7 @@ const meta = {
 } satisfies Meta<typeof DetailDrawer>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof DetailDrawer>;
 
 /**
  * 基本範例 - 預設設定

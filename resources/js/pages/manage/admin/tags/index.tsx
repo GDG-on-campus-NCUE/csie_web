@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
-import ManageToolbar from '@/components/manage/manage-toolbar';
+import FilterPanel from '@/components/manage/filter-panel';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import FormField from '@/components/manage/forms/form-field';
@@ -33,7 +33,6 @@ import {
     ClipboardList,
     Droplet,
     Edit3,
-    Filter,
     FolderTree,
     GitMerge,
     Hash,
@@ -411,37 +410,39 @@ export default function ManageAdminTagsIndex() {
     };
 
     const toolbar = (
-        <ManageToolbar
-            wrap
-            primary={
-                <form
-                    className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap"
-                    onSubmit={handleFilterSubmit}
-                >
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
+        <>
+            <FilterPanel
+                title={tTags('filters.title', '互動式篩選')}
+                collapsible={true}
+                defaultOpen={true}
+                onApply={() => applyFilters({ keyword: filterForm.keyword, page: 1 })}
+                onReset={handleResetFilters}
+                applyLabel={tTags('filters.apply', '套用')}
+                resetLabel={tTags('filters.reset', '重設')}
+            >
+                <div className="grid grid-cols-12 gap-3">
+                    {/* 關鍵字搜尋 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tTags('filters.keyword_label', '搜尋標籤')}
+                        </label>
                         <Input
                             type="search"
                             value={filterForm.keyword}
                             onChange={handleKeywordChange}
                             placeholder={tTags('filters.keyword_placeholder', '搜尋標籤名稱或代碼')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
                             aria-label={tTags('filters.keyword_label', '搜尋標籤')}
                         />
-                        <Button
-                            type="submit"
-                            size="sm"
-                            className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
-                        >
-                            <Filter className="h-4 w-4" />
-                            {tTags('filters.apply', '套用')}
-                        </Button>
                     </div>
 
-                    <div className="grid w-full gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                    {/* 模組篩選 */}
+                    <div className="col-span-12 md:col-span-3 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tTags('filters.context_label', '模組篩選')}
+                        </label>
                         <Select
                             value={filterForm.context}
                             onChange={handleContextChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
                             aria-label={tTags('filters.context_label', '模組篩選')}
                         >
                             <option value="">{tTags('filters.context_all', '全部模組')}</option>
@@ -451,10 +452,16 @@ export default function ManageAdminTagsIndex() {
                                 </option>
                             ))}
                         </Select>
+                    </div>
+
+                    {/* 狀態篩選 */}
+                    <div className="col-span-12 md:col-span-3 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tTags('filters.status_label', '狀態篩選')}
+                        </label>
                         <Select
                             value={filterForm.status}
                             onChange={handleStatusChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-40"
                             aria-label={tTags('filters.status_label', '狀態篩選')}
                         >
                             <option value="">{tTags('filters.status_all', '全部狀態')}</option>
@@ -464,10 +471,16 @@ export default function ManageAdminTagsIndex() {
                                 </option>
                             ))}
                         </Select>
+                    </div>
+
+                    {/* 每頁筆數 */}
+                    <div className="col-span-12 md:col-span-2 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tTags('filters.per_page_label', '每頁筆數')}
+                        </label>
                         <Select
                             value={filterForm.per_page}
                             onChange={handlePerPageChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
                             aria-label={tTags('filters.per_page_label', '每頁筆數')}
                         >
                             {PER_PAGE_OPTIONS.map(option => (
@@ -476,53 +489,46 @@ export default function ManageAdminTagsIndex() {
                                 </option>
                             ))}
                         </Select>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
-                            onClick={handleResetFilters}
-                        >
-                            {tTags('filters.reset', '重設')}
-                        </Button>
                     </div>
-                </form>
-            }
-            secondary={
-                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-                    {selectedIds.length > 0 ? (
+                </div>
+            </FilterPanel>
+
+            {/* 操作按鈕區 */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-neutral-200/80 bg-white/95 p-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                    {selectedIds.length > 0 && (
                         <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
                             <CheckSquare className="h-3.5 w-3.5" />
                             {tTags('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
                         </span>
-                    ) : null}
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        disabled={selectedIds.length < 2 || !abilities.canUpdate}
+                        onClick={() => setMergeOpen(true)}
+                    >
+                        <GitMerge className="h-4 w-4" />
+                        {tTags('bulk.merge', '合併')}
+                    </Button>
+                    {abilities.canCreate && (
                         <Button
                             type="button"
-                            variant="outline"
                             size="sm"
-                            className="h-11 gap-1"
-                            disabled={selectedIds.length < 2 || !abilities.canUpdate}
-                            onClick={() => setMergeOpen(true)}
+                            className="gap-1 bg-[#10B981] text-white hover:bg-[#059669]"
+                            onClick={() => setCreateOpen(true)}
                         >
-                            <GitMerge className="h-4 w-4" />
-                            {tTags('bulk.merge', '合併')}
+                            <Plus className="h-4 w-4" />
+                            {tTags('actions.create', '新增標籤')}
                         </Button>
-                        {abilities.canCreate ? (
-                            <Button
-                                type="button"
-                                size="sm"
-                                className="h-11 gap-1 bg-[#10B981] px-5 text-white hover:bg-[#059669]"
-                                onClick={() => setCreateOpen(true)}
-                            >
-                                <Plus className="h-4 w-4" />
-                                {tTags('actions.create', '新增標籤')}
-                            </Button>
-                        ) : null}
-                    </div>
+                    )}
                 </div>
-            }
-        />
+            </div>
+        </>
     );
 
     const hasTags = tags.data.length > 0;

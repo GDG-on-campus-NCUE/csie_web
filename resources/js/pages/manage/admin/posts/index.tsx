@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
-import ManageToolbar from '@/components/manage/manage-toolbar';
+import FilterPanel from '@/components/manage/filter-panel';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard, { type DataCardStatusTone } from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
@@ -31,6 +31,7 @@ import {
     Filter,
     Megaphone,
     MegaphoneOff,
+    RefreshCcw,
     Tag as TagIcon,
     Trash2,
     Users,
@@ -458,132 +459,131 @@ export default function ManageAdminPostsIndex() {
         applyFilters({ status: value });
     };
 
+    // 篩選器與工具列
+    const filterBar = (
+        <FilterPanel
+            title={tPosts('filters.title', '篩選條件')}
+            collapsible={true}
+            defaultOpen={true}
+            onApply={() => applyFilters()}
+            onReset={handleClearFilters}
+            applyLabel={tPosts('filters.apply', '套用篩選')}
+            resetLabel={tPosts('filters.reset', '重設')}
+        >
+            <div className="grid grid-cols-12 gap-3">
+                {/* 搜尋框 */}
+                <div className="col-span-12 md:col-span-4 space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tPosts('filters.keyword_label', '搜尋公告')}
+                    </label>
+                    <Input
+                        type="search"
+                        value={filterForm.keyword}
+                        onChange={handleKeywordChange}
+                        placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
+                        aria-label={tPosts('filters.keyword_label', '搜尋公告')}
+                    />
+                </div>
+
+                {/* 標籤篩選 */}
+                <div className="col-span-12 md:col-span-4 space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tPosts('filters.tag_label', '標籤篩選')}
+                    </label>
+                    <Select
+                        value={filterForm.tag}
+                        onChange={handleTagChange}
+                        aria-label={tPosts('filters.tag_label', '標籤篩選')}
+                    >
+                        <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
+                        {tagOptions.map((tag) => {
+                            const optionValue = tag.value ?? tag.id ?? tag.label;
+                            return (
+                                <option key={String(optionValue)} value={String(optionValue)}>
+                                    {tag.label}
+                                </option>
+                            );
+                        })}
+                    </Select>
+                </div>
+
+                {/* 每頁筆數 */}
+                <div className="col-span-12 md:col-span-4 space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tPosts('filters.per_page_label', '每頁筆數')}
+                    </label>
+                    <Select
+                        value={filterForm.per_page}
+                        onChange={handlePerPageChange}
+                        aria-label={tPosts('filters.per_page_label', '每頁筆數')}
+                    >
+                        {perPageOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {tPosts('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+            </div>
+        </FilterPanel>
+    );
+
     const toolbar = (
-        <ManageToolbar
-            wrap
-            primary={
-                <form
-                    className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap"
-                    onSubmit={handleFilterSubmit}
-                >
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
-                        <Input
-                            type="search"
-                            value={filterForm.keyword}
-                            onChange={handleKeywordChange}
-                            placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
-                            aria-label={tPosts('filters.keyword_label', '搜尋公告')}
-                        />
-                        <Button
-                            type="submit"
-                            size="sm"
-                            variant="tonal"
-                            className="h-11 gap-1 px-5"
-                        >
-                            <Filter className="h-4 w-4" />
-                            {tPosts('filters.apply', '套用')}
-                        </Button>
-                    </div>
-
-                    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-                        <Select
-                            value={filterForm.tag}
-                            onChange={handleTagChange}
-                            aria-label={tPosts('filters.tag_label', '標籤篩選')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
-                        >
-                            <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
-                            {tagOptions.map((tag) => {
-                                const optionValue = tag.value ?? tag.id ?? tag.label;
-
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-neutral-200/80 bg-white/95 p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+                {selectedIds.length > 0 && (
+                    <span className="flex items-center gap-1 text-sm font-medium text-blue-600">
+                        <CheckSquare className="h-4 w-4" />
+                        {tPosts('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
+                    </span>
+                )}
+            </div>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                {abilities.canBulkUpdate && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={bulkDisabled}
+                                className="gap-2"
+                            >
+                                <Filter className="h-4 w-4" />
+                                {tPosts('bulk.menu', '批次操作')}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            {bulkActions.map((action) => {
+                                const Icon = action.icon;
                                 return (
-                                    <option key={String(optionValue)} value={String(optionValue)}>
-                                        {tag.label}
-                                    </option>
+                                    <DropdownMenuItem
+                                        key={action.type}
+                                        onSelect={() => handleBulkAction(action.type)}
+                                        className="gap-2"
+                                    >
+                                        <Icon className={cn('h-4 w-4', action.iconClass)} />
+                                        {action.label}
+                                    </DropdownMenuItem>
                                 );
                             })}
-                        </Select>
-                        <Select
-                            value={filterForm.per_page}
-                            onChange={handlePerPageChange}
-                            aria-label={tPosts('filters.per_page_label', '每頁筆數')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
-                        >
-                            {perPageOptions.map((option) => (
-                                <option key={option} value={option}>
-                                    {tPosts('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
-                                </option>
-                            ))}
-                        </Select>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
-                            onClick={handleClearFilters}
-                        >
-                            {tPosts('filters.reset', '重設')}
-                        </Button>
-                    </div>
-                </form>
-            }
-            secondary={
-                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-                    {selectedIds.length > 0 ? (
-                        <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
-                            <CheckSquare className="h-3.5 w-3.5" />
-                            {tPosts('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
-                        </span>
-                    ) : null}
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-                        {abilities.canBulkUpdate ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="tonal"
-                                        size="sm"
-                                        className="h-11 gap-1 px-5 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400"
-                                        disabled={bulkDisabled}
-                                    >
-                                        <Filter className="h-4 w-4" />
-                                        {tPosts('bulk.menu', '批次操作')}
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48">
-                                    {bulkActions.map((action) => {
-                                        const Icon = action.icon;
-                                        return (
-                                            <DropdownMenuItem
-                                                key={action.type}
-                                                onSelect={() => handleBulkAction(action.type)}
-                                                className="gap-2"
-                                            >
-                                                <Icon className={cn('h-4 w-4', action.iconClass)} />
-                                                {action.label}
-                                            </DropdownMenuItem>
-                                        );
-                                    })}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : null}
-                        {abilities.canCreate ? (
-                            <Button
-                                size="sm"
-                                variant="tonal"
-                                className="h-11 gap-2 border-emerald-200 bg-emerald-50 px-5 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
-                                asChild
-                            >
-                                <Link href="/manage/admin/posts/create">
-                                    <FilePlus2 className="h-4 w-4" />
-                                    {t('sidebar.admin.posts_create', '新增公告')}
-                                </Link>
-                            </Button>
-                        ) : null}
-                    </div>
-                </div>
-            }
-        />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+
+                {abilities.canCreate && (
+                    <Button
+                        size="sm"
+                        className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white"
+                        asChild
+                    >
+                        <Link href="/manage/admin/posts/create">
+                            <FilePlus2 className="h-4 w-4" />
+                            {t('sidebar.admin.posts_create', '新增公告')}
+                        </Link>
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 
     return (
@@ -595,8 +595,11 @@ export default function ManageAdminPostsIndex() {
                 breadcrumbs={breadcrumbs}
                 toolbar={toolbar}
             >
+                {/* 篩選器 */}
+                {filterBar}
+
                 {/* 狀態篩選標籤 */}
-                <section className="mb-4">
+                <section className="mt-4">
                     <StatusFilterTabs
                         options={statusFilterOptions}
                         value={filterForm.status}
@@ -604,7 +607,7 @@ export default function ManageAdminPostsIndex() {
                     />
                 </section>
 
-                <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
+                <section className="mt-4 rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">\
                     <ResponsiveDataView
                         className="space-y-0"
                         table={() => (
