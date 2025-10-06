@@ -556,7 +556,8 @@ export default function ManageAdminAttachmentsIndex() {
                         <Button
                             type="button"
                             size="sm"
-                            className="gap-2 bg-[#10B981] text-white hover:bg-[#059669]"
+                            variant="tonal"
+                            className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
                             onClick={() => setUploadModalOpen(true)}
                         >
                             <CloudUpload className="h-4 w-4" />
@@ -632,7 +633,7 @@ export default function ManageAdminAttachmentsIndex() {
                             ? tAttachments('filters.direction.asc', '昇冪')
                             : tAttachments('filters.direction.desc', '降冪')}
                     </Button>
-                    <Button type="submit" size="sm" className="gap-2 bg-[#0F172A] text-white hover:bg-[#0B1220]">
+                    <Button type="submit" size="sm" variant="tonal" className="gap-2">
                         <Filter className="h-4 w-4" />
                         {tAttachments('filters.apply', '套用條件')}
                     </Button>
@@ -664,7 +665,8 @@ export default function ManageAdminAttachmentsIndex() {
               <Button
                   key="mobile-download"
                   type="button"
-                  className="w-full justify-center gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                  variant="tonal"
+                  className="w-full justify-center gap-2"
                   onClick={() => {
                       setPendingBulkAction('download');
                       setConfirmBulkOpen(true);

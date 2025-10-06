@@ -119,7 +119,7 @@ function MessageMobileCard({ message, locale, onOpen }: { message: ManageMessage
             }}
             metadata={metadata}
             actions={[
-                <Button key="open" type="button" className="w-full justify-center gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]" onClick={onOpen}>
+                <Button key="open" type="button" variant="tonal" className="w-full justify-center gap-2" onClick={onOpen}>
                     <Mail className="h-4 w-4" />
                     {tMessages('detail.open', '檢視內容')}
                 </Button>,
@@ -293,7 +293,7 @@ export default function ManageAdminMessagesIndex() {
                             {tMessages('actions.export', '匯出紀錄')}
                         </Link>
                     </Button>
-                    <Button type="button" size="sm" className="gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]">
+                    <Button type="button" size="sm" variant="tonal" className="gap-2">
                         <MailPlus className="h-4 w-4" />
                         {tMessages('actions.new', '建立新訊息')}
                     </Button>
@@ -336,7 +336,7 @@ export default function ManageAdminMessagesIndex() {
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button type="submit" size="sm" className="gap-2 bg-[#0F172A] text-white hover:bg-[#0B1220]">
+                    <Button type="submit" size="sm" variant="tonal" className="gap-2">
                         <Filter className="h-4 w-4" />
                         {tMessages('filters.apply', '套用條件')}
                     </Button>

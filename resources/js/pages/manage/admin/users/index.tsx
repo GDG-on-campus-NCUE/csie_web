@@ -642,7 +642,8 @@ export default function ManageAdminUsersIndex() {
                             abilities.canCreate ? (
                                 <Button
                                     size="sm"
-                                    className="gap-2 bg-[#10B981] text-white hover:bg-[#059669] border-transparent"
+                                    variant="tonal"
+                                    className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
                                     asChild
                                 >
                                     <Link href="/manage/admin/users/create">
@@ -957,7 +958,8 @@ export default function ManageAdminUsersIndex() {
                                         abilities.canCreate ? (
                                             <Button
                                                 size="sm"
-                                                className="gap-2 bg-[#10B981] text-white hover:bg-[#059669] border-transparent"
+                                                variant="tonal"
+                                                className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
                                                 asChild
                                             >
                                                 <Link href="/manage/admin/users/create">
@@ -975,7 +977,8 @@ export default function ManageAdminUsersIndex() {
                                         <span className="text-xs font-semibold text-neutral-600">{selectionLabel}</span>
                                         <Button
                                             size="sm"
-                                            className="w-full gap-2 bg-[#10B981] text-white hover:bg-[#059669] disabled:opacity-60"
+                                            variant="tonal"
+                                            className="w-full gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60 disabled:opacity-60"
                                             disabled={!allowBulkStatus}
                                             onClick={() => {
                                                 setPendingBulkAction('activate');
@@ -987,7 +990,8 @@ export default function ManageAdminUsersIndex() {
                                         </Button>
                                         <Button
                                             size="sm"
-                                            className="w-full gap-2 bg-[#F97316] text-white hover:bg-[#EA580C] disabled:opacity-60"
+                                            variant="tonal"
+                                            className="w-full gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 focus-visible:ring-amber-200/60 disabled:opacity-60"
                                             disabled={!allowBulkStatus}
                                             onClick={() => {
                                                 setPendingBulkAction('deactivate');
@@ -1204,9 +1208,10 @@ export default function ManageAdminUsersIndex() {
                                     </Button>
                                     <Button
                                         type="button"
+                                        variant="tonal"
                                         onClick={handleDetailSave}
                                         disabled={detailSaving || (!abilities.canUpdate && !abilities.canAssignRoles)}
-                                        className="gap-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent"
+                                        className="gap-2"
                                     >
                                         {detailSaving ? (
                                             <>
