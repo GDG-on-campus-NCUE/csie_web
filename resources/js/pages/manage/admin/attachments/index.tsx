@@ -454,7 +454,7 @@ export default function ManageAdminAttachmentsIndex() {
         <ManageToolbar
             wrap
             primary={[
-                <div key="keyword" className="grid w-full gap-1 sm:w-64">
+                <div key="keyword" className="grid w-full gap-1">
                     <label htmlFor="filter-keyword" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.keyword_label', '搜尋附件')}
                     </label>
@@ -466,7 +466,7 @@ export default function ManageAdminAttachmentsIndex() {
                         placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
                     />
                 </div>,
-                <div key="type" className="grid w-full gap-1 sm:w-44">
+                <div key="type" className="grid w-full gap-1">
                     <label htmlFor="filter-type" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.type_label', '附件類型')}
                     </label>
@@ -479,7 +479,7 @@ export default function ManageAdminAttachmentsIndex() {
                         ))}
                     </Select>
                 </div>,
-                <div key="visibility" className="grid w-full gap-1 sm:w-44">
+                <div key="visibility" className="grid w-full gap-1">
                     <label htmlFor="filter-visibility" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.visibility_label', '可見性')}
                     </label>
@@ -494,7 +494,7 @@ export default function ManageAdminAttachmentsIndex() {
                 </div>,
             ]}
             secondary={
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     {selectedIds.length > 0 ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -567,81 +567,98 @@ export default function ManageAdminAttachmentsIndex() {
                 </div>
             }
         >
-            <form onSubmit={handleFilterSubmit} className="flex w-full flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end">
-                    <div className="grid gap-1">
-                        <label htmlFor="filter-space" className="text-xs font-medium text-neutral-600">
-                            {tAttachments('filters.space_label', '綁定空間')}
-                        </label>
-                        <Select id="filter-space" value={filterForm.space} onChange={handleSpaceChange} className="sm:w-48">
-                            <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
-                            {filterOptions.spaces.map((option) => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
+            <form
+                onSubmit={handleFilterSubmit}
+                className="grid w-full grid-cols-1 items-end gap-3 md:grid-cols-2 xl:grid-cols-3"
+            >
+                <div className="grid gap-1">
+                    <label htmlFor="filter-space" className="text-xs font-medium text-neutral-600">
+                        {tAttachments('filters.space_label', '綁定空間')}
+                    </label>
+                    <Select id="filter-space" value={filterForm.space} onChange={handleSpaceChange} className="w-full">
+                        <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
+                        {filterOptions.spaces.map((option) => (
+                            <option key={String(option.value)} value={String(option.value)}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
 
-                    <div className="grid gap-1">
-                        <label htmlFor="filter-tag" className="text-xs font-medium text-neutral-600">
-                            {tAttachments('filters.tag_label', '標籤篩選')}
-                        </label>
-                        <Select id="filter-tag" value={filterForm.tag} onChange={handleTagChange} className="sm:w-48">
-                            <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
-                            {filterOptions.tags.map((option) => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
+                <div className="grid gap-1">
+                    <label htmlFor="filter-tag" className="text-xs font-medium text-neutral-600">
+                        {tAttachments('filters.tag_label', '標籤篩選')}
+                    </label>
+                    <Select id="filter-tag" value={filterForm.tag} onChange={handleTagChange} className="w-full">
+                        <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
+                        {filterOptions.tags.map((option) => (
+                            <option key={String(option.value)} value={String(option.value)}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
 
-                    <div className="flex items-center gap-2">
+                <div className="grid gap-2 md:col-span-2 xl:col-span-1">
+                    <span className="text-xs font-medium text-neutral-600">
+                        {tAttachments('filters.date_range', '日期區間')}
+                    </span>
+                    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-end">
                         <div className="grid gap-1">
                             <label htmlFor="filter-from" className="text-xs font-medium text-neutral-600">
                                 {tAttachments('filters.from', '起始日期')}
                             </label>
-                            <Input id="filter-from" type="date" value={filterForm.from} onChange={handleDateChange('from')} className="h-9 sm:w-40" />
+                            <Input
+                                id="filter-from"
+                                type="date"
+                                value={filterForm.from}
+                                onChange={handleDateChange('from')}
+                                className="h-9 w-full"
+                            />
                         </div>
-                        <span className="mt-6 text-neutral-400">~</span>
+                        <span className="hidden text-center text-neutral-400 md:block">~</span>
                         <div className="grid gap-1">
                             <label htmlFor="filter-to" className="text-xs font-medium text-neutral-600">
                                 {tAttachments('filters.to', '結束日期')}
                             </label>
-                            <Input id="filter-to" type="date" value={filterForm.to} onChange={handleDateChange('to')} className="h-9 sm:w-40" />
+                            <Input
+                                id="filter-to"
+                                type="date"
+                                value={filterForm.to}
+                                onChange={handleDateChange('to')}
+                                className="h-9 w-full"
+                            />
                         </div>
+                        <span className="text-center text-neutral-400 md:hidden sm:col-span-2">~</span>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <div className="grid gap-1 sm:w-48">
-                        <label htmlFor="filter-sort" className="text-xs font-medium text-neutral-600">
-                            {tAttachments('filters.sort_label', '排序方式')}
-                        </label>
-                        <Select id="filter-sort" value={filterForm.sort} onChange={handleSortChange}>
-                            {SORT_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {tAttachments(option.label, option.label)}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
-                    <Button type="button" size="sm" variant="outline" className="gap-2" onClick={handleDirectionToggle}>
-                        <ArrowUpDown className="h-4 w-4" />
-                        {filterForm.direction === 'asc'
-                            ? tAttachments('filters.direction.asc', '昇冪')
-                            : tAttachments('filters.direction.desc', '降冪')}
-                    </Button>
-                    <Button type="submit" size="sm" variant="tonal" className="gap-2">
-                        <Filter className="h-4 w-4" />
-                        {tAttachments('filters.apply', '套用條件')}
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={handleResetFilters}>
-                        <RefreshCcw className="h-4 w-4" />
-                        {tAttachments('filters.reset', '重設')}
-                    </Button>
+                <div className="grid gap-1">
+                    <label htmlFor="filter-sort" className="text-xs font-medium text-neutral-600">
+                        {tAttachments('filters.sort_label', '排序方式')}
+                    </label>
+                    <Select id="filter-sort" value={filterForm.sort} onChange={handleSortChange} className="w-full">
+                        {SORT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {tAttachments(option.label, option.label)}
+                            </option>
+                        ))}
+                    </Select>
                 </div>
+                <Button type="button" size="sm" variant="outline" className="gap-2" onClick={handleDirectionToggle}>
+                    <ArrowUpDown className="h-4 w-4" />
+                    {filterForm.direction === 'asc'
+                        ? tAttachments('filters.direction.asc', '昇冪')
+                        : tAttachments('filters.direction.desc', '降冪')}
+                </Button>
+                <Button type="submit" size="sm" variant="tonal" className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    {tAttachments('filters.apply', '套用條件')}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={handleResetFilters}>
+                    <RefreshCcw className="h-4 w-4" />
+                    {tAttachments('filters.reset', '重設')}
+                </Button>
             </form>
         </ManageToolbar>
     );
