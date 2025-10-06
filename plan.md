@@ -61,8 +61,8 @@
 
 ### Milestone B — 頁面 UI 對齊（Week 2）
 - [x] `manage/admin/posts`：套用新按鈕配色、ResponsiveDataView、Mobile 卡片；補齊篩選器的自動換行。
-- [ ] `manage/admin/tags`：重構工具列與對話框，確保表單 spacing 與行動版操作；補上標籤顏色選擇器預覽。
-- [ ] `manage/admin/messages` 與 `manage/admin/attachments`：比照最佳實踐，萃取共用卡片與批次操作流程；加入附件縮圖。
+- [x] `manage/admin/tags`：重構工具列與對話框，確保表單 spacing 與行動版操作；補上標籤顏色選擇器預覽。
+- [x] `manage/admin/messages` 與 `manage/admin/attachments`：比照最佳實踐，萃取共用卡片與批次操作流程；加入附件縮圖。
 - [ ] `manage/admin/dashboard`：調整活動列表 hover/empty 狀態、語意色彩，補上關鍵 KPI 卡片。
 - [ ] `manage/admin/users`：工具列改用 `ManageToolbar`，行動版新增卡片摘要顯示（角色、狀態、最後登入）。
 - [ ] 追蹤舊樣式（tonal button 等）並清單化遺留項目供後續清理。

@@ -2,17 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
+import ManageToolbar from '@/components/manage/manage-toolbar';
+import ResponsiveDataView from '@/components/manage/responsive-data-view';
+import DataCard from '@/components/manage/data-card';
+import FormField from '@/components/manage/forms/form-field';
+import TableEmpty from '@/components/manage/table-empty';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ToastContainer from '@/components/ui/toast-container';
-import FormField from '@/components/manage/forms/form-field';
-import TableEmpty from '@/components/manage/table-empty';
 import { useTranslator } from '@/hooks/use-translator';
 import useToast from '@/hooks/use-toast';
 import { formatDateTime } from '@/lib/shared/format';
@@ -20,11 +23,25 @@ import { apiClient, isManageApiError } from '@/lib/manage/api-client';
 import { cn } from '@/lib/shared/utils';
 import type { ManageTag, ManageTagAbilities, ManageTagFilterOptions, ManageTagFilterState, ManageTagListResponse } from '@/types/manage';
 import type { BreadcrumbItem, SharedData } from '@/types/shared';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
 import { useCallback } from 'react';
 import { useRef } from 'react';
-import { CheckSquare, ClipboardList, Edit3, Filter, GitMerge, MoreHorizontal, Plus, RefreshCcw, SplitSquareVertical } from 'lucide-react';
+import {
+    CalendarClock,
+    CheckSquare,
+    ClipboardList,
+    Droplet,
+    Edit3,
+    Filter,
+    FolderTree,
+    GitMerge,
+    Hash,
+    MoreHorizontal,
+    Plus,
+    RefreshCcw,
+    SplitSquareVertical,
+} from 'lucide-react';
 
 type ManageAdminTagsPageProps = SharedData & {
     tags: ManageTagListResponse;
@@ -39,6 +56,8 @@ type FilterFormState = {
     context: string;
     per_page: string;
 };
+
+type FilterOverrides = Partial<FilterFormState> & { page?: number };
 
 type TagFormValues = {
     context: string;
@@ -145,13 +164,17 @@ export default function ManageAdminTagsIndex() {
         setFilterForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const applyFilters = useCallback((overrides: Partial<FilterFormState> = {}, options: { replace?: boolean } = {}) => {
+    const applyFilters = useCallback((overrides: FilterOverrides = {}, options: { replace?: boolean } = {}) => {
         const payload: Record<string, string | number | null> = {
             keyword: (overrides.keyword ?? filterForm.keyword) || null,
             status: (overrides.status ?? filterForm.status) || null,
             context: (overrides.context ?? filterForm.context) || null,
             per_page: overrides.per_page ? Number(overrides.per_page) : Number(filterForm.per_page) || null,
         };
+
+        if (typeof overrides.page === 'number') {
+            payload.page = overrides.page;
+        }
 
         router.get('/manage/admin/tags', payload, {
             preserveScroll: true,
@@ -350,111 +373,195 @@ export default function ManageAdminTagsIndex() {
     const handleContextChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         handleFilterChange('context', value);
-        applyFilters({ context: value });
+        applyFilters({ context: value, page: 1 });
     };
 
     const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         handleFilterChange('status', value);
-        applyFilters({ status: value });
+        applyFilters({ status: value, page: 1 });
     };
 
     const handlePerPageChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         handleFilterChange('per_page', value);
-        applyFilters({ per_page: value });
+        applyFilters({ per_page: value, page: 1 });
     };
 
     const handleKeywordChange = (event: ChangeEvent<HTMLInputElement>) => {
         handleFilterChange('keyword', event.target.value);
     };
 
+    const handleFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        applyFilters({ keyword: filterForm.keyword, page: 1 });
+        setLastKeyword(filterForm.keyword);
+    };
+
     const handleResetFilters = () => {
-        setFilterForm({
+        const resetState: FilterFormState = {
             keyword: '',
             status: '',
             context: '',
             per_page: PER_PAGE_OPTIONS[0],
-        });
+        };
+        setFilterForm(resetState);
         setLastKeyword('');
-        applyFilters({ keyword: '', status: '', context: '', per_page: PER_PAGE_OPTIONS[0] }, { replace: true });
+        applyFilters({ ...resetState, page: 1 }, { replace: true });
     };
 
     const toolbar = (
-        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <form className="flex flex-wrap items-center gap-2" onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="search"
-                        value={filterForm.keyword}
-                        onChange={handleKeywordChange}
-                        placeholder={tTags('filters.keyword_placeholder', '搜尋標籤名稱或代碼')}
-                        className="w-56"
-                        aria-label={tTags('filters.keyword_label', '搜尋標籤')}
-                    />
-                    <Button type="button" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent" onClick={() => applyFilters({ keyword: filterForm.keyword })}>
-                        <Filter className="h-4 w-4" />
-                        {tTags('filters.apply', '套用')}
-                    </Button>
-                </div>
-                <Select value={filterForm.context} onChange={handleContextChange} className="w-40" aria-label={tTags('filters.context_label', '模組篩選')}>
-                    <option value="">{tTags('filters.context_all', '全部模組')}</option>
-                    {filterOptions.contexts.map(option => (
-                        <option key={String(option.value)} value={String(option.value)}>
-                            {option.label}
-                        </option>
-                    ))}
-                </Select>
-                <Select value={filterForm.status} onChange={handleStatusChange} className="w-36" aria-label={tTags('filters.status_label', '狀態篩選')}>
-                    <option value="">{tTags('filters.status_all', '全部狀態')}</option>
-                    {filterOptions.statuses.map(option => (
-                        <option key={String(option.value)} value={String(option.value)}>
-                            {option.label}
-                        </option>
-                    ))}
-                </Select>
-                <Select value={filterForm.per_page} onChange={handlePerPageChange} className="w-28" aria-label={tTags('filters.per_page_label', '每頁筆數')}>
-                    {PER_PAGE_OPTIONS.map(option => (
-                        <option key={option} value={option}>
-                            {tTags('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
-                        </option>
-                    ))}
-                </Select>
-                <Button type="button" size="sm" variant="ghost" className="text-neutral-500" onClick={handleResetFilters}>
-                    {tTags('filters.reset', '重設')}
-                </Button>
-            </form>
-
-            <div className="flex flex-wrap items-center gap-2">
-                {selectedIds.length > 0 ? (
-                    <span className="flex items-center gap-1 text-xs text-neutral-500">
-                        <CheckSquare className="h-3.5 w-3.5 text-primary-500" />
-                        {tTags('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
-                    </span>
-                ) : null}
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1"
-                    disabled={selectedIds.length < 2 || !abilities.canUpdate}
-                    onClick={() => setMergeOpen(true)}
+        <ManageToolbar
+            wrap
+            primary={
+                <form
+                    className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap"
+                    onSubmit={handleFilterSubmit}
                 >
-                    <GitMerge className="h-4 w-4" />
-                    {tTags('bulk.merge', '合併')}
-                </Button>
-                {abilities.canCreate ? (
-                    <Button type="button" size="sm" className="gap-1 bg-[#10B981] hover:bg-[#059669] text-white border-transparent" onClick={() => setCreateOpen(true)}>
-                        <Plus className="h-4 w-4" />
-                        {tTags('actions.create', '新增標籤')}
-                    </Button>
-                ) : null}
-            </div>
-        </div>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
+                        <Input
+                            type="search"
+                            value={filterForm.keyword}
+                            onChange={handleKeywordChange}
+                            placeholder={tTags('filters.keyword_placeholder', '搜尋標籤名稱或代碼')}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
+                            aria-label={tTags('filters.keyword_label', '搜尋標籤')}
+                        />
+                        <Button
+                            type="submit"
+                            size="sm"
+                            className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                        >
+                            <Filter className="h-4 w-4" />
+                            {tTags('filters.apply', '套用')}
+                        </Button>
+                    </div>
+
+                    <div className="grid w-full gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                        <Select
+                            value={filterForm.context}
+                            onChange={handleContextChange}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
+                            aria-label={tTags('filters.context_label', '模組篩選')}
+                        >
+                            <option value="">{tTags('filters.context_all', '全部模組')}</option>
+                            {filterOptions.contexts.map(option => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                        <Select
+                            value={filterForm.status}
+                            onChange={handleStatusChange}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-40"
+                            aria-label={tTags('filters.status_label', '狀態篩選')}
+                        >
+                            <option value="">{tTags('filters.status_all', '全部狀態')}</option>
+                            {filterOptions.statuses.map(option => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                        <Select
+                            value={filterForm.per_page}
+                            onChange={handlePerPageChange}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
+                            aria-label={tTags('filters.per_page_label', '每頁筆數')}
+                        >
+                            {PER_PAGE_OPTIONS.map(option => (
+                                <option key={option} value={option}>
+                                    {tTags('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
+                                </option>
+                            ))}
+                        </Select>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
+                            onClick={handleResetFilters}
+                        >
+                            {tTags('filters.reset', '重設')}
+                        </Button>
+                    </div>
+                </form>
+            }
+            secondary={
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                    {selectedIds.length > 0 ? (
+                        <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            {tTags('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
+                        </span>
+                    ) : null}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-11 gap-1"
+                            disabled={selectedIds.length < 2 || !abilities.canUpdate}
+                            onClick={() => setMergeOpen(true)}
+                        >
+                            <GitMerge className="h-4 w-4" />
+                            {tTags('bulk.merge', '合併')}
+                        </Button>
+                        {abilities.canCreate ? (
+                            <Button
+                                type="button"
+                                size="sm"
+                                className="h-11 gap-1 bg-[#10B981] px-5 text-white hover:bg-[#059669]"
+                                onClick={() => setCreateOpen(true)}
+                            >
+                                <Plus className="h-4 w-4" />
+                                {tTags('actions.create', '新增標籤')}
+                            </Button>
+                        ) : null}
+                    </div>
+                </div>
+            }
+        />
     );
 
     const hasTags = tags.data.length > 0;
     const colorFormatter = new Intl.NumberFormat(locale);
+    const paginationLinks = tags.links ?? { first: null, last: null, prev: null, next: null };
+    const paginationSummary = tTags('table.pagination_summary', '顯示第 :from – :to 筆，共 :total 筆', {
+        from: pagination.from ?? 0,
+        to: pagination.to ?? 0,
+        total: pagination.total ?? 0,
+    });
+    const mobileBulkActions = selectedIds.length > 0
+        ? (
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">
+                    <span className="font-medium text-neutral-700">
+                        {tTags('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
+                    </span>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-3 text-xs text-neutral-500 hover:text-neutral-700"
+                        onClick={() => setSelectedIds([])}
+                    >
+                        {tTags('bulk.clear', '清除')}
+                    </Button>
+                </div>
+                <Button
+                    type="button"
+                    className="h-11 w-full gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                    disabled={selectedIds.length < 2 || !abilities.canUpdate}
+                    onClick={() => setMergeOpen(true)}
+                >
+                    <GitMerge className="h-4 w-4" />
+                    {tTags('bulk.merge', '合併標籤')}
+                </Button>
+            </div>
+        )
+        : null;
 
     return (
         <>
@@ -467,137 +574,290 @@ export default function ManageAdminTagsIndex() {
                 toolbar={toolbar}
             >
                 <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="border-neutral-200/70">
-                                    <TableHead className="w-12 text-neutral-500">
-                                        <Checkbox
-                                            checked={headerCheckboxState}
-                                            aria-label={tTags('table.select_all', '選取全部')}
-                                            onCheckedChange={(checked) => handleSelectAll(checked === true)}
-                                        />
-                                    </TableHead>
-                                    <TableHead className="min-w-[220px] text-neutral-500">{tTags('table.name', '標籤名稱')}</TableHead>
-                                    <TableHead className="hidden min-w-[160px] text-neutral-500 lg:table-cell">{tTags('table.name_en', '英文名稱')}</TableHead>
-                                    <TableHead className="hidden min-w-[140px] text-neutral-500 lg:table-cell">{tTags('table.context', '模組')}</TableHead>
-                                    <TableHead className="min-w-[120px] text-right text-neutral-500">{tTags('table.usage_count', '使用次數')}</TableHead>
-                                    <TableHead className="hidden min-w-[160px] text-neutral-500 lg:table-cell">{tTags('table.last_used', '最後使用')}</TableHead>
-                                    <TableHead className="min-w-[100px] text-neutral-500">{tTags('table.status', '狀態')}</TableHead>
-                                    <TableHead className="w-14" aria-label={tTags('table.actions', '操作')} />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {hasTags ? (
-                                    tags.data.map((tag) => {
-                                        const isSelected = selectedIds.includes(tag.id);
-                                        const hexColor = ensureHexColor(tag.color);
+                    <ResponsiveDataView
+                        className="space-y-0"
+                        table={() => (
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-b border-neutral-200/70 bg-neutral-50/80">
+                                            <TableHead className="w-12 text-neutral-400">
+                                                <Checkbox
+                                                    checked={headerCheckboxState}
+                                                    aria-label={tTags('table.select_all', '選取全部標籤')}
+                                                    onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                                                />
+                                            </TableHead>
+                                            <TableHead className="min-w-[240px] text-neutral-500">{tTags('table.name', '標籤名稱')}</TableHead>
+                                            <TableHead className="hidden min-w-[180px] text-neutral-500 xl:table-cell">{tTags('table.name_en', '英文名稱')}</TableHead>
+                                            <TableHead className="hidden min-w-[160px] text-neutral-500 lg:table-cell">{tTags('table.context', '模組')}</TableHead>
+                                            <TableHead className="min-w-[140px] text-right text-neutral-500">{tTags('table.usage_count', '使用次數')}</TableHead>
+                                            <TableHead className="hidden min-w-[180px] text-neutral-500 lg:table-cell">{tTags('table.last_used', '最後使用')}</TableHead>
+                                            <TableHead className="min-w-[120px] text-neutral-500">{tTags('table.status', '狀態')}</TableHead>
+                                            <TableHead className="w-14" aria-label={tTags('table.actions', '操作')} />
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {tags.data.map((tag) => {
+                                            const isSelected = selectedIds.includes(tag.id);
+                                            const lastUsed = formatDateTime(tag.last_used_at, locale);
 
-                                        return (
-                                            <TableRow key={tag.id} className="border-neutral-200/60 hover:bg-neutral-50/70">
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={isSelected}
-                                                        aria-label={tTags('table.select_tag', '選取標籤 :name', { name: tag.name })}
-                                                        onCheckedChange={(checked) => toggleSelected(tag.id, checked === true)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2 font-medium text-neutral-800">
-                                                            <span
-                                                                className="h-3 w-3 rounded-full border-2 border-neutral-300/80 shadow-sm"
-                                                                style={hexColor ? { backgroundColor: hexColor } : { backgroundImage: 'linear-gradient(45deg, #d4d4d4 25%, transparent 25%, transparent 50%, #d4d4d4 50%, #d4d4d4 75%, transparent 75%, transparent)' }}
-                                                            />
-                                                            {tag.name}
+                                            return (
+                                                <TableRow
+                                                    key={tag.id}
+                                                    className={cn(
+                                                        'border-b border-neutral-200/60 transition-colors hover:bg-neutral-50/70',
+                                                        isSelected && 'bg-blue-50/40'
+                                                    )}
+                                                >
+                                                    <TableCell className="align-top">
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            aria-label={tTags('table.select_tag', '選取標籤 :name', { name: tag.name })}
+                                                            onCheckedChange={(checked) => toggleSelected(tag.id, checked === true)}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-start gap-3">
+                                                            <TagColorSwatch value={tag.color} />
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="font-medium text-neutral-900">{tag.name}</span>
+                                                                <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+                                                                    {tag.slug ? (
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                                        >
+                                                                            <Hash className="h-3 w-3" />
+                                                                            #{tag.slug}
+                                                                        </Badge>
+                                                                    ) : null}
+                                                                    {tag.name_en ? <span>{tag.name_en}</span> : null}
+                                                                </div>
+                                                                {tag.description ? (
+                                                                    <p className="text-xs text-neutral-500">{tag.description}</p>
+                                                                ) : null}
+                                                            </div>
                                                         </div>
-                                                        {tag.slug ? (
-                                                            <span className="text-xs text-neutral-500">#{tag.slug}</span>
-                                                        ) : null}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="hidden text-sm text-neutral-600 lg:table-cell">{tag.name_en || '—'}</TableCell>
-                                                <TableCell className="hidden text-sm text-neutral-600 lg:table-cell">{tag.context_label}</TableCell>
-                                                <TableCell className="text-right font-medium text-neutral-700">
-                                                    {colorFormatter.format(tag.usage_count ?? 0)}
-                                                </TableCell>
-                                                <TableCell className="hidden text-sm text-neutral-600 lg:table-cell">{formatDateTime(tag.last_used_at, locale)}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant={tag.is_active ? 'default' : 'outline'} className={cn('rounded-full px-3 py-1 text-xs', tag.is_active ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'text-neutral-500')}>
-                                                        {tag.is_active ? tTags('status.active', '啟用中') : tTags('status.inactive', '已停用')}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            {abilities.canUpdate ? (
-                                                                <DropdownMenuItem onSelect={() => openEditDialog(tag)}>
-                                                                    <Edit3 className="mr-2 h-4 w-4" /> {tTags('actions.edit', '編輯')}
+                                                    </TableCell>
+                                                    <TableCell className="hidden align-top text-sm text-neutral-600 xl:table-cell">{tag.name_en || '—'}</TableCell>
+                                                    <TableCell className="hidden align-top text-sm text-neutral-600 lg:table-cell">{tag.context_label}</TableCell>
+                                                    <TableCell className="align-top text-right font-medium text-neutral-700">
+                                                        {colorFormatter.format(tag.usage_count ?? 0)}
+                                                    </TableCell>
+                                                    <TableCell className="hidden align-top text-sm text-neutral-600 lg:table-cell">
+                                                        {lastUsed || tTags('table.last_used_empty', '尚未使用')}
+                                                    </TableCell>
+                                                    <TableCell className="align-top">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={cn(
+                                                                'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium',
+                                                                tag.is_active
+                                                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                                    : 'border-neutral-200 bg-neutral-50 text-neutral-600'
+                                                            )}
+                                                        >
+                                                            <Droplet className="h-3.5 w-3.5" />
+                                                            {tag.is_active ? tTags('status.active', '啟用中') : tTags('status.inactive', '已停用')}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="align-top text-right">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-neutral-700">
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="w-44">
+                                                                {abilities.canUpdate ? (
+                                                                    <DropdownMenuItem onSelect={() => openEditDialog(tag)} className="gap-2">
+                                                                        <Edit3 className="h-4 w-4" />
+                                                                        {tTags('actions.edit', '編輯')}
+                                                                    </DropdownMenuItem>
+                                                                ) : null}
+                                                                <DropdownMenuItem onSelect={() => setSplitTag(tag)} className="gap-2">
+                                                                    <SplitSquareVertical className="h-4 w-4" />
+                                                                    {tTags('actions.split', '拆分')}
                                                                 </DropdownMenuItem>
-                                                            ) : null}
-                                                            <DropdownMenuItem onSelect={() => setSplitTag(tag)}>
-                                                                <SplitSquareVertical className="mr-2 h-4 w-4" /> {tTags('actions.split', '拆分')}
-                                                            </DropdownMenuItem>
-                                                            {abilities.canUpdate ? (
-                                                                <DropdownMenuItem onSelect={() => toggleActivation(tag)}>
-                                                                    <RefreshCcw className="mr-2 h-4 w-4" />
-                                                                    {tag.is_active ? tTags('actions.deactivate', '停用') : tTags('actions.activate', '啟用')}
-                                                                </DropdownMenuItem>
-                                                            ) : null}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={8} className="py-10">
-                                            <TableEmpty
-                                                title={tTags('empty.title', '目前沒有符合條件的標籤')}
-                                                description={tTags('empty.description', '您可以調整篩選條件，或建立新的標籤來分類後台資料。')}
-                                                action={abilities.canCreate ? (
-                                                    <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
-                                                        <Plus className="h-4 w-4" /> {tTags('empty.action', '新增標籤')}
-                                                    </Button>
-                                                ) : undefined}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                                                {abilities.canUpdate ? (
+                                                                    <DropdownMenuItem onSelect={() => toggleActivation(tag)} className="gap-2">
+                                                                        <RefreshCcw className="h-4 w-4" />
+                                                                        {tag.is_active ? tTags('actions.deactivate', '停用') : tTags('actions.activate', '啟用')}
+                                                                    </DropdownMenuItem>
+                                                                ) : null}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+                        card={() => (
+                            <div className="space-y-3">
+                                {tags.data.map((tag) => {
+                                    const isSelected = selectedIds.includes(tag.id);
+                                    const lastUsed = formatDateTime(tag.last_used_at, locale);
+
+                                    const metadata = [
+                                        {
+                                            label: tTags('table.usage_count', '使用次數'),
+                                            value: colorFormatter.format(tag.usage_count ?? 0),
+                                            icon: <ClipboardList className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                        {
+                                            label: tTags('table.context', '模組'),
+                                            value: tag.context_label,
+                                            icon: <FolderTree className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                        {
+                                            label: tTags('table.last_used', '最後使用'),
+                                            value: lastUsed || tTags('table.last_used_empty', '尚未使用'),
+                                            icon: <CalendarClock className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                    ];
+
+                                    const cardMobileActions = (
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">
+                                                <span>
+                                                    {isSelected
+                                                        ? tTags('bulk.selected_single', '已加入合併清單')
+                                                        : tTags('bulk.select_prompt', '加入合併清單')}
+                                                </span>
+                                                <Checkbox
+                                                    checked={isSelected}
+                                                    onCheckedChange={(checked) => toggleSelected(tag.id, checked === true)}
+                                                    aria-label={tTags('table.select_tag', '選取標籤 :name', { name: tag.name })}
+                                                />
+                                            </div>
+                                            {abilities.canUpdate ? (
+                                                <Button
+                                                    type="button"
+                                                    className="w-full justify-center gap-2 bg-[#3B82F6] text-white hover:bg-[#2563EB]"
+                                                    onClick={() => openEditDialog(tag)}
+                                                >
+                                                    <Edit3 className="h-4 w-4" />
+                                                    {tTags('actions.edit', '編輯')}
+                                                </Button>
+                                            ) : null}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="w-full justify-center gap-2"
+                                                onClick={() => setSplitTag(tag)}
+                                            >
+                                                <SplitSquareVertical className="h-4 w-4" />
+                                                {tTags('actions.split', '拆分')}
+                                            </Button>
+                                            {abilities.canUpdate ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="w-full justify-center gap-2"
+                                                    onClick={() => toggleActivation(tag)}
+                                                >
+                                                    <RefreshCcw className="h-4 w-4" />
+                                                    {tag.is_active ? tTags('actions.deactivate', '停用') : tTags('actions.activate', '啟用')}
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    );
+
+                                    return (
+                                        <DataCard
+                                            key={tag.id}
+                                            title={tag.name}
+                                            description={tag.description ?? undefined}
+                                            status={{
+                                                label: tag.is_active ? tTags('status.active', '啟用中') : tTags('status.inactive', '已停用'),
+                                                tone: tag.is_active ? 'success' : 'neutral',
+                                                icon: <Droplet className="h-3.5 w-3.5" />,
+                                            }}
+                                            metadata={metadata}
+                                            mobileActions={cardMobileActions}
+                                            className={cn(isSelected && 'border-blue-200 shadow-md ring-2 ring-blue-200/60')}
+                                        >
+                                            <div className="flex flex-col gap-2 text-sm text-neutral-600">
+                                                <div className="inline-flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
+                                                    <TagColorSwatch value={tag.color} size="md" />
+                                                    <span className="font-medium text-neutral-700">{tag.color || tTags('form.color_preview_empty', '尚未設定色碼')}</span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {tag.slug ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                        >
+                                                            <Hash className="h-3 w-3" />
+                                                            #{tag.slug}
+                                                        </Badge>
+                                                    ) : null}
+                                                    {tag.name_en ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                        >
+                                                            {tag.name_en}
+                                                        </Badge>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                        </DataCard>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        isEmpty={!hasTags}
+                        emptyState={
+                            <TableEmpty
+                                title={tTags('empty.title', '目前沒有符合條件的標籤')}
+                                description={tTags('empty.description', '您可以調整篩選條件，或建立新的標籤來分類後台資料。')}
+                                action={
+                                    abilities.canCreate
+                                        ? (
+                                            <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
+                                                <Plus className="h-4 w-4" /> {tTags('empty.action', '新增標籤')}
+                                            </Button>
+                                        )
+                                        : undefined
+                                }
+                            />
+                        }
+                        stickyActions={mobileBulkActions}
+                    />
 
                     {hasTags ? (
-                        <div className="flex flex-col gap-3 border-t border-neutral-200/70 bg-neutral-50/70 px-4 py-3 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                顯示第 {pagination.from ?? 0} – {pagination.to ?? 0} 筆，共 {pagination.total} 筆
-                            </div>
-                            <div className="flex items-center gap-2">
+                        <footer className="flex flex-col gap-3 border-t border-neutral-200/70 bg-neutral-50/70 px-4 py-3 text-sm text-neutral-600 md:flex-row md:items-center md:justify-between">
+                            <span>{paginationSummary}</span>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                                 <Button
-                                    variant="outline"
+                                    variant="default"
                                     size="sm"
-                                    disabled={!tags.links?.prev}
-                                    onClick={() => tags.links?.prev && router.get(tags.links.prev, {}, { preserveScroll: true, preserveState: true })}
+                                    disabled={!paginationLinks.prev}
+                                    className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                    asChild
                                 >
-                                    上一頁
+                                    <Link href={paginationLinks.prev ?? '#'} preserveScroll preserveState>
+                                        {tTags('pagination.prev', '上一頁')}
+                                    </Link>
                                 </Button>
                                 <Button
-                                    variant="outline"
+                                    variant="default"
                                     size="sm"
-                                    disabled={!tags.links?.next}
-                                    onClick={() => tags.links?.next && router.get(tags.links.next, {}, { preserveScroll: true, preserveState: true })}
+                                    disabled={!paginationLinks.next}
+                                    className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                    asChild
                                 >
-                                    下一頁
+                                    <Link href={paginationLinks.next ?? '#'} preserveScroll preserveState>
+                                        {tTags('pagination.next', '下一頁')}
+                                    </Link>
                                 </Button>
                             </div>
-                        </div>
+                        </footer>
                     ) : null}
                 </section>
             </ManagePage>
@@ -669,6 +929,63 @@ export default function ManageAdminTagsIndex() {
 
 ManageAdminTagsIndex.layout = (page: ReactElement) => <AppLayout>{page}</AppLayout>;
 
+type TagColorSwatchProps = {
+    value: string | null | undefined;
+    size?: 'sm' | 'md';
+    className?: string;
+};
+
+const TAG_COLOR_SWATCH_SIZE: Record<'sm' | 'md', string> = {
+    sm: 'h-3.5 w-3.5',
+    md: 'h-6 w-6',
+};
+
+function TagColorSwatch({ value, size = 'sm', className }: TagColorSwatchProps) {
+    const hexColor = ensureHexColor(value);
+    const hasValue = Boolean(value);
+
+    const style = hexColor
+        ? { backgroundColor: hexColor }
+        : hasValue
+            ? {
+                  backgroundImage:
+                      'linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 50%, #e5e7eb 50%, #e5e7eb 75%, transparent 75%, transparent)',
+                  backgroundSize: '6px 6px',
+              }
+            : { backgroundColor: '#f5f5f5' };
+
+    return (
+        <span
+            className={cn(
+                'inline-flex flex-none items-center justify-center rounded-full border border-neutral-300/80 shadow-sm',
+                TAG_COLOR_SWATCH_SIZE[size],
+                className
+            )}
+            style={style}
+        />
+    );
+}
+
+interface TagColorPreviewProps {
+    value: string;
+    message: string;
+    placeholder?: string;
+}
+
+function TagColorPreview({ value, message, placeholder }: TagColorPreviewProps) {
+    const hasValue = value.trim().length > 0;
+
+    return (
+        <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm">
+            <TagColorSwatch value={value} size="md" />
+            <div className="flex flex-col text-xs text-neutral-500">
+                <span className="font-medium text-neutral-700">{hasValue ? value : placeholder ?? '—'}</span>
+                <span>{message}</span>
+            </div>
+        </div>
+    );
+}
+
 function TagFormDialog({ mode, open, onOpenChange, contexts, initialValues, disableContext, onSubmit }: TagFormDialogProps) {
     const { t: tTags } = useTranslator('manage.tags');
     const [values, setValues] = useState<TagFormValues>(initialValues);
@@ -696,68 +1013,140 @@ function TagFormDialog({ mode, open, onOpenChange, contexts, initialValues, disa
         }
     };
 
+    const trimmedColor = values.color.trim();
+    const hexPreview = ensureHexColor(trimmedColor);
+    const colorPreviewMessage = hexPreview
+        ? tTags('form.color_preview_hex', '已套用 HEX 色碼預覽，儲存後將以此顏色顯示。')
+        : trimmedColor
+            ? tTags('form.color_preview_tailwind', '預覽僅支援 HEX 色碼，Tailwind 顏色會在儲存後套用。')
+            : tTags('form.color_preview_hint', '輸入 HEX 或 Tailwind 顏色類別即可預覽。');
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-xl">
-                <DialogHeader>
-                    <DialogTitle>{mode === 'create' ? tTags('dialog.create_title', '新增標籤') : tTags('dialog.edit_title', '編輯標籤')}</DialogTitle>
-                    <DialogDescription>
-                        {mode === 'create'
-                            ? tTags('dialog.create_description', '設定標籤的中英文名稱與顏色，建立後可用於公告、附件與空間等模組。')
-                            : tTags('dialog.edit_description', '更新標籤資訊並調整狀態，變更後會即時套用至所有關聯資料。')}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-xl">
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    <DialogHeader className="gap-1 text-left">
+                        <DialogTitle>
+                            {mode === 'create' ? tTags('dialog.create_title', '新增標籤') : tTags('dialog.edit_title', '編輯標籤')}
+                        </DialogTitle>
+                        <DialogDescription className="text-neutral-600">
+                            {mode === 'create'
+                                ? tTags('dialog.create_description', '設定標籤的中英文名稱與顏色，建立後可用於公告、附件與空間等模組。')
+                                : tTags('dialog.edit_description', '更新標籤資訊並調整狀態，變更後會即時套用至所有關聯資料。')}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                    <FormField label={tTags('form.context', '套用模組')} required error={errors.context} direction="horizontal">
-                        <Select
-                            value={values.context}
-                            onChange={(event) => handleChange('context', event.target.value)}
-                            disabled={disableContext || mode === 'edit'}
+                    <div className="space-y-3">
+                        <FormField
+                            label={tTags('form.context', '套用模組')}
+                            required
+                            error={errors.context}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
                         >
-                            <option value="">請選擇</option>
-                            {contexts.map(option => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </FormField>
+                            <Select
+                                value={values.context}
+                                onChange={(event) => handleChange('context', event.target.value)}
+                                disabled={disableContext || mode === 'edit'}
+                            >
+                                <option value="">{tTags('form.context_placeholder', '請選擇模組')}</option>
+                                {contexts.map(option => (
+                                    <option key={String(option.value)} value={String(option.value)}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FormField>
 
-                    <FormField label={tTags('form.name', '標籤名稱')} required error={errors.name} direction="horizontal">
-                        <Input value={values.name} onChange={(event) => handleChange('name', event.target.value)} placeholder="例如：招生資訊" />
-                    </FormField>
-
-                    <FormField label={tTags('form.name_en', '英文名稱')} error={errors.name_en} direction="horizontal">
-                        <Input value={values.name_en} onChange={(event) => handleChange('name_en', event.target.value)} placeholder="例如：Admission" />
-                    </FormField>
-
-                    <FormField label={tTags('form.description', '描述')} error={errors.description} direction="horizontal">
-                        <Input value={values.description} onChange={(event) => handleChange('description', event.target.value)} placeholder="補充說明，可留空" />
-                    </FormField>
-
-                    <FormField label={tTags('form.color', '顏色')} description={tTags('form.color_hint', '支援 HEX 色碼或 Tailwind 顏色類別')} error={errors.color} direction="horizontal">
-                        <Input value={values.color} onChange={(event) => handleChange('color', event.target.value)} placeholder="#16a34a 或 text-emerald-600" />
-                    </FormField>
-
-                    <FormField label={tTags('form.status', '狀態')} error={errors.is_active} direction="horizontal">
-                        <label className="inline-flex items-center gap-2 text-sm text-neutral-700">
-                            <Checkbox
-                                checked={values.is_active}
-                                onCheckedChange={(checked) => handleChange('is_active', checked === true)}
+                        <FormField
+                            label={tTags('form.name', '標籤名稱')}
+                            required
+                            error={errors.name}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <Input
+                                value={values.name}
+                                onChange={(event) => handleChange('name', event.target.value)}
+                                placeholder={tTags('form.name_placeholder', '例如：招生資訊')}
                             />
-                            {tTags('form.is_active', '啟用標籤')}
-                        </label>
-                    </FormField>
+                        </FormField>
 
-                    <div className="flex flex-col-reverse items-center gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+                        <FormField
+                            label={tTags('form.name_en', '英文名稱')}
+                            error={errors.name_en}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <Input
+                                value={values.name_en}
+                                onChange={(event) => handleChange('name_en', event.target.value)}
+                                placeholder={tTags('form.name_en_placeholder', '例如：Admission')}
+                            />
+                        </FormField>
+
+                        <FormField
+                            label={tTags('form.description', '描述')}
+                            error={errors.description}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <Input
+                                value={values.description}
+                                onChange={(event) => handleChange('description', event.target.value)}
+                                placeholder={tTags('form.description_placeholder', '補充說明，可留空')}
+                            />
+                        </FormField>
+
+                        <FormField
+                            label={tTags('form.color', '顏色')}
+                            description={tTags('form.color_hint', '支援 HEX 色碼或 Tailwind 顏色類別')}
+                            error={errors.color}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <div className="flex flex-col gap-2">
+                                <Input
+                                    value={values.color}
+                                    onChange={(event) => handleChange('color', event.target.value)}
+                                    placeholder={tTags('form.color_placeholder', '#16a34a 或 text-emerald-600')}
+                                />
+                                <TagColorPreview
+                                    value={trimmedColor}
+                                    message={colorPreviewMessage}
+                                    placeholder={tTags('form.color_preview_empty', '尚未輸入色碼')}
+                                />
+                            </div>
+                        </FormField>
+
+                        <FormField
+                            label={tTags('form.status', '狀態')}
+                            error={errors.is_active}
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <label className="inline-flex items-center gap-2 text-sm text-neutral-700">
+                                <Checkbox
+                                    checked={values.is_active}
+                                    onCheckedChange={(checked) => handleChange('is_active', checked === true)}
+                                />
+                                {tTags('form.is_active', '啟用標籤')}
+                            </label>
+                        </FormField>
+                    </div>
+
+                    <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                             {tTags('form.cancel', '取消')}
                         </Button>
                         <Button type="submit" disabled={isSubmitting || (!values.context && mode === 'create')}>
-                            {isSubmitting ? tTags('form.submitting', '處理中…') : mode === 'create' ? tTags('form.create', '建立') : tTags('form.save', '儲存變更')}
+                            {isSubmitting
+                                ? tTags('form.submitting', '處理中…')
+                                : mode === 'create'
+                                    ? tTags('form.create', '建立')
+                                    : tTags('form.save', '儲存變更')}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
@@ -790,38 +1179,58 @@ function MergeDialog({ open, onOpenChange, selectedTags, onSubmit }: MergeDialog
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{tTags('merge.title', '合併標籤')}</DialogTitle>
-                    <DialogDescription>
-                        {tTags('merge.description', '選取要保留的標籤，其餘標籤的關聯資料將轉移至保留標籤，並自動停用。')}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-lg">
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    <DialogHeader className="gap-1 text-left">
+                        <DialogTitle>{tTags('merge.title', '合併標籤')}</DialogTitle>
+                        <DialogDescription className="text-neutral-600">
+                            {tTags('merge.description', '選取要保留的標籤，其餘標籤的關聯資料將轉移至保留標籤，並自動停用。')}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                    <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600">
-                        <span className="font-medium text-neutral-800">{tTags('merge.selected', '已選擇 :count 個標籤', { count: selectedTags.length })}</span>
-                        <ul className="mt-2 space-y-1">
-                            {selectedTags.map(tag => (
-                                <li key={tag.id} className="flex items-center justify-between rounded-md bg-white/70 px-3 py-2">
-                                    <span>{tag.name}</span>
-                                    <Badge variant="outline" className="text-xs">{tag.context_label}</Badge>
-                                </li>
-                            ))}
-                        </ul>
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
+                            <span className="font-medium text-neutral-800">
+                                {tTags('merge.selected', '已選擇 :count 個標籤', { count: selectedTags.length })}
+                            </span>
+                            <ul className="space-y-1.5">
+                                {selectedTags.map(tag => (
+                                    <li
+                                        key={tag.id}
+                                        className="flex items-center justify-between rounded-lg bg-white px-3 py-2 shadow-sm"
+                                    >
+                                        <span className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+                                            <TagColorSwatch value={tag.color} />
+                                            {tag.name}
+                                        </span>
+                                        <Badge variant="outline" className="text-xs">
+                                            {tag.context_label}
+                                        </Badge>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <FormField
+                            label={tTags('merge.keep_label', '保留標籤')}
+                            required
+                            direction="horizontal"
+                            className="bg-neutral-50/60"
+                        >
+                            <Select
+                                value={targetId ? String(targetId) : ''}
+                                onChange={(event) => setTargetId(Number(event.target.value))}
+                            >
+                                {selectedTags.map(tag => (
+                                    <option key={tag.id} value={tag.id}>
+                                        {tag.name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FormField>
                     </div>
 
-                    <FormField label={tTags('merge.keep_label', '保留標籤')} required direction="horizontal">
-                        <Select value={targetId ? String(targetId) : ''} onChange={(event) => setTargetId(Number(event.target.value))}>
-                            {selectedTags.map(tag => (
-                                <option key={tag.id} value={tag.id}>
-                                    {tag.name}
-                                </option>
-                            ))}
-                        </Select>
-                    </FormField>
-
-                    <div className="flex flex-col-reverse items-center gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+                    <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                             {tTags('merge.cancel', '取消')}
                         </Button>
@@ -829,7 +1238,7 @@ function MergeDialog({ open, onOpenChange, selectedTags, onSubmit }: MergeDialog
                             <ClipboardList className="h-4 w-4" />
                             {isSubmitting ? tTags('merge.submitting', '合併中…') : tTags('merge.confirm', '確認合併')}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
@@ -861,39 +1270,52 @@ function SplitDialog({ open, onOpenChange, tag, onSubmit }: SplitDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{tTags('split.title', '拆分標籤')}</DialogTitle>
-                    <DialogDescription>
-                        {tTags('split.description', '以逗號或換行輸入多個新標籤名稱，可快速建立細分類別。')}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-lg">
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    <DialogHeader className="gap-1 text-left">
+                        <DialogTitle>{tTags('split.title', '拆分標籤')}</DialogTitle>
+                        <DialogDescription className="text-neutral-600">
+                            {tTags('split.description', '以逗號或換行輸入多個新標籤名稱，可快速建立細分類別。')}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                    <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
-                        <span className="font-medium text-neutral-800">{tTags('split.source_label', '原標籤')}</span>
-                        <div className="mt-2 flex items-center justify-between">
-                            <span>{tag?.name ?? '—'}</span>
-                            <Badge variant="outline" className="text-xs">{tag?.context_label}</Badge>
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+                            <span className="font-medium text-neutral-800">{tTags('split.source_label', '原標籤')}</span>
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+                                    <TagColorSwatch value={tag?.color} />
+                                    {tag?.name ?? '—'}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                    {tag?.context_label}
+                                </Badge>
+                            </div>
                         </div>
+
+                        <FormField
+                            label={tTags('split.new_names_label', '新標籤名稱')}
+                            required
+                            direction="horizontal"
+                            description={tTags('split.new_names_hint', '使用逗號或換行分隔，例如：國際交流,就業資訊,活動花絮')}
+                            className="bg-neutral-50/60"
+                        >
+                            <textarea
+                                value={names}
+                                onChange={(event) => setNames(event.target.value)}
+                                className="min-h-[160px] w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                            />
+                        </FormField>
+
+                        <FormField direction="horizontal" className="bg-neutral-50/60">
+                            <label className="inline-flex items-center gap-2 text-sm text-neutral-700">
+                                <Checkbox checked={keepOriginal} onCheckedChange={(checked) => setKeepOriginal(checked === true)} />
+                                {tTags('split.keep_original', '保留原標籤（不會自動停用）')}
+                            </label>
+                        </FormField>
                     </div>
 
-                    <FormField label={tTags('split.new_names_label', '新標籤名稱')} required direction="horizontal" description={tTags('split.new_names_hint', '使用逗號或換行分隔，例如：國際交流,就業資訊,活動花絮')}>
-                        <textarea
-                            value={names}
-                            onChange={(event) => setNames(event.target.value)}
-                            className="min-h-[160px] w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-                        />
-                    </FormField>
-
-                    <FormField direction="horizontal">
-                        <label className="inline-flex items-center gap-2 text-sm text-neutral-700">
-                            <Checkbox checked={keepOriginal} onCheckedChange={(checked) => setKeepOriginal(checked === true)} />
-                            {tTags('split.keep_original', '保留原標籤（不會自動停用）')}
-                        </label>
-                    </FormField>
-
-                    <div className="flex flex-col-reverse items-center gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+                    <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                             {tTags('split.cancel', '取消')}
                         </Button>
@@ -901,7 +1323,7 @@ function SplitDialog({ open, onOpenChange, tag, onSubmit }: SplitDialogProps) {
                             <SplitSquareVertical className="h-4 w-4" />
                             {isSubmitting ? tTags('split.submitting', '建立中…') : tTags('split.confirm', '建立新標籤')}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
