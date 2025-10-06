@@ -52,15 +52,15 @@
 > 時程預估 5 週，依難度與依賴順序安排。每個任務皆附核銷格，完成後需於 PR 描述勾選。
 
 ### Milestone A — 基礎規範與共用元件（Week 1）
-- [ ] 補齊 `.docs/manage/ui.md`：新增色票、按鈕尺寸、Spacing 圖表、範例截圖流程。
-- [ ] 建立 `@/components/manage/manage-toolbar.tsx`：支援 `orientation="horizontal" | "vertical"`、自動在 `<md` 切換；撰寫 Storybook 範例。
-- [ ] 建立 `@/components/manage/responsive-data-view.tsx`：提供 `table`, `card` render props、`breakpoint`、`stickyActions`，並含骨架載入狀態。
-- [ ] 擴充 `components/manage/data-card.tsx`：支援標題、狀態、主內容 slots、行動版操作列，並提供 `badgeColor` 設定。
-- [ ] 更新 `components/manage/table-empty.tsx` 與 `table-loading.tsx`，加入 icon 與說明文字 props，統一尺寸。
-- [ ] 寫成 `MIGRATION_GUIDE.md` 草稿，指引舊頁面如何套用新元件。
+- [x] 補齊 `.docs/manage/ui.md`：新增色票、按鈕尺寸、Spacing 圖表、範例截圖流程。
+- [x] 建立 `@/components/manage/manage-toolbar.tsx`：支援 `orientation="horizontal" | "vertical"`、自動在 `<md` 切換；撰寫 Storybook 範例。
+- [x] 建立 `@/components/manage/responsive-data-view.tsx`：提供 `table`, `card` render props、`breakpoint`、`stickyActions`，並含骨架載入狀態。
+- [x] 擴充 `components/manage/data-card.tsx`：支援標題、狀態、主內容 slots、行動版操作列，並提供 `badgeColor` 設定。
+- [x] 更新 `components/manage/table-empty.tsx` 與 `table-loading.tsx`，加入 icon 與說明文字 props，統一尺寸。
+- [x] 寫成 `MIGRATION_GUIDE.md` 草稿，指引舊頁面如何套用新元件。
 
 ### Milestone B — 頁面 UI 對齊（Week 2）
-- [ ] `manage/admin/posts`：套用新按鈕配色、ResponsiveDataView、Mobile 卡片；補齊篩選器的自動換行。
+- [x] `manage/admin/posts`：套用新按鈕配色、ResponsiveDataView、Mobile 卡片；補齊篩選器的自動換行。
 - [ ] `manage/admin/tags`：重構工具列與對話框，確保表單 spacing 與行動版操作；補上標籤顏色選擇器預覽。
 - [ ] `manage/admin/messages` 與 `manage/admin/attachments`：比照最佳實踐，萃取共用卡片與批次操作流程；加入附件縮圖。
 - [ ] `manage/admin/dashboard`：調整活動列表 hover/empty 狀態、語意色彩，補上關鍵 KPI 卡片。

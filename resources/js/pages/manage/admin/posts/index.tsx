@@ -1,8 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
+import ManageToolbar from '@/components/manage/manage-toolbar';
+import ResponsiveDataView from '@/components/manage/responsive-data-view';
+import DataCard, { type DataCardStatusTone } from '@/components/manage/data-card';
+import TableEmpty from '@/components/manage/table-empty';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -16,7 +19,22 @@ import type { BreadcrumbItem, SharedData } from '@/types/shared';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, CheckSquare, FilePlus2, FileText, Filter, CalendarClock, Megaphone, MegaphoneOff, EyeOff, Tag as TagIcon, Trash2, Users } from 'lucide-react';
+import {
+    Archive,
+    Building2,
+    CalendarClock,
+    CheckSquare,
+    Eye,
+    EyeOff,
+    FilePlus2,
+    FileText,
+    Filter,
+    Megaphone,
+    MegaphoneOff,
+    Tag as TagIcon,
+    Trash2,
+    Users,
+} from 'lucide-react';
 import StatusFilterTabs from '@/components/manage/status-filter-tabs';
 
 type ManageAdminPostsPageProps = SharedData & {
@@ -42,15 +60,54 @@ type FilterOverrides = Partial<FilterFormState> &
         page?: number;
     };
 
+type BulkActionType = 'publish' | 'unpublish' | 'archive' | 'delete';
+
+type BulkActionConfig = {
+    type: BulkActionType;
+    label: string;
+    icon: typeof Megaphone;
+    buttonClass: string;
+    iconClass: string;
+};
+
 const PER_PAGE_OPTIONS = ['10', '20', '50', '100'] as const;
 
-const statusVariantMap: Record<string, 'outline' | 'secondary' | 'default'> = {
-    draft: 'outline',
-    scheduled: 'secondary',
-    published: 'default',
-    hidden: 'outline',
-    archived: 'outline',
+const STATUS_BADGE_CLASS: Record<string, string> = {
+    draft: 'border-blue-200 bg-blue-50 text-blue-700',
+    scheduled: 'border-amber-200 bg-amber-50 text-amber-700',
+    published: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    hidden: 'border-neutral-200 bg-neutral-100 text-neutral-600',
+    archived: 'border-rose-200 bg-rose-50 text-rose-700',
 };
+
+const STATUS_TONE_MAP: Record<string, DataCardStatusTone> = {
+    draft: 'info',
+    scheduled: 'warning',
+    published: 'success',
+    hidden: 'neutral',
+    archived: 'danger',
+};
+
+const STATUS_ICON_COMPONENT: Record<string, typeof Megaphone> = {
+    draft: FileText,
+    scheduled: CalendarClock,
+    published: Megaphone,
+    hidden: EyeOff,
+    archived: Archive,
+};
+
+function getStatusBadgeClass(status: string) {
+    return STATUS_BADGE_CLASS[status] ?? 'border-neutral-200 bg-neutral-100 text-neutral-600';
+}
+
+function getStatusTone(status: string): DataCardStatusTone {
+    return STATUS_TONE_MAP[status] ?? 'neutral';
+}
+
+function getStatusIcon(status: string) {
+    const IconComponent = STATUS_ICON_COMPONENT[status] ?? Megaphone;
+    return <IconComponent className="h-3.5 w-3.5" aria-hidden="true" />;
+}
 
 const visibilityToneMap: Record<string, string> = {
     public: 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -81,6 +138,46 @@ export default function ManageAdminPostsIndex() {
     const statusOptions = filterOptions.statuses ?? [];
     const tagOptions = filterOptions.tags ?? [];
     const perPageOptions = PER_PAGE_OPTIONS;
+    const statusLabelMap = useMemo(() => {
+        const map = new Map<string, string>();
+        statusOptions.forEach((option) => {
+            map.set(String(option.value), option.label);
+        });
+        return map;
+    }, [statusOptions]);
+    const bulkActions = useMemo<BulkActionConfig[]>(
+        () => [
+            {
+                type: 'publish',
+                label: tPosts('bulk.publish', '批次發佈'),
+                icon: Megaphone,
+                buttonClass: 'bg-[#10B981] hover:bg-[#059669] text-white',
+                iconClass: 'text-emerald-600',
+            },
+            {
+                type: 'unpublish',
+                label: tPosts('bulk.unpublish', '批次下架'),
+                icon: MegaphoneOff,
+                buttonClass: 'bg-[#F97316] hover:bg-[#EA580C] text-white',
+                iconClass: 'text-amber-600',
+            },
+            {
+                type: 'archive',
+                label: tPosts('bulk.archive', '批次封存'),
+                icon: Archive,
+                buttonClass: 'bg-[#1E293B] hover:bg-[#0F172A] text-white',
+                iconClass: 'text-neutral-600',
+            },
+            {
+                type: 'delete',
+                label: tPosts('bulk.delete', '批次刪除'),
+                icon: Trash2,
+                buttonClass: 'bg-[#EF4444] hover:bg-[#DC2626] text-white',
+                iconClass: 'text-rose-600',
+            },
+        ],
+        [tPosts]
+    );
 
     // 依照目前的篩選狀態建立預設表單，確保瀏覽器返回或重新整理後仍保留條件。
     const defaultFilterForm = useMemo<FilterFormState>(() => ({
@@ -254,6 +351,27 @@ export default function ManageAdminPostsIndex() {
             : 'indeterminate';
 
     const bulkDisabled = selectedIds.length === 0;
+    const mobileBulkActions =
+        abilities.canBulkUpdate && selectedIds.length > 0
+            ? (
+                  <div className="flex flex-col gap-2">
+                      {bulkActions.map((action) => {
+                          const Icon = action.icon;
+                          return (
+                              <Button
+                                  key={action.type}
+                                  type="button"
+                                  className={cn('w-full justify-center gap-2', action.buttonClass)}
+                                  onClick={() => handleBulkAction(action.type)}
+                              >
+                                  <Icon className="h-4 w-4" />
+                                  {action.label}
+                              </Button>
+                          );
+                      })}
+                  </div>
+              )
+            : null;
 
     const handleBulkAction = (action: 'publish' | 'unpublish' | 'archive' | 'delete') => {
         if (selectedIds.length === 0) {
@@ -337,113 +455,129 @@ export default function ManageAdminPostsIndex() {
     };
 
     const toolbar = (
-        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <form className="flex flex-wrap items-center gap-2" onSubmit={handleFilterSubmit}>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="search"
-                        value={filterForm.keyword}
-                        onChange={handleKeywordChange}
-                        placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
-                        className="w-56"
-                        aria-label={tPosts('filters.keyword_label', '搜尋公告')}
-                    />
-                    <Button type="submit" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent">
-                        <Filter className="h-4 w-4" />
-                        {tPosts('filters.apply', '套用')}
-                    </Button>
-                </div>
-                <Select
-                    value={filterForm.tag}
-                    onChange={handleTagChange}
-                    aria-label={tPosts('filters.tag_label', '標籤篩選')}
-                    className="w-44"
+        <ManageToolbar
+            wrap
+            primary={
+                <form
+                    className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap"
+                    onSubmit={handleFilterSubmit}
                 >
-                    <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
-                    {tagOptions.map((tag) => {
-                        const optionValue = tag.value ?? tag.id ?? tag.label;
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
+                        <Input
+                            type="search"
+                            value={filterForm.keyword}
+                            onChange={handleKeywordChange}
+                            placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
+                            aria-label={tPosts('filters.keyword_label', '搜尋公告')}
+                        />
+                        <Button
+                            type="submit"
+                            size="sm"
+                            className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                        >
+                            <Filter className="h-4 w-4" />
+                            {tPosts('filters.apply', '套用')}
+                        </Button>
+                    </div>
 
-                        return (
-                            <option key={String(optionValue)} value={String(optionValue)}>
-                                {tag.label}
-                            </option>
-                        );
-                    })}
-                </Select>
-                <Select
-                    value={filterForm.per_page}
-                    onChange={handlePerPageChange}
-                    aria-label={tPosts('filters.per_page_label', '每頁筆數')}
-                    className="w-28"
-                >
-                    {perPageOptions.map((option) => (
-                        <option key={option} value={option}>
-                            {tPosts('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
-                        </option>
-                    ))}
-                </Select>
-                <Button type="button" size="sm" variant="ghost" className="text-neutral-500" onClick={handleClearFilters}>
-                    {tPosts('filters.reset', '重設')}
-                </Button>
-            </form>
+                    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                        <Select
+                            value={filterForm.tag}
+                            onChange={handleTagChange}
+                            aria-label={tPosts('filters.tag_label', '標籤篩選')}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
+                        >
+                            <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
+                            {tagOptions.map((tag) => {
+                                const optionValue = tag.value ?? tag.id ?? tag.label;
 
-            <div className="flex flex-wrap items-center gap-2">
-                {selectedIds.length > 0 ? (
-                    <span className="flex items-center gap-1 text-xs text-neutral-500">
-                        <CheckSquare className="h-3.5 w-3.5 text-blue-500" />
-                        {tPosts('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
-                    </span>
-                ) : null}
-                {abilities.canBulkUpdate ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="default" size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700" disabled={bulkDisabled}>
-                                <Filter className="h-4 w-4" />
-                                {tPosts('bulk.menu', '批次操作')}
+                                return (
+                                    <option key={String(optionValue)} value={String(optionValue)}>
+                                        {tag.label}
+                                    </option>
+                                );
+                            })}
+                        </Select>
+                        <Select
+                            value={filterForm.per_page}
+                            onChange={handlePerPageChange}
+                            aria-label={tPosts('filters.per_page_label', '每頁筆數')}
+                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
+                        >
+                            {perPageOptions.map((option) => (
+                                <option key={option} value={option}>
+                                    {tPosts('filters.per_page_option', ':count 筆/頁', { count: Number(option) })}
+                                </option>
+                            ))}
+                        </Select>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
+                            onClick={handleClearFilters}
+                        >
+                            {tPosts('filters.reset', '重設')}
+                        </Button>
+                    </div>
+                </form>
+            }
+            secondary={
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                    {selectedIds.length > 0 ? (
+                        <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            {tPosts('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
+                        </span>
+                    ) : null}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                        {abilities.canBulkUpdate ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="default"
+                                        size="sm"
+                                        className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                                        disabled={bulkDisabled}
+                                    >
+                                        <Filter className="h-4 w-4" />
+                                        {tPosts('bulk.menu', '批次操作')}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    {bulkActions.map((action) => {
+                                        const Icon = action.icon;
+                                        return (
+                                            <DropdownMenuItem
+                                                key={action.type}
+                                                onSelect={() => handleBulkAction(action.type)}
+                                                className="gap-2"
+                                            >
+                                                <Icon className={cn('h-4 w-4', action.iconClass)} />
+                                                {action.label}
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : null}
+                        {abilities.canCreate ? (
+                            <Button
+                                size="sm"
+                                className="h-11 gap-2 bg-[#10B981] px-5 text-white hover:bg-[#059669]"
+                                asChild
+                            >
+                                <Link href="/manage/admin/posts/create">
+                                    <FilePlus2 className="h-4 w-4" />
+                                    {t('sidebar.admin.posts_create', '新增公告')}
+                                </Link>
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onSelect={() => handleBulkAction('publish')}
-                                className="gap-2"
-                            >
-                                <Megaphone className="h-4 w-4 text-emerald-600" />
-                                {tPosts('bulk.publish', '批次發佈')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onSelect={() => handleBulkAction('unpublish')}
-                                className="gap-2"
-                            >
-                                <MegaphoneOff className="h-4 w-4 text-amber-600" />
-                                {tPosts('bulk.unpublish', '批次下架')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onSelect={() => handleBulkAction('archive')}
-                                className="gap-2"
-                            >
-                                <Archive className="h-4 w-4 text-neutral-600" />
-                                {tPosts('bulk.archive', '批次封存')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onSelect={() => handleBulkAction('delete')}
-                                className="gap-2"
-                            >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                                {tPosts('bulk.delete', '批次刪除')}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ) : null}
-                {abilities.canCreate ? (
-                    <Button size="sm" className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white border-transparent" asChild>
-                        <Link href="/manage/admin/posts/create">
-                            <FilePlus2 className="h-4 w-4" />
-                            {t('sidebar.admin.posts_create', '新增公告')}
-                        </Link>
-                    </Button>
-                ) : null}
-            </div>
-        </div>
+                        ) : null}
+                    </div>
+                </div>
+            }
+        />
     );
 
     return (
@@ -465,192 +599,368 @@ export default function ManageAdminPostsIndex() {
                 </section>
 
                 <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-neutral-200/80">
-                                <TableHead className="w-12 text-neutral-400">
-                                    <Checkbox
-                                        checked={headerCheckboxState}
-                                        onCheckedChange={(checked) => toggleSelectAll(checked === true)}
-                                        aria-label={tPosts('table.select_all', '全選公告')}
-                                    />
-                                </TableHead>
-                                <TableHead className="w-[38%] text-neutral-500">{tPosts('table.title', '標題與摘要')}</TableHead>
-                                <TableHead className="w-[20%] text-neutral-500">{tPosts('table.status', '狀態')}</TableHead>
-                                <TableHead className="hidden w-[20%] text-neutral-500 lg:table-cell">{tPosts('table.meta', '分類 / 空間')}</TableHead>
-                                <TableHead className="w-[22%] text-right text-neutral-500">{tPosts('table.timestamps', '時間 / 負責人')}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {!hasPosts ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="py-16 text-center text-sm text-neutral-500">
-                                        {tPosts('empty', '目前沒有符合條件的公告。')}
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                posts.data.map((post) => {
-                                    const isSelected = selectedIds.includes(post.id);
-
-                                    return (
-                                        <TableRow key={post.id} className={cn('border-neutral-200/60 transition-colors duration-150 hover:bg-blue-50/50', isSelected && 'bg-blue-50/50')}>
-                                            <TableCell className="align-top">
+                    <ResponsiveDataView
+                        className="space-y-0"
+                        table={() => (
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-neutral-200/80">
+                                            <TableHead className="w-12 text-neutral-400">
                                                 <Checkbox
-                                                    checked={isSelected}
-                                                    onCheckedChange={(checked) => toggleSelect(post.id, checked === true)}
-                                                    aria-label={tPosts('table.select_post', '選取公告')}
+                                                    checked={headerCheckboxState}
+                                                    onCheckedChange={(checked) => toggleSelectAll(checked === true)}
+                                                    aria-label={tPosts('table.select_all', '全選公告')}
                                                 />
-                                            </TableCell>
-                                            <TableCell className="space-y-2">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex flex-col gap-1">
-                                                        <Link
-                                                            href={`/manage/admin/posts/${post.id}/edit`}
-                                                            className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-                                                        >
-                                                            {post.title}
-                                                        </Link>
-                                                        <p className="text-xs text-neutral-500">
-                                                            {truncate(post.excerpt ?? '', 140)}
-                                                        </p>
-                                                    </div>
-                                                    {post.attachments_count ? (
-                                                        <Badge variant="outline" className="text-[11px] text-neutral-500">
-                                                            <Megaphone className="mr-1 h-3 w-3" />
-                                                            {post.attachments_count}
-                                                        </Badge>
-                                                    ) : null}
-                                                </div>
-                                                {post.tags?.length ? (
-                                                    <div className="flex flex-wrap items-center gap-1 text-[11px] text-neutral-500">
-                                                        <TagIcon className="mr-1 h-3 w-3" />
-                                                        {post.tags.map((tag) => (
-                                                            <span key={tag.id} className="rounded-full bg-neutral-100 px-2 py-0.5">
-                                                                {tag.name}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                ) : null}
-                                            </TableCell>
-                                            <TableCell className="space-y-2">
-                                                <Badge variant={statusVariantMap[post.status] ?? 'outline'} className="capitalize">
-                                                    {tPosts(`status.${post.status}`, post.status)}
-                                                </Badge>
-                                                <span
+                                            </TableHead>
+                                            <TableHead className="w-[38%] text-neutral-500">
+                                                {tPosts('table.title', '標題與摘要')}
+                                            </TableHead>
+                                            <TableHead className="w-[20%] text-neutral-500">
+                                                {tPosts('table.status', '狀態')}
+                                            </TableHead>
+                                            <TableHead className="hidden w-[20%] text-neutral-500 lg:table-cell">
+                                                {tPosts('table.meta', '分類 / 空間')}
+                                            </TableHead>
+                                            <TableHead className="w-[22%] text-right text-neutral-500">
+                                                {tPosts('table.timestamps', '時間 / 負責人')}
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {posts.data.map((post) => {
+                                            const isSelected = selectedIds.includes(post.id);
+                                            const statusLabel = statusLabelMap.get(post.status) ?? tPosts(`status.${post.status}`, post.status);
+                                            const visibilityLabel = tPosts(`visibility.${post.visibility}`, post.visibility);
+
+                                            return (
+                                                <TableRow
+                                                    key={post.id}
                                                     className={cn(
-                                                        'inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase',
-                                                        visibilityToneMap[post.visibility] ?? 'border-neutral-200 text-neutral-500'
+                                                        'border-neutral-200/60 transition-colors duration-150 hover:bg-blue-50/40',
+                                                        isSelected && 'bg-blue-50/70'
                                                     )}
                                                 >
-                                                    {tPosts(`visibility.${post.visibility}`, post.visibility)}
-                                                </span>
-                                                {post.pinned ? (
-                                                    <span className="block text-[11px] font-semibold text-amber-600">
-                                                        {tPosts('badges.pinned', '已置頂')}
-                                                    </span>
-                                                ) : null}
-                                            </TableCell>
-                                            <TableCell className="hidden space-y-1 text-sm text-neutral-600 lg:table-cell">
-                                                <div>
-                                                    <span className="font-medium text-neutral-800">
-                                                        {post.category?.name ?? tPosts('table.uncategorized', '未分類')}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-neutral-500">
-                                                    {post.space?.name ?? tPosts('table.no_space', '未綁定空間')}
-                                                </div>
-                                                <div className="text-xs text-neutral-400">
-                                                    {tPosts('table.views', '瀏覽數：:count', { count: post.views ?? 0 })}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="space-y-1 text-right text-xs text-neutral-500">
-                                                <div className="flex flex-col items-end gap-1">
-                                                    <span className="font-medium text-neutral-700">
-                                                        {formatDateTime(post.published_at ?? post.created_at, locale) || '—'}
-                                                    </span>
-                                                    <span className="text-neutral-400">
-                                                        {formatDateTime(post.updated_at, locale) || ''}
-                                                    </span>
-                                                </div>
-                                                {post.author ? (
-                                                    <div className="flex items-center justify-end gap-1 text-neutral-500">
-                                                        <Users className="h-3 w-3" />
-                                                        <span>{post.author.name}</span>
-                                                    </div>
-                                                ) : null}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
-
-                    <footer className="flex flex-col gap-3 border-t border-neutral-200/80 px-4 py-3 text-sm text-neutral-500 md:flex-row md:items-center md:justify-between">
-                        <span>
-                            {tPosts('table.pagination_summary', '顯示 :from-:to，共 :total 筆', {
-                                from: posts.meta.from ?? 0,
-                                to: posts.meta.to ?? 0,
-                                total: posts.meta.total ?? 0,
-                            })}
-                        </span>
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                            <div className="flex items-center gap-2">
-                                <Button variant="default" size="sm" disabled={!paginationLinks.prev} className="bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-300 disabled:text-neutral-500" asChild>
-                                    <Link
-                                        href={paginationLinks.prev ?? '#'}
-                                        preserveState
-                                        preserveScroll
-                                    >
-                                        {tPosts('pagination.prev', '上一頁')}
-                                    </Link>
-                                </Button>
-                                <Button variant="default" size="sm" disabled={!paginationLinks.next} className="bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-300 disabled:text-neutral-500" asChild>
-                                    <Link
-                                        href={paginationLinks.next ?? '#'}
-                                        preserveState
-                                        preserveScroll
-                                    >
-                                        {tPosts('pagination.next', '下一頁')}
-                                    </Link>
-                                </Button>
+                                                    <TableCell className="align-top">
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={(checked) => toggleSelect(post.id, checked === true)}
+                                                            aria-label={tPosts('table.select_post', '選取公告')}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="space-y-3 align-top">
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="flex flex-col gap-1">
+                                                                <Link
+                                                                    href={`/manage/admin/posts/${post.id}/edit`}
+                                                                    className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                                                                >
+                                                                    {post.title}
+                                                                </Link>
+                                                                <p className="text-xs text-neutral-500">
+                                                                    {truncate(post.excerpt ?? '', 140)}
+                                                                </p>
+                                                            </div>
+                                                            {post.attachments_count ? (
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="inline-flex items-center gap-1 rounded-full border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-medium text-blue-700"
+                                                                >
+                                                                    <FileText className="h-3.5 w-3.5" />
+                                                                    {post.attachments_count}
+                                                                </Badge>
+                                                            ) : null}
+                                                        </div>
+                                                        {post.tags?.length ? (
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                {post.tags.map((tag) => (
+                                                                    <Badge
+                                                                        key={tag.id ?? tag.name}
+                                                                        variant="outline"
+                                                                        className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                                    >
+                                                                        <TagIcon className="h-3 w-3 text-neutral-400" />
+                                                                        {tag.name}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        ) : null}
+                                                    </TableCell>
+                                                    <TableCell className="space-y-2 align-top">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={cn(
+                                                                'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium uppercase',
+                                                                getStatusBadgeClass(post.status)
+                                                            )}
+                                                        >
+                                                            {getStatusIcon(post.status)}
+                                                            {statusLabel}
+                                                        </Badge>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={cn(
+                                                                'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-medium uppercase',
+                                                                visibilityToneMap[post.visibility] ?? 'border-neutral-200 bg-neutral-100 text-neutral-600'
+                                                            )}
+                                                        >
+                                                            <Eye className="h-3.5 w-3.5" />
+                                                            {visibilityLabel}
+                                                        </Badge>
+                                                        {post.pinned ? (
+                                                            <Badge className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-medium text-amber-700">
+                                                                {tPosts('badges.pinned', '已置頂')}
+                                                            </Badge>
+                                                        ) : null}
+                                                    </TableCell>
+                                                    <TableCell className="hidden space-y-2 text-sm text-neutral-600 lg:table-cell">
+                                                        <div className="font-medium text-neutral-800">
+                                                            {post.category?.name ?? tPosts('table.uncategorized', '未分類')}
+                                                        </div>
+                                                        <div className="text-xs text-neutral-500">
+                                                            {post.space?.name ?? tPosts('table.no_space', '未綁定空間')}
+                                                        </div>
+                                                        <div className="text-xs text-neutral-400">
+                                                            {tPosts('table.views', '瀏覽數：:count', { count: post.views ?? 0 })}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="space-y-2 text-right text-xs text-neutral-500">
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            <span className="font-medium text-neutral-700">
+                                                                {formatDateTime(post.published_at ?? post.created_at, locale) || '—'}
+                                                            </span>
+                                                            <span className="text-neutral-400">
+                                                                {formatDateTime(post.updated_at, locale) || ''}
+                                                            </span>
+                                                        </div>
+                                                        {post.author ? (
+                                                            <div className="flex items-center justify-end gap-1 text-neutral-500">
+                                                                <Users className="h-3.5 w-3.5" />
+                                                                <span>{post.author.name}</span>
+                                                            </div>
+                                                        ) : null}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
                             </div>
-                            <form
-                                className="flex items-center gap-2 text-xs text-neutral-500"
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    const pageNumber = Number(pageInput);
-                                    if (Number.isNaN(pageNumber) || pageNumber < 1) {
-                                        setPageInput('1');
-                                        applyFilters({ page: 1 });
-                                        return;
-                                    }
+                        )}
+                        card={() => (
+                            <div className="flex flex-col gap-4 px-4 pb-5 pt-4">
+                                {posts.data.map((post) => {
+                                    const isSelected = selectedIds.includes(post.id);
+                                    const statusLabel = statusLabelMap.get(post.status) ?? tPosts(`status.${post.status}`, post.status);
+                                    const visibilityLabel = tPosts(`visibility.${post.visibility}`, post.visibility);
+                                    const metadata = [
+                                        {
+                                            label: tPosts('table.published_at', '發佈'),
+                                            value: formatDateTime(post.published_at ?? post.created_at, locale) || '—',
+                                            icon: <CalendarClock className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                        {
+                                            label: tPosts('table.views_short', '瀏覽數'),
+                                            value: post.views ?? 0,
+                                            icon: <Eye className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                        {
+                                            label: tPosts('table.owner', '負責人'),
+                                            value: post.author?.name ?? tPosts('table.no_author', '未指定'),
+                                            icon: <Users className="h-3.5 w-3.5 text-neutral-400" />,
+                                        },
+                                    ];
 
-                                    const bounded = Math.min(Math.max(1, pageNumber), posts.meta.last_page ?? pageNumber);
-                                    setPageInput(String(bounded));
-                                    applyFilters({ page: bounded });
-                                }}
-                            >
-                                <label htmlFor="page-input" className="font-medium">
-                                    {tPosts('pagination.goto', '跳至')}
-                                </label>
-                                <Input
-                                    id="page-input"
-                                    type="number"
-                                    min={1}
-                                    max={posts.meta.last_page ?? undefined}
-                                    value={pageInput}
-                                    onChange={(event) => setPageInput(event.target.value)}
-                                    className="h-8 w-20 border-neutral-200 text-sm"
-                                />
-                                <span className="text-neutral-400">/ {posts.meta.last_page ?? 1}</span>
-                                <Button type="submit" size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700 text-xs">
-                                    {tPosts('pagination.go', '前往')}
-                                </Button>
-                            </form>
-                        </div>
-                    </footer>
+                                    const cardMobileActions = (
+                                        <>
+                                            {abilities.canBulkUpdate ? (
+                                                <div className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2">
+                                                    <span className="text-sm text-neutral-600">
+                                                        {isSelected
+                                                            ? tPosts('bulk.selected_single', '已加入批次操作')
+                                                            : tPosts('bulk.select_prompt', '加入批次操作')}
+                                                    </span>
+                                                    <Checkbox
+                                                        checked={isSelected}
+                                                        onCheckedChange={(checked) => toggleSelect(post.id, checked === true)}
+                                                        aria-label={tPosts('table.select_post', '選取公告')}
+                                                    />
+                                                </div>
+                                            ) : null}
+                                            <Button
+                                                type="button"
+                                                className="w-full justify-center gap-2 bg-[#3B82F6] text-white hover:bg-[#2563EB]"
+                                                asChild
+                                            >
+                                                <Link href={`/manage/admin/posts/${post.id}/edit`}>
+                                                    <FileText className="h-4 w-4" />
+                                                    {tPosts('actions.edit', '編輯公告')}
+                                                </Link>
+                                            </Button>
+                                        </>
+                                    );
+
+                                    return (
+                                        <DataCard
+                                            key={post.id}
+                                            title={post.title}
+                                            description={truncate(post.excerpt ?? '', 140)}
+                                            status={{
+                                                label: statusLabel,
+                                                tone: getStatusTone(post.status),
+                                                icon: getStatusIcon(post.status),
+                                            }}
+                                            metadata={metadata}
+                                            mobileActions={cardMobileActions}
+                                            className={cn(
+                                                isSelected && 'border-blue-200 shadow-md ring-2 ring-blue-200/70'
+                                            )}
+                                        >
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                >
+                                                    <TagIcon className="h-3 w-3 text-neutral-400" />
+                                                    {post.category?.name ?? tPosts('table.uncategorized', '未分類')}
+                                                </Badge>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                >
+                                                    <Building2 className="h-3 w-3 text-neutral-400" />
+                                                    {post.space?.name ?? tPosts('table.no_space', '未綁定空間')}
+                                                </Badge>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase',
+                                                        visibilityToneMap[post.visibility] ?? 'border-neutral-200 bg-neutral-100 text-neutral-600'
+                                                    )}
+                                                >
+                                                    <Eye className="h-3 w-3" />
+                                                    {visibilityLabel}
+                                                </Badge>
+                                                {post.pinned ? (
+                                                    <Badge className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-700">
+                                                        {tPosts('badges.pinned', '已置頂')}
+                                                    </Badge>
+                                                ) : null}
+                                                {post.attachments_count ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="inline-flex items-center gap-1 rounded-full border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700"
+                                                    >
+                                                        <FileText className="h-3 w-3" />
+                                                        {post.attachments_count}
+                                                    </Badge>
+                                                ) : null}
+                                            </div>
+                                            {post.tags?.length ? (
+                                                <div className="flex flex-wrap gap-2 pt-2">
+                                                    {post.tags.map((tag) => (
+                                                        <Badge
+                                                            key={tag.id ?? tag.name}
+                                                            variant="outline"
+                                                            className="inline-flex items-center gap-1 rounded-full border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-600"
+                                                        >
+                                                            <TagIcon className="h-3 w-3 text-neutral-400" />
+                                                            {tag.name}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            ) : null}
+                                        </DataCard>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        isEmpty={!hasPosts}
+                        emptyState={
+                            <TableEmpty
+                                title={tPosts('empty.title', '目前沒有公告')}
+                                description={tPosts('empty.description', '試著調整篩選條件或新增公告。')}
+                            />
+                        }
+                        stickyActions={mobileBulkActions}
+                    />
+
+                    {hasPosts ? (
+                        <footer className="flex flex-col gap-3 border-t border-neutral-200/80 px-4 py-3 text-sm text-neutral-500 md:flex-row md:items-center md:justify-between">
+                            <span>
+                                {tPosts('table.pagination_summary', '顯示 :from-:to，共 :total 筆', {
+                                    from: posts.meta.from ?? 0,
+                                    to: posts.meta.to ?? 0,
+                                    total: posts.meta.total ?? 0,
+                                })}
+                            </span>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="default"
+                                        size="sm"
+                                        disabled={!paginationLinks.prev}
+                                        className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                        asChild
+                                    >
+                                        <Link href={paginationLinks.prev ?? '#'} preserveState preserveScroll>
+                                            {tPosts('pagination.prev', '上一頁')}
+                                        </Link>
+                                    </Button>
+                                    <Button
+                                        variant="default"
+                                        size="sm"
+                                        disabled={!paginationLinks.next}
+                                        className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                        asChild
+                                    >
+                                        <Link href={paginationLinks.next ?? '#'} preserveState preserveScroll>
+                                            {tPosts('pagination.next', '下一頁')}
+                                        </Link>
+                                    </Button>
+                                </div>
+                                <form
+                                    className="flex items-center gap-2 text-xs text-neutral-500"
+                                    onSubmit={(event) => {
+                                        event.preventDefault();
+                                        const pageNumber = Number(pageInput);
+                                        if (Number.isNaN(pageNumber) || pageNumber < 1) {
+                                            setPageInput('1');
+                                            applyFilters({ page: 1 });
+                                            return;
+                                        }
+
+                                        const bounded = Math.min(Math.max(1, pageNumber), posts.meta.last_page ?? pageNumber);
+                                        setPageInput(String(bounded));
+                                        applyFilters({ page: bounded });
+                                    }}
+                                >
+                                    <label htmlFor="page-input" className="font-medium text-neutral-600">
+                                        {tPosts('pagination.goto', '跳至')}
+                                    </label>
+                                    <Input
+                                        id="page-input"
+                                        type="number"
+                                        min={1}
+                                        max={posts.meta.last_page ?? undefined}
+                                        value={pageInput}
+                                        onChange={(event) => setPageInput(event.target.value)}
+                                        className="h-9 w-20 rounded-lg border-neutral-200 text-sm"
+                                    />
+                                    <span className="text-neutral-400">/ {posts.meta.last_page ?? 1}</span>
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        className="h-9 bg-[#3B82F6] px-4 text-xs text-white hover:bg-[#2563EB]"
+                                    >
+                                        {tPosts('pagination.go', '前往')}
+                                    </Button>
+                                </form>
+                            </div>
+                        </footer>
+                    ) : null}
                 </section>
+
             </ManagePage>
         </>
     );
