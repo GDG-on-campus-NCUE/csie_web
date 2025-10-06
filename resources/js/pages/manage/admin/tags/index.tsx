@@ -3,6 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import FormField from '@/components/manage/forms/form-field';
@@ -424,13 +429,14 @@ export default function ManageAdminTagsIndex() {
                             value={filterForm.keyword}
                             onChange={handleKeywordChange}
                             placeholder={tTags('filters.keyword_placeholder', '搜尋標籤名稱或代碼')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
+                            className={manageFilterControlClass('w-full sm:w-64')}
                             aria-label={tTags('filters.keyword_label', '搜尋標籤')}
                         />
                         <Button
                             type="submit"
                             size="sm"
-                            className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                            variant="tonal"
+                            className={manageToolbarPrimaryButtonClass('gap-1')}
                         >
                             <Filter className="h-4 w-4" />
                             {tTags('filters.apply', '套用')}
@@ -441,7 +447,7 @@ export default function ManageAdminTagsIndex() {
                         <Select
                             value={filterForm.context}
                             onChange={handleContextChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
+                            className={manageFilterControlClass('w-full sm:w-44')}
                             aria-label={tTags('filters.context_label', '模組篩選')}
                         >
                             <option value="">{tTags('filters.context_all', '全部模組')}</option>
@@ -454,7 +460,7 @@ export default function ManageAdminTagsIndex() {
                         <Select
                             value={filterForm.status}
                             onChange={handleStatusChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-40"
+                            className={manageFilterControlClass('w-full sm:w-40')}
                             aria-label={tTags('filters.status_label', '狀態篩選')}
                         >
                             <option value="">{tTags('filters.status_all', '全部狀態')}</option>
@@ -467,7 +473,7 @@ export default function ManageAdminTagsIndex() {
                         <Select
                             value={filterForm.per_page}
                             onChange={handlePerPageChange}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
+                            className={manageFilterControlClass('w-full sm:w-32')}
                             aria-label={tTags('filters.per_page_label', '每頁筆數')}
                         >
                             {PER_PAGE_OPTIONS.map(option => (
@@ -480,7 +486,7 @@ export default function ManageAdminTagsIndex() {
                             type="button"
                             size="sm"
                             variant="ghost"
-                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
+                            className={manageToolbarSecondaryButtonClass('hover:text-neutral-800')}
                             onClick={handleResetFilters}
                         >
                             {tTags('filters.reset', '重設')}
@@ -501,7 +507,7 @@ export default function ManageAdminTagsIndex() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="h-11 gap-1"
+                            className={manageToolbarPrimaryButtonClass('gap-1 justify-center sm:justify-start')}
                             disabled={selectedIds.length < 2 || !abilities.canUpdate}
                             onClick={() => setMergeOpen(true)}
                         >
@@ -512,7 +518,8 @@ export default function ManageAdminTagsIndex() {
                             <Button
                                 type="button"
                                 size="sm"
-                                className="h-11 gap-1 bg-[#10B981] px-5 text-white hover:bg-[#059669]"
+                                variant="default"
+                                className={manageToolbarPrimaryButtonClass('gap-1')}
                                 onClick={() => setCreateOpen(true)}
                             >
                                 <Plus className="h-4 w-4" />

@@ -7,6 +7,11 @@ import { CalendarClock, Download, Filter, Mail, MailOpen, MailPlus, Phone, User 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
@@ -268,13 +273,19 @@ export default function ManageAdminMessagesIndex() {
                         value={filterForm.keyword}
                         onChange={handleKeywordChange}
                         placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
+                        className={manageFilterControlClass()}
                     />
                 </div>,
                 <div key="status" className="grid w-full gap-1 sm:w-48">
                     <label htmlFor="filter-status" className="text-xs font-medium text-neutral-600">
                         {tMessages('filters.status_label', '狀態篩選')}
                     </label>
-                    <Select id="filter-status" value={filterForm.status} onChange={handleStatusChange}>
+                    <Select
+                        id="filter-status"
+                        value={filterForm.status}
+                        onChange={handleStatusChange}
+                        className={manageFilterControlClass()}
+                    >
                         <option value="">{tMessages('filters.status_all', '全部狀態')}</option>
                         {filterOptions.statuses.map((option) => (
                             <option key={String(option.value)} value={String(option.value)}>
@@ -287,13 +298,24 @@ export default function ManageAdminMessagesIndex() {
             ]}
             secondary={
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button type="button" size="sm" variant="outline" className="gap-2" asChild>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className={manageToolbarPrimaryButtonClass('gap-2')}
+                        asChild
+                    >
                         <Link href="#">
                             <Download className="h-4 w-4" />
                             {tMessages('actions.export', '匯出紀錄')}
                         </Link>
                     </Button>
-                    <Button type="button" size="sm" variant="tonal" className="gap-2">
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className={manageToolbarPrimaryButtonClass('gap-2')}
+                    >
                         <MailPlus className="h-4 w-4" />
                         {tMessages('actions.new', '建立新訊息')}
                     </Button>
@@ -314,7 +336,7 @@ export default function ManageAdminMessagesIndex() {
                             onChange={handleDateChange('from')}
                             onClick={openDatePicker}
                             onFocus={openDatePicker}
-                            className="h-9 sm:w-40"
+                            className={manageFilterControlClass('sm:w-40 px-3')}
                         />
                     </div>
 
@@ -330,17 +352,28 @@ export default function ManageAdminMessagesIndex() {
                             onChange={handleDateChange('to')}
                             onClick={openDatePicker}
                             onFocus={openDatePicker}
-                            className="h-9 sm:w-40"
+                            className={manageFilterControlClass('sm:w-40 px-3')}
                         />
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button type="submit" size="sm" variant="tonal" className="gap-2">
+                    <Button
+                        type="submit"
+                        size="sm"
+                        variant="tonal"
+                        className={manageToolbarPrimaryButtonClass('gap-2')}
+                    >
                         <Filter className="h-4 w-4" />
                         {tMessages('filters.apply', '套用條件')}
                     </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={handleResetFilters}>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className={manageToolbarSecondaryButtonClass('hover:text-neutral-800')}
+                        onClick={handleResetFilters}
+                    >
                         {tMessages('filters.reset', '重設')}
                     </Button>
                 </div>

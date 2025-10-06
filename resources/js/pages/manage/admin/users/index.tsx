@@ -3,6 +3,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard, { type DataCardStatusTone } from '@/components/manage/data-card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -642,8 +647,8 @@ export default function ManageAdminUsersIndex() {
                             abilities.canCreate ? (
                                 <Button
                                     size="sm"
-                                    variant="tonal"
-                                    className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
+                                    variant="default"
+                                    className={manageToolbarPrimaryButtonClass('gap-2')}
                                     asChild
                                 >
                                     <Link href="/manage/admin/users/create">
@@ -661,7 +666,7 @@ export default function ManageAdminUsersIndex() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="gap-2"
+                                            className={manageToolbarPrimaryButtonClass('gap-2')}
                                             disabled={actionDisabled || !allowBulkStatus}
                                         >
                                             <UserCheck className="h-4 w-4" />
@@ -705,12 +710,16 @@ export default function ManageAdminUsersIndex() {
                                     setFilterForm(prev => ({ ...prev, keyword: event.target.value }))
                                 }
                                 placeholder={t('users.filters.keyword_placeholder', '搜尋姓名或 Email')}
-                                className="w-full lg:max-w-xs"
+                                className={manageFilterControlClass('w-full lg:max-w-xs')}
                             />
                             <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="justify-between gap-2 sm:w-auto">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={manageToolbarPrimaryButtonClass('justify-between gap-2 sm:w-auto')}
+                                        >
                                             {t('users.filters.roles', '角色')}
                                             {filterForm.roles.length > 0 ? (
                                                 <Badge variant="secondary" className="ml-2">
@@ -737,7 +746,11 @@ export default function ManageAdminUsersIndex() {
                                 </DropdownMenu>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="justify-between gap-2 sm:w-auto">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={manageToolbarPrimaryButtonClass('justify-between gap-2 sm:w-auto')}
+                                        >
                                             {t('users.filters.status', '狀態')}
                                             {filterForm.statuses.length > 0 ? (
                                                 <Badge variant="secondary" className="ml-2">
@@ -767,7 +780,7 @@ export default function ManageAdminUsersIndex() {
                                     onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                                         handleSpaceFilterChange(event.target.value)
                                     }
-                                    className="w-full sm:w-48"
+                                    className={manageFilterControlClass('w-full sm:w-48')}
                                 >
                                     <option value="">{t('users.filters.space_all', '全部空間')}</option>
                                     {spaceOptions.map(option => (
@@ -781,7 +794,7 @@ export default function ManageAdminUsersIndex() {
                                 <Select
                                     value={filterForm.sort}
                                     onChange={(event: ChangeEvent<HTMLSelectElement>) => handleSortChange(event.target.value)}
-                                    className="w-full sm:w-40"
+                                    className={manageFilterControlClass('w-full sm:w-40')}
                                 >
                                     {filterOptions.sorts.map(option => (
                                         <option key={option.value} value={option.value}>
@@ -789,7 +802,12 @@ export default function ManageAdminUsersIndex() {
                                         </option>
                                     ))}
                                 </Select>
-                                <Button variant="outline" size="sm" onClick={handleDirectionToggle} className="sm:w-auto">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDirectionToggle}
+                                    className={manageToolbarPrimaryButtonClass('sm:w-auto')}
+                                >
                                     {filterForm.direction === 'asc'
                                         ? t('users.filters.direction.asc', '升冪')
                                         : t('users.filters.direction.desc', '降冪')}
@@ -799,7 +817,7 @@ export default function ManageAdminUsersIndex() {
                                     onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                                         handlePerPageChange(event.target.value)
                                     }
-                                    className="w-full sm:w-36"
+                                    className={manageFilterControlClass('w-full sm:w-36')}
                                 >
                                     {PER_PAGE_OPTIONS.map(option => (
                                         <option key={option} value={option}>
