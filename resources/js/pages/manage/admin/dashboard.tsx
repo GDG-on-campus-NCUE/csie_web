@@ -14,6 +14,7 @@ import type {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import TableEmpty from '@/components/manage/table-empty';
 import { StatCard } from '@/components/manage/stat-card';
 import { cn } from '@/lib/shared/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -27,10 +28,14 @@ import {
     Clock3,
     FileText,
     Inbox,
+    Mail,
     Megaphone,
     Minus,
+    Paperclip,
     Newspaper,
+    Pin,
     Server,
+    Tag,
     UploadCloud,
     UserPlus,
     Users,
@@ -68,6 +73,40 @@ const activityIconMap: Record<string, LucideIcon> = {
 const emptyStateIconMap: Record<'completed' | 'pending', LucideIcon> = {
     completed: CheckCircle2,
     pending: AlertTriangle,
+};
+
+const activityToneMap: Record<string, { iconBg: string; iconColor: string; border: string }> = {
+    post: {
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        border: 'border-blue-100',
+    },
+    contact: {
+        iconBg: 'bg-emerald-100',
+        iconColor: 'text-emerald-600',
+        border: 'border-emerald-100',
+    },
+};
+
+const postStatusBadgeClass: Record<string, string> = {
+    draft: 'border-blue-200 bg-blue-50 text-blue-700',
+    scheduled: 'border-amber-200 bg-amber-50 text-amber-700',
+    published: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    hidden: 'border-neutral-200 bg-neutral-100 text-neutral-600',
+    archived: 'border-rose-200 bg-rose-50 text-rose-700',
+};
+
+const contactStatusBadgeClass: Record<string, string> = {
+    new: 'border-rose-200 bg-rose-50 text-rose-700',
+    in_progress: 'border-amber-200 bg-amber-50 text-amber-700',
+    resolved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    spam: 'border-neutral-200 bg-neutral-100 text-neutral-600',
+};
+
+const todoHighlightIconMap: Record<string, LucideIcon> = {
+    review_drafts: FileText,
+    review_scheduled: CalendarClock,
+    reply_contact: Inbox,
 };
 
 const formatNumber = (value: number, locale: string) => new Intl.NumberFormat(locale).format(value);
@@ -131,11 +170,13 @@ const RecentActivities = ({
     locale,
     t,
     tManage,
+    tMessages,
 }: {
     activities: AdminDashboardActivity[];
     locale: string;
     t: TranslatorFn;
     tManage: TranslatorFn;
+    tMessages: TranslatorFn;
 }) => (
     <Card className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-4">
@@ -154,23 +195,112 @@ const RecentActivities = ({
         </CardHeader>
         <CardContent>
             {activities.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-neutral-200 bg-neutral-50/70 p-6 text-center">
-                    <Inbox className="h-8 w-8 text-neutral-400" />
-                    <p className="text-sm text-neutral-500">
-                        {t('admin.activities.empty', 'No activity yet.')}
-                    </p>
-                </div>
+                <TableEmpty
+                    icon={<Inbox className="h-7 w-7" aria-hidden="true" />}
+                    title={t('admin.activities.empty', 'No activity yet.')}
+                    description={t(
+                        'admin.activities.empty_description',
+                        '活動紀錄尚未建立，完成公告或回覆訊息後即可在此追蹤狀態。'
+                    )}
+                />
             ) : (
                 <ul className="space-y-4">
                     {activities.map((activity) => {
                         const Icon = activityIconMap[activity.type] ?? ActivityIcon;
-                        const statusLabel = activity.status
-                            ? tManage(`posts.status.${activity.status}`, activity.status)
-                            : null;
+                        const tone = activityToneMap[activity.type] ?? {
+                            iconBg: 'bg-blue-100',
+                            iconColor: 'text-blue-600',
+                            border: 'border-neutral-200/60',
+                        };
+                        const statusLabel = (() => {
+                            if (!activity.status) {
+                                return null;
+                            }
+
+                            if (activity.type === 'post') {
+                                return tManage(`posts.status.${activity.status}`, activity.status);
+                            }
+
+                            if (activity.type === 'contact') {
+                                return tMessages(`status.${activity.status}`, activity.status);
+                            }
+
+                            return activity.status;
+                        })();
+                        const statusClass = (() => {
+                            if (!activity.status) {
+                                return 'border-neutral-200 bg-neutral-100 text-neutral-600';
+                            }
+
+                            if (activity.type === 'post') {
+                                return postStatusBadgeClass[activity.status] ?? 'border-neutral-200 bg-neutral-100 text-neutral-600';
+                            }
+
+                            if (activity.type === 'contact') {
+                                return contactStatusBadgeClass[activity.status] ?? 'border-neutral-200 bg-neutral-100 text-neutral-600';
+                            }
+
+                            return 'border-neutral-200 bg-neutral-100 text-neutral-600';
+                        })();
+
+                        const metaItems: { icon: ReactElement; label: string; value: string }[] = [];
+
+                        if (activity.type === 'post') {
+                            const category = (activity.meta?.category as string) ?? null;
+                            const attachments = Number(activity.meta?.attachments ?? 0);
+                            const pinned = Boolean(activity.meta?.pinned);
+
+                            if (category) {
+                                metaItems.push({
+                                    icon: <Tag className="h-3.5 w-3.5 text-neutral-400" aria-hidden="true" />,
+                                    label: t('admin.activities.category', '分類'),
+                                    value: category,
+                                });
+                            }
+
+                            if (attachments > 0) {
+                                metaItems.push({
+                                    icon: <Paperclip className="h-3.5 w-3.5 text-neutral-400" aria-hidden="true" />,
+                                    label: t('admin.activities.attachments', '附件'),
+                                    value: `${attachments}`,
+                                });
+                            }
+
+                            if (pinned) {
+                                metaItems.push({
+                                    icon: <Pin className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />,
+                                    label: t('admin.activities.pinned', '置頂'),
+                                    value: t('admin.activities.pinned_yes', '已置頂'),
+                                });
+                            }
+                        }
+
+                        if (activity.type === 'contact') {
+                            const email = (activity.meta?.email as string) ?? null;
+                            if (email) {
+                                metaItems.push({
+                                    icon: <Mail className="h-3.5 w-3.5 text-neutral-400" aria-hidden="true" />,
+                                    label: t('admin.activities.email', 'Email'),
+                                    value: email,
+                                });
+                            }
+                        }
 
                         return (
-                            <li key={activity.id} className="flex gap-3 rounded-lg border border-neutral-200/60 bg-neutral-50/50 p-3 transition-colors hover:bg-neutral-50">
-                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                            <li
+                                key={activity.id}
+                                className={cn(
+                                    'flex gap-3 rounded-lg border bg-neutral-50/50 p-3 transition-colors hover:bg-white',
+                                    tone.border
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm',
+                                        tone.iconBg,
+                                        tone.iconColor
+                                    )}
+                                >
                                     <Icon className="h-4 w-4" />
                                 </span>
                                 <div className="flex flex-1 flex-col gap-1">
@@ -186,7 +316,7 @@ const RecentActivities = ({
                                             <span className="text-sm font-semibold text-neutral-900">{activity.title}</span>
                                         )}
                                         {statusLabel ? (
-                                            <Badge variant="outline" className="text-xs capitalize text-neutral-500">
+                                            <Badge variant="outline" className={cn('text-xs capitalize', statusClass)}>
                                                 {statusLabel}
                                             </Badge>
                                         ) : null}
@@ -198,6 +328,18 @@ const RecentActivities = ({
                                         {activity.timestamp ? (
                                             <span>{formatDateTime(activity.timestamp, locale)}</span>
                                         ) : null}
+                                        {metaItems.length > 0 ? (
+                                            <span className="hidden text-neutral-300 md:inline">•</span>
+                                        ) : null}
+                                        {metaItems.map((item, index) => (
+                                            <span
+                                                key={`${activity.id}-${index}`}
+                                                className="flex items-center gap-1 text-neutral-500"
+                                            >
+                                                {item.icon}
+                                                <span>{item.value}</span>
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             </li>
@@ -208,6 +350,101 @@ const RecentActivities = ({
         </CardContent>
     </Card>
 );
+
+const resolveTodoCopy = (
+    todo: AdminDashboardTodo,
+    t: TranslatorFn
+): { statusKey: 'completed' | 'pending'; label: string; description: string } => {
+    const statusKey = todo.completed ? 'completed' : 'pending';
+    const label = t(`admin.todos.${todo.key}.label`, todo.label ?? todo.key);
+    const fallbackLegacyDescription = t(
+        `admin.todos.${todo.key}.description`,
+        todo.description ?? '',
+        {
+            count: todo.count ?? 0,
+        }
+    );
+    const description = t(
+        `admin.todos.${todo.key}.${statusKey}`,
+        fallbackLegacyDescription,
+        {
+            count: todo.count ?? 0,
+        }
+    );
+
+    return {
+        statusKey,
+        label,
+        description,
+    };
+};
+
+const KeyHighlights = ({
+    todos,
+    locale,
+    t,
+}: {
+    todos: AdminDashboardTodo[];
+    locale: string;
+    t: TranslatorFn;
+}) => {
+    if (todos.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {todos.map((todo) => {
+                const Icon = todoHighlightIconMap[todo.key] ?? ActivityIcon;
+                const { statusKey, label, description } = resolveTodoCopy(todo, t);
+                const palette = todo.completed
+                    ? {
+                          border: 'border-emerald-200/70',
+                          background: 'bg-emerald-50/50',
+                          icon: 'text-emerald-600',
+                          badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                      }
+                    : {
+                          border: 'border-amber-200/70',
+                          background: 'bg-amber-50/50',
+                          icon: 'text-amber-600',
+                          badge: 'border-amber-200 bg-amber-50 text-amber-700',
+                      };
+
+                return (
+                    <Card
+                        key={todo.key}
+                        className={cn(
+                            'rounded-xl border shadow-sm transition-all hover:shadow-md',
+                            palette.border,
+                            palette.background
+                        )}
+                    >
+                        <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
+                            <div className="space-y-1">
+                                <CardTitle className="text-sm font-semibold text-neutral-800">{label}</CardTitle>
+                                <p className="text-xs text-neutral-600">{description}</p>
+                            </div>
+                            <span className={cn('rounded-full bg-white/80 p-2 shadow-sm', palette.icon)}>
+                                <Icon className="h-4 w-4" aria-hidden="true" />
+                            </span>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-between">
+                            <div className="text-2xl font-bold text-neutral-900">
+                                {formatNumber(todo.count ?? 0, locale)}
+                            </div>
+                            <Badge variant="outline" className={cn('text-xs font-semibold capitalize', palette.badge)}>
+                                {statusKey === 'completed'
+                                    ? t('admin.todos.status.completed', '已完成')
+                                    : t('admin.todos.status.pending', '待處理')}
+                            </Badge>
+                        </CardContent>
+                    </Card>
+                );
+            })}
+        </section>
+    );
+};
 
 const QuickActions = ({
     quickLinks,
@@ -281,24 +518,9 @@ const QuickActions = ({
                             </li>
                         ) : (
                             todos.map((todo) => {
-                                const statusKey = todo.completed ? 'completed' : 'pending';
+                                const { statusKey, label, description } = resolveTodoCopy(todo, t);
                                 const StatusIcon = emptyStateIconMap[statusKey];
                                 const color = todo.completed ? 'text-emerald-600' : 'text-amber-500';
-                                const label = t(`admin.todos.${todo.key}.label`, todo.label ?? todo.key);
-                                const fallbackLegacyDescription = t(
-                                    `admin.todos.${todo.key}.description`,
-                                    todo.description ?? '',
-                                    {
-                                        count: todo.count ?? 0,
-                                    }
-                                );
-                                const description = t(
-                                    `admin.todos.${todo.key}.${statusKey}`,
-                                    fallbackLegacyDescription,
-                                    {
-                                        count: todo.count ?? 0,
-                                    }
-                                );
 
                                 return (
                                     <li
@@ -346,6 +568,7 @@ export default function ManageAdminDashboard() {
 
     const { t } = useTranslator('manage.dashboard');
     const { t: tManage } = useTranslator('manage');
+    const { t: tMessages } = useTranslator('manage.messages');
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -375,8 +598,9 @@ export default function ManageAdminDashboard() {
             ) : (
                 <div className="space-y-6">
                     <OverviewCards metrics={dashboard.metrics} locale={locale} t={t} />
+                    <KeyHighlights todos={dashboard.personalTodos} locale={locale} t={t} />
                     <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-                        <RecentActivities activities={dashboard.activities} locale={locale} t={t} tManage={tManage} />
+                        <RecentActivities activities={dashboard.activities} locale={locale} t={t} tManage={tManage} tMessages={tMessages} />
                         <QuickActions quickLinks={dashboard.quickLinks} todos={dashboard.personalTodos} abilities={abilities} locale={locale} t={t} />
                     </div>
                 </div>
