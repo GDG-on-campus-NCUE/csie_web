@@ -21,6 +21,8 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import FilterPanel from '@/components/manage/filter-panel';
+import StatusFilterTabs from '@/components/manage/status-filter-tabs';
 import {
     manageFilterControlClass,
     manageToolbarPrimaryButtonClass,
@@ -94,6 +96,13 @@ const SORT_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 const PER_PAGE_OPTIONS = ['10', '20', '50', '100'] as const;
+
+const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: '', label: '全部可見性' },
+    { value: 'public', label: '公開' },
+    { value: 'private', label: '私有' },
+    { value: 'internal', label: '內部' },
+];
 
 function buildPayload(state: FilterFormState) {
     return {
@@ -347,6 +356,11 @@ export default function ManageAdminAttachmentsIndex() {
         applyFilters({ visibility: value });
     };
 
+    const handleVisibilityChangeForTabs = (value: string) => {
+        setFilterForm((prev) => ({ ...prev, visibility: value }));
+        applyFilters({ visibility: value });
+    };
+
     const handleSpaceChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         setFilterForm((prev) => ({ ...prev, space: value }));
@@ -459,55 +473,12 @@ export default function ManageAdminAttachmentsIndex() {
         <ManageToolbar
             wrap
             primary={[
-                <div key="keyword" className="grid w-full gap-1">
-                    <label htmlFor="filter-keyword" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.keyword_label', '搜尋附件')}
-                    </label>
-                    <Input
-                        id="filter-keyword"
-                        type="search"
-                        value={filterForm.keyword}
-                        onChange={handleKeywordChange}
-                        placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
-                        className={manageFilterControlClass()}
-                    />
-                </div>,
-                <div key="type" className="grid w-full gap-1">
-                    <label htmlFor="filter-type" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.type_label', '附件類型')}
-                    </label>
-                    <Select
-                        id="filter-type"
-                        value={filterForm.type}
-                        onChange={handleTypeChange}
-                        className={manageFilterControlClass()}
-                    >
-                        <option value="">{tAttachments('filters.type_all', '全部類型')}</option>
-                        {filterOptions.types.map((option) => (
-                            <option key={String(option.value)} value={String(option.value)}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </Select>
-                </div>,
-                <div key="visibility" className="grid w-full gap-1">
-                    <label htmlFor="filter-visibility" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.visibility_label', '可見性')}
-                    </label>
-                    <Select
-                        id="filter-visibility"
-                        value={filterForm.visibility}
-                        onChange={handleVisibilityChange}
-                        className={manageFilterControlClass()}
-                    >
-                        <option value="">{tAttachments('filters.visibility_all', '全部可見性')}</option>
-                        {filterOptions.visibilities.map((option) => (
-                            <option key={String(option.value)} value={String(option.value)}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </Select>
-                </div>,
+                <StatusFilterTabs
+                    key="visibility"
+                    value={filterForm.visibility}
+                    onChange={handleVisibilityChangeForTabs}
+                    options={STATUS_OPTIONS}
+                />,
             ]}
             secondary={
                 <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -588,131 +559,160 @@ export default function ManageAdminAttachmentsIndex() {
                 </div>
             }
         >
-            <form
-                onSubmit={handleFilterSubmit}
-                className="grid w-full grid-cols-1 items-end gap-3 md:grid-cols-2 xl:grid-cols-3"
-            >
-                <div className="grid gap-1">
-                    <label htmlFor="filter-space" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.space_label', '綁定空間')}
-                    </label>
-                    <Select
-                        id="filter-space"
-                        value={filterForm.space}
-                        onChange={handleSpaceChange}
-                        className={manageFilterControlClass('w-full')}
-                    >
-                        <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
-                        {filterOptions.spaces.map((option) => (
-                            <option key={String(option.value)} value={String(option.value)}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </Select>
-                </div>
+            <FilterPanel>
+                <div className="grid grid-cols-12 gap-3">
+                    {/* 搜尋框 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.keyword_label', '搜尋附件')}
+                        </label>
+                        <Input
+                            type="search"
+                            value={filterForm.keyword}
+                            onChange={handleKeywordChange}
+                            placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
+                            className={manageFilterControlClass()}
+                        />
+                    </div>
 
-                <div className="grid gap-1">
-                    <label htmlFor="filter-tag" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.tag_label', '標籤篩選')}
-                    </label>
-                    <Select
-                        id="filter-tag"
-                        value={filterForm.tag}
-                        onChange={handleTagChange}
-                        className={manageFilterControlClass('w-full')}
-                    >
-                        <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
-                        {filterOptions.tags.map((option) => (
-                            <option key={String(option.value)} value={String(option.value)}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </Select>
-                </div>
+                    {/* 附件類型 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.type_label', '附件類型')}
+                        </label>
+                        <Select
+                            value={filterForm.type}
+                            onChange={handleTypeChange}
+                            className={manageFilterControlClass()}
+                        >
+                            <option value="">{tAttachments('filters.type_all', '全部類型')}</option>
+                            {filterOptions.types.map((option) => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
 
-                <div className="grid gap-2 md:col-span-2 xl:col-span-1">
-                    <span className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.date_range', '日期區間')}
-                    </span>
-                    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-end">
-                        <div className="grid gap-1">
-                            <label htmlFor="filter-from" className="text-xs font-medium text-neutral-600">
-                                {tAttachments('filters.from', '起始日期')}
-                            </label>
-                            <Input
-                                id="filter-from"
-                                type="date"
-                                value={filterForm.from}
-                                onChange={handleDateChange('from')}
-                                className={manageFilterControlClass('w-full px-3')}
-                            />
-                        </div>
-                        <span className="hidden text-center text-neutral-400 md:block">~</span>
-                        <div className="grid gap-1">
-                            <label htmlFor="filter-to" className="text-xs font-medium text-neutral-600">
-                                {tAttachments('filters.to', '結束日期')}
-                            </label>
-                            <Input
-                                id="filter-to"
-                                type="date"
-                                value={filterForm.to}
-                                onChange={handleDateChange('to')}
-                                className={manageFilterControlClass('w-full px-3')}
-                            />
-                        </div>
-                        <span className="text-center text-neutral-400 md:hidden sm:col-span-2">~</span>
+                    {/* 綁定空間 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.space_label', '綁定空間')}
+                        </label>
+                        <Select
+                            value={filterForm.space}
+                            onChange={handleSpaceChange}
+                            className={manageFilterControlClass('w-full')}
+                        >
+                            <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
+                            {filterOptions.spaces.map((option) => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    {/* 標籤篩選 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.tag_label', '標籤篩選')}
+                        </label>
+                        <Select
+                            value={filterForm.tag}
+                            onChange={handleTagChange}
+                            className={manageFilterControlClass('w-full')}
+                        >
+                            <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
+                            {filterOptions.tags.map((option) => (
+                                <option key={String(option.value)} value={String(option.value)}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    {/* 起始日期 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.from', '起始日期')}
+                        </label>
+                        <Input
+                            type="date"
+                            value={filterForm.from}
+                            onChange={handleDateChange('from')}
+                            className={manageFilterControlClass('w-full px-3')}
+                        />
+                    </div>
+
+                    {/* 結束日期 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.to', '結束日期')}
+                        </label>
+                        <Input
+                            type="date"
+                            value={filterForm.to}
+                            onChange={handleDateChange('to')}
+                            className={manageFilterControlClass('w-full px-3')}
+                        />
+                    </div>
+
+                    {/* 排序方式 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.sort_label', '排序方式')}
+                        </label>
+                        <Select
+                            value={filterForm.sort}
+                            onChange={handleSortChange}
+                            className={manageFilterControlClass('w-full')}
+                        >
+                            {SORT_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {tAttachments(option.label, option.label)}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    {/* 排序方向 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tAttachments('filters.direction_label', '排序方向')}
+                        </label>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
+                            onClick={handleDirectionToggle}
+                        >
+                            <ArrowUpDown className="h-4 w-4" />
+                            {filterForm.direction === 'asc'
+                                ? tAttachments('filters.direction.asc', '昇冪')
+                                : tAttachments('filters.direction.desc', '降冪')}
+                        </Button>
+                    </div>
+
+                    {/* 套用條件按鈕 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700 opacity-0">
+                            {tAttachments('filters.apply_label', '操作')}
+                        </label>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="tonal"
+                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
+                            onClick={() => applyFilters()}
+                        >
+                            <Filter className="h-4 w-4" />
+                            {tAttachments('filters.apply', '套用條件')}
+                        </Button>
                     </div>
                 </div>
-
-                <div className="grid gap-1">
-                    <label htmlFor="filter-sort" className="text-xs font-medium text-neutral-600">
-                        {tAttachments('filters.sort_label', '排序方式')}
-                    </label>
-                    <Select
-                        id="filter-sort"
-                        value={filterForm.sort}
-                        onChange={handleSortChange}
-                        className={manageFilterControlClass('w-full')}
-                    >
-                        {SORT_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {tAttachments(option.label, option.label)}
-                            </option>
-                        ))}
-                    </Select>
-                </div>
-                <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className={manageToolbarPrimaryButtonClass('gap-2')}
-                    onClick={handleDirectionToggle}
-                >
-                    <ArrowUpDown className="h-4 w-4" />
-                    {filterForm.direction === 'asc'
-                        ? tAttachments('filters.direction.asc', '昇冪')
-                        : tAttachments('filters.direction.desc', '降冪')}
-                </Button>
-                <Button
-                    type="submit"
-                    size="sm"
-                    variant="tonal"
-                    className={manageToolbarPrimaryButtonClass('gap-2')}
-                >
-                    <Filter className="h-4 w-4" />
-                    {tAttachments('filters.apply', '套用條件')}
-                </Button>
-                <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className={manageToolbarSecondaryButtonClass('gap-2 hover:text-neutral-800')}
-                    onClick={handleResetFilters}
-                >
-                    <RefreshCcw className="h-4 w-4" />
-                    {tAttachments('filters.reset', '重設')}
-                </Button>
-            </form>
+            </FilterPanel>
         </ManageToolbar>
     );
 

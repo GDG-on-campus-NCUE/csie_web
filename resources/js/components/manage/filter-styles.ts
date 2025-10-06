@@ -17,7 +17,7 @@ export function manageFilterControlClass(...classNames: Array<string | false | n
  * 管理工具列中的主要按鈕建議樣式。
  */
 export function manageToolbarPrimaryButtonClass(...classNames: Array<string | false | null | undefined>) {
-    return cn('h-11 gap-2 px-5 shadow-xs', classNames);
+    return cn('h-11 gap-2 px-5 shadow-xs bg-white text-neutral-900', classNames);
 }
 
 /**

@@ -7,6 +7,8 @@ import { CalendarClock, Download, Filter, Mail, MailOpen, MailPlus, Phone, User 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import FilterPanel from '@/components/manage/filter-panel';
+import StatusFilterTabs from '@/components/manage/status-filter-tabs';
 import {
     manageFilterControlClass,
     manageToolbarPrimaryButtonClass,
@@ -15,6 +17,7 @@ import {
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
+import { StatCard } from '@/components/manage/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +73,14 @@ const STATUS_TONE: Record<string, 'info' | 'warning' | 'success' | 'danger' | 'n
 };
 
 const PER_PAGE_OPTIONS = ['10', '15', '25', '50'] as const;
+
+const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: '', label: '全部狀態' },
+    { value: 'new', label: '新訊息' },
+    { value: 'processing', label: '處理中' },
+    { value: 'resolved', label: '已解決' },
+    { value: 'spam', label: '垃圾訊息' },
+];
 
 function buildPayload(state: FilterFormState) {
     return {
@@ -232,6 +243,11 @@ export default function ManageAdminMessagesIndex() {
         applyFilters({ status: value });
     };
 
+    const handleStatusChangeForTabs = (value: string) => {
+        setFilterForm((prev) => ({ ...prev, status: value }));
+        applyFilters({ status: value });
+    };
+
     const handleDateChange = (field: 'from' | 'to') => (event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setFilterForm((prev) => ({ ...prev, [field]: value }));
@@ -263,38 +279,12 @@ export default function ManageAdminMessagesIndex() {
         <ManageToolbar
             wrap
             primary={[
-                <div key="keyword" className="grid w-full gap-1 sm:w-64">
-                    <label htmlFor="filter-keyword" className="text-xs font-medium text-neutral-600">
-                        {tMessages('filters.keyword_label', '搜尋訊息')}
-                    </label>
-                    <Input
-                        id="filter-keyword"
-                        type="search"
-                        value={filterForm.keyword}
-                        onChange={handleKeywordChange}
-                        placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
-                        className={manageFilterControlClass()}
-                    />
-                </div>,
-                <div key="status" className="grid w-full gap-1 sm:w-48">
-                    <label htmlFor="filter-status" className="text-xs font-medium text-neutral-600">
-                        {tMessages('filters.status_label', '狀態篩選')}
-                    </label>
-                    <Select
-                        id="filter-status"
-                        value={filterForm.status}
-                        onChange={handleStatusChange}
-                        className={manageFilterControlClass()}
-                    >
-                        <option value="">{tMessages('filters.status_all', '全部狀態')}</option>
-                        {filterOptions.statuses.map((option) => (
-                            <option key={String(option.value)} value={String(option.value)}>
-                                {option.label}
-                                {option.count !== undefined ? ` (${option.count})` : ''}
-                            </option>
-                        ))}
-                    </Select>
-                </div>,
+                <StatusFilterTabs
+                    key="status"
+                    value={filterForm.status}
+                    onChange={handleStatusChangeForTabs}
+                    options={STATUS_OPTIONS}
+                />,
             ]}
             secondary={
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -322,62 +312,86 @@ export default function ManageAdminMessagesIndex() {
                 </div>
             }
         >
-            <form onSubmit={handleFilterSubmit} className="flex w-full flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <div className="grid gap-1">
-                        <label htmlFor="filter-from" className="text-xs font-medium text-neutral-600">
+            <FilterPanel>
+                <div className="grid grid-cols-12 gap-3">
+                    {/* 搜尋框 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
+                            {tMessages('filters.keyword_label', '搜尋訊息')}
+                        </label>
+                        <Input
+                            type="search"
+                            value={filterForm.keyword}
+                            onChange={handleKeywordChange}
+                            placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
+                            className={manageFilterControlClass()}
+                        />
+                    </div>
+
+                    {/* 起始日期 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
                             {tMessages('filters.from', '起始日期')}
                         </label>
                         <Input
-                            id="filter-from"
                             type="date"
-                            name="from"
                             value={filterForm.from}
                             onChange={handleDateChange('from')}
                             onClick={openDatePicker}
                             onFocus={openDatePicker}
-                            className={manageFilterControlClass('sm:w-40 px-3')}
+                            className={manageFilterControlClass('w-full px-3')}
                         />
                     </div>
 
-                    <div className="grid gap-1">
-                        <label htmlFor="filter-to" className="text-xs font-medium text-neutral-600">
+                    {/* 結束日期 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">
                             {tMessages('filters.to', '結束日期')}
                         </label>
                         <Input
-                            id="filter-to"
                             type="date"
-                            name="to"
                             value={filterForm.to}
                             onChange={handleDateChange('to')}
                             onClick={openDatePicker}
                             onFocus={openDatePicker}
-                            className={manageFilterControlClass('sm:w-40 px-3')}
+                            className={manageFilterControlClass('w-full px-3')}
                         />
                     </div>
-                </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button
-                        type="submit"
-                        size="sm"
-                        variant="tonal"
-                        className={manageToolbarPrimaryButtonClass('gap-2')}
-                    >
-                        <Filter className="h-4 w-4" />
-                        {tMessages('filters.apply', '套用條件')}
-                    </Button>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className={manageToolbarSecondaryButtonClass('hover:text-neutral-800')}
-                        onClick={handleResetFilters}
-                    >
-                        {tMessages('filters.reset', '重設')}
-                    </Button>
+                    {/* 套用條件按鈕 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700 opacity-0">
+                            {tMessages('filters.apply_label', '操作')}
+                        </label>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="tonal"
+                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
+                            onClick={() => applyFilters()}
+                        >
+                            <Filter className="h-4 w-4" />
+                            {tMessages('filters.apply', '套用條件')}
+                        </Button>
+                    </div>
+
+                    {/* 重設按鈕 */}
+                    <div className="col-span-12 md:col-span-4 space-y-2">
+                        <label className="text-sm font-medium text-neutral-700 opacity-0">
+                            {tMessages('filters.reset_label', '重設')}
+                        </label>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className={manageToolbarSecondaryButtonClass('w-full hover:text-neutral-800')}
+                            onClick={handleResetFilters}
+                        >
+                            {tMessages('filters.reset', '重設')}
+                        </Button>
+                    </div>
                 </div>
-            </form>
+            </FilterPanel>
         </ManageToolbar>
     );
 
@@ -441,24 +455,23 @@ export default function ManageAdminMessagesIndex() {
     };
 
     const statusOverview = (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {filterOptions.statuses.map((status) => {
                 const valueKey = String(status.value);
                 const count = statusSummary[valueKey] ?? status.count ?? 0;
+                const Icon = STATUS_ICON[valueKey] ?? MailOpen;
 
                 return (
-                    <div
+                    <StatCard
                         key={valueKey}
-                        className="flex flex-col gap-1 rounded-xl border border-neutral-200/80 bg-white/95 px-4 py-3 shadow-sm"
-                    >
-                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                            {tMessages(`status.${valueKey}`, status.label)}
-                        </span>
-                        <span className="text-2xl font-semibold text-neutral-900">{count}</span>
-                    </div>
+                        title={tMessages(`status.${valueKey}`, status.label)}
+                        value={String(count)}
+                        icon={Icon}
+                        trend="flat"
+                    />
                 );
             })}
-        </div>
+        </section>
     );
 
     return (
