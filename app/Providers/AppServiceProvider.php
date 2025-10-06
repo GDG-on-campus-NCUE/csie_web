@@ -38,14 +38,19 @@ class AppServiceProvider extends ServiceProvider
 
     protected function ensureDefaultPostCategories(): void
     {
-        if (! Schema::hasTable('post_categories')) {
+        try {
+            if (! Schema::hasTable('post_categories')) {
+                return;
+            }
+
+            if (PostCategory::withTrashed()->count() > 0) {
+                return;
+            }
+
+            app(PostCategorySeeder::class)->run();
+        } catch (\Exception $e) {
+            // Skip if database is not available (e.g., during composer install)
             return;
         }
-
-        if (PostCategory::withTrashed()->count() > 0) {
-            return;
-        }
-
-        app(PostCategorySeeder::class)->run();
     }
 }
