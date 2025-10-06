@@ -346,7 +346,7 @@ export default function ManageAdminUsersIndex() {
     const actionDisabled = selectedIds.length === 0;
     const selectionLabel = actionDisabled
         ? t('users.bulk.no_selection', '尚未選擇任何使用者')
-        : t('users.bulk.selected_count', '已選擇 {count} 筆', { count: selectedIds.length });
+        : t('users.bulk.selected_count', '已選擇 :count 筆', { count: selectedIds.length });
 
     const renderStatusBadge = (user: ManageUser) => {
         const Icon = STATUS_ICON_MAP[user.status] ?? ShieldCheck;
@@ -588,7 +588,7 @@ export default function ManageAdminUsersIndex() {
                                 {user.locale}
                             </Badge>
                         ) : null}
-                        <span>{t('users.table.spaces_count', 'Space 數：{count}', { count: user.space_count })}</span>
+                        <span>{t('users.table.spaces_count', 'Space 數：:count', { count: user.space_count })}</span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                         {spaces.length === 0 ? (
@@ -875,10 +875,10 @@ export default function ManageAdminUsersIndex() {
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
                             <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                                {t('users.stats.total_on_page', '本頁 {count} 筆', { count: totalUsersOnPage })}
+                                {t('users.stats.total_on_page', '本頁 :count 筆', { count: totalUsersOnPage })}
                             </Badge>
-                            <span>{t('users.stats.active_count', '啟用帳號：{count}', { count: activeUsersOnPage })}</span>
-                            <span>{t('users.stats.space_memberships', 'Space 關聯數：{count}', { count: totalSpaceMemberships })}</span>
+                            <span>{t('users.stats.active_count', '啟用帳號：:count', { count: activeUsersOnPage })}</span>
+                            <span>{t('users.stats.space_memberships', 'Space 關聯數：:count', { count: totalSpaceMemberships })}</span>
                         </div>
                     </header>
                     <div className="px-5 py-5">

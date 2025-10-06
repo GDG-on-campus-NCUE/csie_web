@@ -188,7 +188,7 @@ const RecentActivities = ({
                     {t('admin.activities.subtitle', 'Latest announcements and contact messages.')}
                 </span>
             </div>
-            <Badge variant="outline" className="gap-2 text-xs text-neutral-500">
+            <Badge variant="outline" className="gap-2 text-xs text-neutral-100">
                 <ActivityIcon className="h-3.5 w-3.5" />
                 {t('common.quick_actions', 'Quick actions')}
             </Badge>

@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, FocusEvent, FormEvent, MouseEvent, ReactElement } from 'react';
+import type { ChangeEvent, MouseEvent, ReactElement } from 'react';
 
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CalendarClock, Download, Filter, Mail, MailOpen, MailPlus, Phone, User } from 'lucide-react';
+import { CalendarClock, Download, Mail, MailOpen, MailPlus, Phone, User } from 'lucide-react';
 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
 import FilterPanel from '@/components/manage/filter-panel';
 import StatusFilterTabs from '@/components/manage/status-filter-tabs';
-import {
-    manageFilterControlClass,
-    manageToolbarPrimaryButtonClass,
-    manageToolbarSecondaryButtonClass,
-} from '@/components/manage/filter-styles';
+import { manageFilterControlClass } from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
@@ -22,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/pagination';
-import { Select } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslator } from '@/hooks/use-translator';
@@ -73,14 +68,6 @@ const STATUS_TONE: Record<string, 'info' | 'warning' | 'success' | 'danger' | 'n
 };
 
 const PER_PAGE_OPTIONS = ['10', '15', '25', '50'] as const;
-
-const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
-    { value: '', label: '全部狀態' },
-    { value: 'new', label: '新訊息' },
-    { value: 'processing', label: '處理中' },
-    { value: 'resolved', label: '已解決' },
-    { value: 'spam', label: '垃圾訊息' },
-];
 
 function buildPayload(state: FilterFormState) {
     return {
@@ -237,12 +224,6 @@ export default function ManageAdminMessagesIndex() {
         setFilterForm((prev) => ({ ...prev, keyword: event.target.value }));
     };
 
-    const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setFilterForm((prev) => ({ ...prev, status: value }));
-        applyFilters({ status: value });
-    };
-
     const handleStatusChangeForTabs = (value: string) => {
         setFilterForm((prev) => ({ ...prev, status: value }));
         applyFilters({ status: value });
@@ -254,19 +235,22 @@ export default function ManageAdminMessagesIndex() {
         applyFilters({ [field]: value } as Partial<FilterFormState>);
     };
 
-    const handleFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        applyFilters();
-    };
-
     const handleResetFilters = () => {
         setFilterForm(defaultFilterForm);
         applyFilters(defaultFilterForm, { replace: true });
     };
 
-    const openDatePicker = useCallback((event: FocusEvent<HTMLInputElement> | MouseEvent<HTMLInputElement>) => {
+    const openDatePicker = useCallback((event: MouseEvent<HTMLInputElement>) => {
         const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
-        input.showPicker?.();
+
+        try {
+            input.showPicker?.();
+        } catch (error) {
+            if (process.env.NODE_ENV !== 'production') {
+                // 暫時忽略瀏覽器要求使用者手勢的錯誤，避免干擾使用。
+                console.debug('showPicker failed', error);
+            }
+        }
     }, []);
 
     const handlePerPageChange = (value: number) => {
@@ -274,126 +258,6 @@ export default function ManageAdminMessagesIndex() {
         setFilterForm((prev) => ({ ...prev, per_page: next }));
         applyFilters({ per_page: next }, { replace: true });
     };
-
-    const toolbar = (
-        <ManageToolbar
-            wrap
-            primary={[
-                <StatusFilterTabs
-                    key="status"
-                    value={filterForm.status}
-                    onChange={handleStatusChangeForTabs}
-                    options={STATUS_OPTIONS}
-                />,
-            ]}
-            secondary={
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className={manageToolbarPrimaryButtonClass('gap-2')}
-                        asChild
-                    >
-                        <Link href="#">
-                            <Download className="h-4 w-4" />
-                            {tMessages('actions.export', '匯出紀錄')}
-                        </Link>
-                    </Button>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="default"
-                        className={manageToolbarPrimaryButtonClass('gap-2')}
-                    >
-                        <MailPlus className="h-4 w-4" />
-                        {tMessages('actions.new', '建立新訊息')}
-                    </Button>
-                </div>
-            }
-        >
-            <FilterPanel>
-                <div className="grid grid-cols-12 gap-3">
-                    {/* 搜尋框 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tMessages('filters.keyword_label', '搜尋訊息')}
-                        </label>
-                        <Input
-                            type="search"
-                            value={filterForm.keyword}
-                            onChange={handleKeywordChange}
-                            placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
-                            className={manageFilterControlClass()}
-                        />
-                    </div>
-
-                    {/* 起始日期 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tMessages('filters.from', '起始日期')}
-                        </label>
-                        <Input
-                            type="date"
-                            value={filterForm.from}
-                            onChange={handleDateChange('from')}
-                            onClick={openDatePicker}
-                            onFocus={openDatePicker}
-                            className={manageFilterControlClass('w-full px-3')}
-                        />
-                    </div>
-
-                    {/* 結束日期 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tMessages('filters.to', '結束日期')}
-                        </label>
-                        <Input
-                            type="date"
-                            value={filterForm.to}
-                            onChange={handleDateChange('to')}
-                            onClick={openDatePicker}
-                            onFocus={openDatePicker}
-                            className={manageFilterControlClass('w-full px-3')}
-                        />
-                    </div>
-
-                    {/* 套用條件按鈕 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700 opacity-0">
-                            {tMessages('filters.apply_label', '操作')}
-                        </label>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="tonal"
-                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
-                            onClick={() => applyFilters()}
-                        >
-                            <Filter className="h-4 w-4" />
-                            {tMessages('filters.apply', '套用條件')}
-                        </Button>
-                    </div>
-
-                    {/* 重設按鈕 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700 opacity-0">
-                            {tMessages('filters.reset_label', '重設')}
-                        </label>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            className={manageToolbarSecondaryButtonClass('w-full hover:text-neutral-800')}
-                            onClick={handleResetFilters}
-                        >
-                            {tMessages('filters.reset', '重設')}
-                        </Button>
-                    </div>
-                </div>
-            </FilterPanel>
-        </ManageToolbar>
-    );
 
     const hasMessages = messages.data.length > 0;
     const paginationMeta = {
@@ -474,6 +338,123 @@ export default function ManageAdminMessagesIndex() {
         </section>
     );
 
+    const statusFilterOptions = useMemo(
+        () => [
+            {
+                value: '',
+                label: tMessages('filters.status_all', '全部狀態'),
+                count: messages.meta.total ?? 0,
+            },
+            {
+                value: 'new',
+                label: tMessages('status.new', '新訊息'),
+                count: statusSummary.new ?? 0,
+            },
+            {
+                value: 'processing',
+                label: tMessages('status.processing', '處理中'),
+                count: statusSummary.processing ?? 0,
+            },
+            {
+                value: 'resolved',
+                label: tMessages('status.resolved', '已解決'),
+                count: statusSummary.resolved ?? 0,
+            },
+            {
+                value: 'spam',
+                label: tMessages('status.spam', '垃圾訊息'),
+                count: statusSummary.spam ?? 0,
+            },
+        ],
+        [messages.meta.total, statusSummary, tMessages]
+    );
+
+    const filterSection = (
+        <FilterPanel
+            onApply={() => applyFilters()}
+            onReset={handleResetFilters}
+            applyLabel={tMessages('filters.apply', '套用條件')}
+            resetLabel={tMessages('filters.reset', '重設')}
+            className="h-full"
+        >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tMessages('filters.keyword_label', '搜尋訊息')}
+                    </label>
+                    <Input
+                        type="search"
+                        value={filterForm.keyword}
+                        onChange={handleKeywordChange}
+                        placeholder={tMessages('filters.keyword_placeholder', '搜尋主旨或聯絡人')}
+                        className={manageFilterControlClass()}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tMessages('filters.from', '起始日期')}
+                    </label>
+                    <Input
+                        type="date"
+                        value={filterForm.from}
+                        onChange={handleDateChange('from')}
+                        onClick={openDatePicker}
+                        className={manageFilterControlClass('w-full px-3')}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tMessages('filters.to', '結束日期')}
+                    </label>
+                    <Input
+                        type="date"
+                        value={filterForm.to}
+                        onChange={handleDateChange('to')}
+                        onClick={openDatePicker}
+                        className={manageFilterControlClass('w-full px-3')}
+                    />
+                </div>
+            </div>
+        </FilterPanel>
+    );
+
+    const toolbar = (
+        <ManageToolbar
+            wrap
+            primary={
+                <StatusFilterTabs
+                    value={filterForm.status}
+                    onChange={handleStatusChangeForTabs}
+                    options={statusFilterOptions}
+                    className="w-full"
+                />
+            }
+            secondary={
+                <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center md:gap-3">
+                    <Button
+                        type="button"
+                        className="h-11 w-full justify-center gap-2 rounded-full bg-neutral-900 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 md:w-auto"
+                        asChild
+                    >
+                        <Link href="#">
+                            <Download className="h-4 w-4" />
+                            {tMessages('actions.export', '匯出紀錄')}
+                        </Link>
+                    </Button>
+                    <Button
+                        type="button"
+                        className="h-11 w-full justify-center gap-2 rounded-full bg-primary-200 text-sm font-semibold text-primary-900 shadow-sm transition hover:bg-primary-300 md:w-auto"
+                    >
+                        <MailPlus className="h-4 w-4" />
+                        {tMessages('actions.new', '建立新訊息')}
+                    </Button>
+                </div>
+            }
+        />
+    );
+
     return (
         <>
             <Head title={pageTitle} />
@@ -481,9 +462,12 @@ export default function ManageAdminMessagesIndex() {
                 title={pageTitle}
                 description={tMessages('description', '集中檢視訪客透過聯絡表單傳送的訊息，並追蹤處理狀態。')}
                 breadcrumbs={breadcrumbs}
-                toolbar={toolbar}
             >
                 {statusOverview}
+                <section className="mt-4 space-y-4">
+                    {filterSection}
+                    {toolbar}
+                </section>
 
                 <section className="mt-4 rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
                     <ResponsiveDataView
@@ -640,4 +624,3 @@ export default function ManageAdminMessagesIndex() {
 }
 
 ManageAdminMessagesIndex.layout = (page: ReactElement) => <AppLayout>{page}</AppLayout>;
-

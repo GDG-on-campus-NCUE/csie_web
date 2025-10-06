@@ -786,6 +786,14 @@ return [
             'image' => 'Image',
             'document' => 'Document',
             'link' => 'Link',
+            'video' => 'Video',
+            'audio' => 'Audio',
+            'archive' => 'Archive',
+            'file' => 'File',
+        ],
+        'visibility' => [
+            'public' => 'Public',
+            'private' => 'Private',
         ],
         'index' => [
             'title' => 'Attachment management',

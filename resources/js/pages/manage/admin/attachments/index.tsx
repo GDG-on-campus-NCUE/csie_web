@@ -1,33 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, FormEvent, ReactElement } from 'react';
+import type { ChangeEvent, MouseEvent, ReactElement } from 'react';
 
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import {
-    ArrowUpDown,
-    CheckCircle2,
-    CloudUpload,
-    Download,
-    Eye,
-    Filter,
-    LayoutGrid,
-    Link2,
-    List as ListIcon,
-    MoreHorizontal,
-    Paperclip,
-    RefreshCcw,
-    Trash2,
-} from 'lucide-react';
+import { ArrowUpDown, CheckCircle2, CloudUpload, Download, Eye, LayoutGrid, Link2, List as ListIcon, MoreHorizontal, Paperclip, Trash2 } from 'lucide-react';
 
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
 import FilterPanel from '@/components/manage/filter-panel';
 import StatusFilterTabs from '@/components/manage/status-filter-tabs';
-import {
-    manageFilterControlClass,
-    manageToolbarPrimaryButtonClass,
-    manageToolbarSecondaryButtonClass,
-} from '@/components/manage/filter-styles';
+import { manageFilterControlClass } from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import AttachmentUploadModal from '@/components/manage/admin/attachment-upload-modal';
@@ -86,7 +68,6 @@ type BulkActionType = 'download' | 'delete';
 const VISIBILITY_BADGE: Record<string, string> = {
     public: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     private: 'border-rose-200 bg-rose-50 text-rose-700',
-    internal: 'border-amber-200 bg-amber-50 text-amber-700',
 };
 
 const SORT_OPTIONS: Array<{ value: string; label: string }> = [
@@ -96,13 +77,6 @@ const SORT_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 const PER_PAGE_OPTIONS = ['10', '20', '50', '100'] as const;
-
-const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
-    { value: '', label: '全部可見性' },
-    { value: 'public', label: '公開' },
-    { value: 'private', label: '私有' },
-    { value: 'internal', label: '內部' },
-];
 
 function buildPayload(state: FilterFormState) {
     return {
@@ -350,12 +324,6 @@ export default function ManageAdminAttachmentsIndex() {
         applyFilters({ type: value });
     };
 
-    const handleVisibilityChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setFilterForm((prev) => ({ ...prev, visibility: value }));
-        applyFilters({ visibility: value });
-    };
-
     const handleVisibilityChangeForTabs = (value: string) => {
         setFilterForm((prev) => ({ ...prev, visibility: value }));
         applyFilters({ visibility: value });
@@ -385,6 +353,18 @@ export default function ManageAdminAttachmentsIndex() {
         applyFilters({ per_page: next }, { replace: true });
     };
 
+    const openDatePicker = useCallback((event: MouseEvent<HTMLInputElement>) => {
+        const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
+
+        try {
+            input.showPicker?.();
+        } catch (error) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.debug('showPicker failed', error);
+            }
+        }
+    }, []);
+
     const handleSortChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         setFilterForm((prev) => ({ ...prev, sort: value }));
@@ -403,11 +383,6 @@ export default function ManageAdminAttachmentsIndex() {
         }
         setFilterForm((prev) => ({ ...prev, view: mode }));
         applyFilters({ view: mode }, { replace: true });
-    };
-
-    const handleFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        applyFilters();
     };
 
     const handleResetFilters = () => {
@@ -469,27 +444,178 @@ export default function ManageAdminAttachmentsIndex() {
         setConfirmBulkOpen(false);
     };
 
+    const statusFilterOptions = useMemo(() => {
+        const visibilityOptions = filterOptions.visibilities ?? [];
+
+        return [
+            {
+                value: '',
+                label: tAttachments('filters.visibility_all', '全部可見性'),
+                count: attachments.meta.total ?? 0,
+            },
+            ...visibilityOptions.map((option) => ({
+                value: String(option.value ?? ''),
+                label: tAttachments(String(option.label), String(option.label)),
+                count: option.count ?? 0,
+            })),
+        ];
+    }, [attachments.meta.total, filterOptions.visibilities, tAttachments]);
+
+    const filterSection = (
+        <FilterPanel title={tAttachments('filters.title', '篩選條件')} collapsible>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.keyword_label', '搜尋附件')}
+                    </label>
+                    <Input
+                        type="search"
+                        value={filterForm.keyword}
+                        onChange={handleKeywordChange}
+                        placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
+                        className={manageFilterControlClass()}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.type_label', '附件類型')}
+                    </label>
+                    <Select value={filterForm.type} onChange={handleTypeChange} className={manageFilterControlClass()}>
+                        <option value="">{tAttachments('filters.type_all', '全部類型')}</option>
+                        {filterOptions.types.map((option) => (
+                            <option key={String(option.value)} value={String(option.value)}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.space_label', '綁定空間')}
+                    </label>
+                    <Select value={filterForm.space} onChange={handleSpaceChange} className={manageFilterControlClass('w-full')}>
+                        <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
+                        {filterOptions.spaces.map((option) => (
+                            <option key={String(option.value)} value={String(option.value)}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.tag_label', '標籤篩選')}
+                    </label>
+                    <Select value={filterForm.tag} onChange={handleTagChange} className={manageFilterControlClass('w-full')}>
+                        <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
+                        {filterOptions.tags.map((option) => (
+                            <option key={String(option.value)} value={String(option.value)}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.from', '起始日期')}
+                    </label>
+                    <Input
+                        type="date"
+                        value={filterForm.from}
+                        onChange={handleDateChange('from')}
+                        onClick={openDatePicker}
+                        className={manageFilterControlClass('w-full px-3')}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.to', '結束日期')}
+                    </label>
+                    <Input
+                        type="date"
+                        value={filterForm.to}
+                        onChange={handleDateChange('to')}
+                        onClick={openDatePicker}
+                        className={manageFilterControlClass('w-full px-3')}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.sort_label', '排序方式')}
+                    </label>
+                    <Select value={filterForm.sort} onChange={handleSortChange} className={manageFilterControlClass('w-full')}>
+                        {SORT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {tAttachments(option.label, option.label)}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">
+                        {tAttachments('filters.direction_label', '排序方向')}
+                    </label>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 w-full justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700"
+                        onClick={handleDirectionToggle}
+                    >
+                        <ArrowUpDown className="h-4 w-4" />
+                        {filterForm.direction === 'asc'
+                            ? tAttachments('filters.direction.asc', '昇冪')
+                            : tAttachments('filters.direction.desc', '降冪')}
+                    </Button>
+                </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button
+                    type="button"
+                    className="h-11 w-full justify-center gap-2 rounded-full bg-neutral-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 sm:w-auto"
+                    onClick={() => applyFilters()}
+                >
+                    {tAttachments('filters.apply', '套用條件')}
+                </Button>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-full justify-center gap-2 rounded-full border border-neutral-200 bg-white px-6 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-neutral-300 hover:text-neutral-900 sm:w-auto"
+                    onClick={handleResetFilters}
+                >
+                    {tAttachments('filters.reset', '重設')}
+                </Button>
+            </div>
+        </FilterPanel>
+    );
+
     const toolbar = (
         <ManageToolbar
             wrap
-            primary={[
+            className="bg-white/95"
+            primary={
                 <StatusFilterTabs
-                    key="visibility"
                     value={filterForm.visibility}
                     onChange={handleVisibilityChangeForTabs}
-                    options={STATUS_OPTIONS}
-                />,
-            ]}
+                    options={statusFilterOptions}
+                    className="w-full"
+                />
+            }
             secondary={
-                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center md:gap-3">
                     {selectedIds.length > 0 ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className={manageToolbarPrimaryButtonClass('gap-2')}
+                                    className="h-11 w-full justify-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 text-sm font-semibold text-primary-800 shadow-sm transition hover:bg-primary-100 md:w-auto"
                                 >
                                     <CheckCircle2 className="h-4 w-4" />
                                     {tAttachments('bulk.actions', '批次操作')} ({selectedIds.length})
@@ -523,11 +649,14 @@ export default function ManageAdminAttachmentsIndex() {
                         </DropdownMenu>
                     ) : null}
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-between gap-1 rounded-full border border-neutral-200 bg-white p-1 shadow-sm md:justify-center">
                         <Button
                             type="button"
-                            variant={filterForm.view === 'list' ? 'default' : 'outline'}
-                            size="sm"
+                            variant="ghost"
+                            className={cn(
+                                'h-9 w-12 rounded-full text-sm font-semibold text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800',
+                                filterForm.view === 'list' && 'bg-primary-600 text-white hover:bg-primary-600'
+                            )}
                             onClick={() => handleViewChange('list')}
                             aria-label={tAttachments('view.list', '列表模式')}
                         >
@@ -535,8 +664,11 @@ export default function ManageAdminAttachmentsIndex() {
                         </Button>
                         <Button
                             type="button"
-                            variant={filterForm.view === 'grid' ? 'default' : 'outline'}
-                            size="sm"
+                            variant="ghost"
+                            className={cn(
+                                'h-9 w-12 rounded-full text-sm font-semibold text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800',
+                                filterForm.view === 'grid' && 'bg-primary-600 text-white hover:bg-primary-600'
+                            )}
                             onClick={() => handleViewChange('grid')}
                             aria-label={tAttachments('view.grid', '卡片模式')}
                         >
@@ -547,9 +679,7 @@ export default function ManageAdminAttachmentsIndex() {
                     {abilities.canUpload ? (
                         <Button
                             type="button"
-                            size="sm"
-                            variant="default"
-                            className={manageToolbarPrimaryButtonClass('gap-2')}
+                            className="h-11 w-full justify-center gap-2 rounded-full bg-primary-600 px-5 text-sm font-semibold text-black shadow-sm transition hover:bg-primary-700 md:w-auto"
                             onClick={() => setUploadModalOpen(true)}
                         >
                             <CloudUpload className="h-4 w-4" />
@@ -558,162 +688,7 @@ export default function ManageAdminAttachmentsIndex() {
                     ) : null}
                 </div>
             }
-        >
-            <FilterPanel>
-                <div className="grid grid-cols-12 gap-3">
-                    {/* 搜尋框 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.keyword_label', '搜尋附件')}
-                        </label>
-                        <Input
-                            type="search"
-                            value={filterForm.keyword}
-                            onChange={handleKeywordChange}
-                            placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
-                            className={manageFilterControlClass()}
-                        />
-                    </div>
-
-                    {/* 附件類型 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.type_label', '附件類型')}
-                        </label>
-                        <Select
-                            value={filterForm.type}
-                            onChange={handleTypeChange}
-                            className={manageFilterControlClass()}
-                        >
-                            <option value="">{tAttachments('filters.type_all', '全部類型')}</option>
-                            {filterOptions.types.map((option) => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    {/* 綁定空間 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.space_label', '綁定空間')}
-                        </label>
-                        <Select
-                            value={filterForm.space}
-                            onChange={handleSpaceChange}
-                            className={manageFilterControlClass('w-full')}
-                        >
-                            <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
-                            {filterOptions.spaces.map((option) => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    {/* 標籤篩選 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.tag_label', '標籤篩選')}
-                        </label>
-                        <Select
-                            value={filterForm.tag}
-                            onChange={handleTagChange}
-                            className={manageFilterControlClass('w-full')}
-                        >
-                            <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
-                            {filterOptions.tags.map((option) => (
-                                <option key={String(option.value)} value={String(option.value)}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    {/* 起始日期 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.from', '起始日期')}
-                        </label>
-                        <Input
-                            type="date"
-                            value={filterForm.from}
-                            onChange={handleDateChange('from')}
-                            className={manageFilterControlClass('w-full px-3')}
-                        />
-                    </div>
-
-                    {/* 結束日期 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.to', '結束日期')}
-                        </label>
-                        <Input
-                            type="date"
-                            value={filterForm.to}
-                            onChange={handleDateChange('to')}
-                            className={manageFilterControlClass('w-full px-3')}
-                        />
-                    </div>
-
-                    {/* 排序方式 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.sort_label', '排序方式')}
-                        </label>
-                        <Select
-                            value={filterForm.sort}
-                            onChange={handleSortChange}
-                            className={manageFilterControlClass('w-full')}
-                        >
-                            {SORT_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {tAttachments(option.label, option.label)}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    {/* 排序方向 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">
-                            {tAttachments('filters.direction_label', '排序方向')}
-                        </label>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
-                            onClick={handleDirectionToggle}
-                        >
-                            <ArrowUpDown className="h-4 w-4" />
-                            {filterForm.direction === 'asc'
-                                ? tAttachments('filters.direction.asc', '昇冪')
-                                : tAttachments('filters.direction.desc', '降冪')}
-                        </Button>
-                    </div>
-
-                    {/* 套用條件按鈕 */}
-                    <div className="col-span-12 md:col-span-4 space-y-2">
-                        <label className="text-sm font-medium text-neutral-700 opacity-0">
-                            {tAttachments('filters.apply_label', '操作')}
-                        </label>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="tonal"
-                            className={manageToolbarPrimaryButtonClass('w-full gap-2')}
-                            onClick={() => applyFilters()}
-                        >
-                            <Filter className="h-4 w-4" />
-                            {tAttachments('filters.apply', '套用條件')}
-                        </Button>
-                    </div>
-                </div>
-            </FilterPanel>
-        </ManageToolbar>
+        />
     );
 
     const hasAttachments = attachments.data.length > 0;
@@ -726,7 +701,7 @@ export default function ManageAdminAttachmentsIndex() {
                   className="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-neutral-50 px-3 py-2 text-sm text-neutral-600"
               >
                   <span className="font-medium text-neutral-700">
-                      {tAttachments('selection.count', '已選擇 {count} 筆附件', { count: selectedIds.length })}
+                      {tAttachments('selection.count', '已選擇 :count 筆附件', { count: selectedIds.length })}
                   </span>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelectedIds([])}>
                       {tAttachments('selection.clear', '清除')}
@@ -996,9 +971,12 @@ export default function ManageAdminAttachmentsIndex() {
                 title={pageTitle}
                 description={tAttachments('description', '集中管理公告所使用的媒體與文件，支援批次操作與行動版卡片檢視。')}
                 breadcrumbs={breadcrumbs}
-                toolbar={toolbar}
             >
-                <section className="rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
+                {filterSection}
+
+                <div className="mt-4">{toolbar}</div>
+
+                <section className="mt-4 rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">
                     <ResponsiveDataView
                         className="space-y-0"
                         mode={filterForm.view === 'grid' ? 'card' : 'auto'}
@@ -1152,4 +1130,3 @@ export default function ManageAdminAttachmentsIndex() {
 }
 
 ManageAdminAttachmentsIndex.layout = (page: ReactElement) => <AppLayout>{page}</AppLayout>;
-
