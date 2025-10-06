@@ -151,28 +151,32 @@ export default function ManageAdminPostsIndex() {
                 type: 'publish',
                 label: tPosts('bulk.publish', '批次發佈'),
                 icon: Megaphone,
-                buttonClass: 'bg-[#10B981] hover:bg-[#059669] text-white',
+                buttonClass:
+                    'border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-xs hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60',
                 iconClass: 'text-emerald-600',
             },
             {
                 type: 'unpublish',
                 label: tPosts('bulk.unpublish', '批次下架'),
                 icon: MegaphoneOff,
-                buttonClass: 'bg-[#F97316] hover:bg-[#EA580C] text-white',
+                buttonClass:
+                    'border border-amber-200 bg-amber-50 text-amber-700 shadow-xs hover:bg-amber-100 hover:text-amber-800 focus-visible:ring-amber-200/60',
                 iconClass: 'text-amber-600',
             },
             {
                 type: 'archive',
                 label: tPosts('bulk.archive', '批次封存'),
                 icon: Archive,
-                buttonClass: 'bg-[#1E293B] hover:bg-[#0F172A] text-white',
+                buttonClass:
+                    'border border-slate-200 bg-slate-50 text-slate-700 shadow-xs hover:bg-slate-100 hover:text-slate-800 focus-visible:ring-slate-200/60',
                 iconClass: 'text-neutral-600',
             },
             {
                 type: 'delete',
                 label: tPosts('bulk.delete', '批次刪除'),
                 icon: Trash2,
-                buttonClass: 'bg-[#EF4444] hover:bg-[#DC2626] text-white',
+                buttonClass:
+                    'border border-rose-200 bg-rose-50 text-rose-700 shadow-xs hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-rose-200/60',
                 iconClass: 'text-rose-600',
             },
         ],
@@ -474,7 +478,8 @@ export default function ManageAdminPostsIndex() {
                         <Button
                             type="submit"
                             size="sm"
-                            className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                            variant="tonal"
+                            className="h-11 gap-1 px-5"
                         >
                             <Filter className="h-4 w-4" />
                             {tPosts('filters.apply', '套用')}
@@ -536,9 +541,9 @@ export default function ManageAdminPostsIndex() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
-                                        variant="default"
+                                        variant="tonal"
                                         size="sm"
-                                        className="h-11 gap-1 bg-[#3B82F6] px-5 text-white hover:bg-[#2563EB]"
+                                        className="h-11 gap-1 px-5 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400"
                                         disabled={bulkDisabled}
                                     >
                                         <Filter className="h-4 w-4" />
@@ -565,7 +570,8 @@ export default function ManageAdminPostsIndex() {
                         {abilities.canCreate ? (
                             <Button
                                 size="sm"
-                                className="h-11 gap-2 bg-[#10B981] px-5 text-white hover:bg-[#059669]"
+                                variant="tonal"
+                                className="h-11 gap-2 border-emerald-200 bg-emerald-50 px-5 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
                                 asChild
                             >
                                 <Link href="/manage/admin/posts/create">
@@ -789,7 +795,8 @@ export default function ManageAdminPostsIndex() {
                                             ) : null}
                                             <Button
                                                 type="button"
-                                                className="w-full justify-center gap-2 bg-[#3B82F6] text-white hover:bg-[#2563EB]"
+                                                variant="tonal"
+                                                className="w-full justify-center gap-2"
                                                 asChild
                                             >
                                                 <Link href={`/manage/admin/posts/${post.id}/edit`}>
@@ -897,10 +904,10 @@ export default function ManageAdminPostsIndex() {
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                                 <div className="flex items-center gap-2">
                                     <Button
-                                        variant="default"
+                                        variant="tonal"
                                         size="sm"
                                         disabled={!paginationLinks.prev}
-                                        className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                        className="h-10 gap-2 px-4 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400"
                                         asChild
                                     >
                                         <Link href={paginationLinks.prev ?? '#'} preserveState preserveScroll>
@@ -908,10 +915,10 @@ export default function ManageAdminPostsIndex() {
                                         </Link>
                                     </Button>
                                     <Button
-                                        variant="default"
+                                        variant="tonal"
                                         size="sm"
                                         disabled={!paginationLinks.next}
-                                        className="h-10 gap-2 bg-[#3B82F6] px-4 text-white hover:bg-[#2563EB] disabled:bg-neutral-200 disabled:text-neutral-500"
+                                        className="h-10 gap-2 px-4 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400"
                                         asChild
                                     >
                                         <Link href={paginationLinks.next ?? '#'} preserveState preserveScroll>
@@ -951,7 +958,8 @@ export default function ManageAdminPostsIndex() {
                                     <Button
                                         type="submit"
                                         size="sm"
-                                        className="h-9 bg-[#3B82F6] px-4 text-xs text-white hover:bg-[#2563EB]"
+                                        variant="tonal"
+                                        className="h-9 px-4 text-xs"
                                     >
                                         {tPosts('pagination.go', '前往')}
                                     </Button>
