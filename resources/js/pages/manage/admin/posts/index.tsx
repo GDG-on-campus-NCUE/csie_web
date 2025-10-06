@@ -1,6 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import FilterPanel from '@/components/manage/filter-panel';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard, { type DataCardStatusTone } from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
@@ -481,6 +486,7 @@ export default function ManageAdminPostsIndex() {
                         value={filterForm.keyword}
                         onChange={handleKeywordChange}
                         placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
+                        className={manageFilterControlClass()}
                         aria-label={tPosts('filters.keyword_label', '搜尋公告')}
                     />
                 </div>
@@ -493,6 +499,7 @@ export default function ManageAdminPostsIndex() {
                     <Select
                         value={filterForm.tag}
                         onChange={handleTagChange}
+                        className={manageFilterControlClass()}
                         aria-label={tPosts('filters.tag_label', '標籤篩選')}
                     >
                         <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
@@ -515,6 +522,7 @@ export default function ManageAdminPostsIndex() {
                     <Select
                         value={filterForm.per_page}
                         onChange={handlePerPageChange}
+                        className={manageFilterControlClass()}
                         aria-label={tPosts('filters.per_page_label', '每頁筆數')}
                     >
                         {perPageOptions.map((option) => (
@@ -528,7 +536,7 @@ export default function ManageAdminPostsIndex() {
         </FilterPanel>
     );
 
-    const toolbar = (
+        const toolbar = (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-neutral-200/80 bg-white/95 p-4 shadow-sm">
             <div className="flex items-center gap-2">
                 {selectedIds.length > 0 && (
@@ -546,7 +554,7 @@ export default function ManageAdminPostsIndex() {
                                 variant="outline"
                                 size="sm"
                                 disabled={bulkDisabled}
-                                className="gap-2"
+                                className={manageToolbarPrimaryButtonClass('gap-2')}
                             >
                                 <Filter className="h-4 w-4" />
                                 {tPosts('bulk.menu', '批次操作')}
@@ -573,7 +581,8 @@ export default function ManageAdminPostsIndex() {
                 {abilities.canCreate && (
                     <Button
                         size="sm"
-                        className="gap-2 bg-[#10B981] hover:bg-[#059669] text-white"
+                        variant="default"
+                        className={manageToolbarPrimaryButtonClass('gap-2')}
                         asChild
                     >
                         <Link href="/manage/admin/posts/create">

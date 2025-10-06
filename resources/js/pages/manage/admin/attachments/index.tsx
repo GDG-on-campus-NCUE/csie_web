@@ -21,6 +21,11 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import ManagePage from '@/layouts/manage/manage-page';
 import ManageToolbar from '@/components/manage/manage-toolbar';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard from '@/components/manage/data-card';
 import AttachmentUploadModal from '@/components/manage/admin/attachment-upload-modal';
@@ -464,13 +469,19 @@ export default function ManageAdminAttachmentsIndex() {
                         value={filterForm.keyword}
                         onChange={handleKeywordChange}
                         placeholder={tAttachments('filters.keyword_placeholder', '搜尋附件名稱或檔名')}
+                        className={manageFilterControlClass()}
                     />
                 </div>,
                 <div key="type" className="grid w-full gap-1">
                     <label htmlFor="filter-type" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.type_label', '附件類型')}
                     </label>
-                    <Select id="filter-type" value={filterForm.type} onChange={handleTypeChange}>
+                    <Select
+                        id="filter-type"
+                        value={filterForm.type}
+                        onChange={handleTypeChange}
+                        className={manageFilterControlClass()}
+                    >
                         <option value="">{tAttachments('filters.type_all', '全部類型')}</option>
                         {filterOptions.types.map((option) => (
                             <option key={String(option.value)} value={String(option.value)}>
@@ -483,7 +494,12 @@ export default function ManageAdminAttachmentsIndex() {
                     <label htmlFor="filter-visibility" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.visibility_label', '可見性')}
                     </label>
-                    <Select id="filter-visibility" value={filterForm.visibility} onChange={handleVisibilityChange}>
+                    <Select
+                        id="filter-visibility"
+                        value={filterForm.visibility}
+                        onChange={handleVisibilityChange}
+                        className={manageFilterControlClass()}
+                    >
                         <option value="">{tAttachments('filters.visibility_all', '全部可見性')}</option>
                         {filterOptions.visibilities.map((option) => (
                             <option key={String(option.value)} value={String(option.value)}>
@@ -498,7 +514,12 @@ export default function ManageAdminAttachmentsIndex() {
                     {selectedIds.length > 0 ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" size="sm" variant="outline" className="gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className={manageToolbarPrimaryButtonClass('gap-2')}
+                                >
                                     <CheckCircle2 className="h-4 w-4" />
                                     {tAttachments('bulk.actions', '批次操作')} ({selectedIds.length})
                                 </Button>
@@ -556,8 +577,8 @@ export default function ManageAdminAttachmentsIndex() {
                         <Button
                             type="button"
                             size="sm"
-                            variant="tonal"
-                            className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
+                            variant="default"
+                            className={manageToolbarPrimaryButtonClass('gap-2')}
                             onClick={() => setUploadModalOpen(true)}
                         >
                             <CloudUpload className="h-4 w-4" />
@@ -575,7 +596,12 @@ export default function ManageAdminAttachmentsIndex() {
                     <label htmlFor="filter-space" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.space_label', '綁定空間')}
                     </label>
-                    <Select id="filter-space" value={filterForm.space} onChange={handleSpaceChange} className="w-full">
+                    <Select
+                        id="filter-space"
+                        value={filterForm.space}
+                        onChange={handleSpaceChange}
+                        className={manageFilterControlClass('w-full')}
+                    >
                         <option value="">{tAttachments('filters.space_all', '全部空間')}</option>
                         {filterOptions.spaces.map((option) => (
                             <option key={String(option.value)} value={String(option.value)}>
@@ -589,7 +615,12 @@ export default function ManageAdminAttachmentsIndex() {
                     <label htmlFor="filter-tag" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.tag_label', '標籤篩選')}
                     </label>
-                    <Select id="filter-tag" value={filterForm.tag} onChange={handleTagChange} className="w-full">
+                    <Select
+                        id="filter-tag"
+                        value={filterForm.tag}
+                        onChange={handleTagChange}
+                        className={manageFilterControlClass('w-full')}
+                    >
                         <option value="">{tAttachments('filters.tag_all', '全部標籤')}</option>
                         {filterOptions.tags.map((option) => (
                             <option key={String(option.value)} value={String(option.value)}>
@@ -613,7 +644,7 @@ export default function ManageAdminAttachmentsIndex() {
                                 type="date"
                                 value={filterForm.from}
                                 onChange={handleDateChange('from')}
-                                className="h-9 w-full"
+                                className={manageFilterControlClass('w-full px-3')}
                             />
                         </div>
                         <span className="hidden text-center text-neutral-400 md:block">~</span>
@@ -626,7 +657,7 @@ export default function ManageAdminAttachmentsIndex() {
                                 type="date"
                                 value={filterForm.to}
                                 onChange={handleDateChange('to')}
-                                className="h-9 w-full"
+                                className={manageFilterControlClass('w-full px-3')}
                             />
                         </div>
                         <span className="text-center text-neutral-400 md:hidden sm:col-span-2">~</span>
@@ -637,7 +668,12 @@ export default function ManageAdminAttachmentsIndex() {
                     <label htmlFor="filter-sort" className="text-xs font-medium text-neutral-600">
                         {tAttachments('filters.sort_label', '排序方式')}
                     </label>
-                    <Select id="filter-sort" value={filterForm.sort} onChange={handleSortChange} className="w-full">
+                    <Select
+                        id="filter-sort"
+                        value={filterForm.sort}
+                        onChange={handleSortChange}
+                        className={manageFilterControlClass('w-full')}
+                    >
                         {SORT_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {tAttachments(option.label, option.label)}
@@ -645,17 +681,34 @@ export default function ManageAdminAttachmentsIndex() {
                         ))}
                     </Select>
                 </div>
-                <Button type="button" size="sm" variant="outline" className="gap-2" onClick={handleDirectionToggle}>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className={manageToolbarPrimaryButtonClass('gap-2')}
+                    onClick={handleDirectionToggle}
+                >
                     <ArrowUpDown className="h-4 w-4" />
                     {filterForm.direction === 'asc'
                         ? tAttachments('filters.direction.asc', '昇冪')
                         : tAttachments('filters.direction.desc', '降冪')}
                 </Button>
-                <Button type="submit" size="sm" variant="tonal" className="gap-2">
+                <Button
+                    type="submit"
+                    size="sm"
+                    variant="tonal"
+                    className={manageToolbarPrimaryButtonClass('gap-2')}
+                >
                     <Filter className="h-4 w-4" />
                     {tAttachments('filters.apply', '套用條件')}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={handleResetFilters}>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className={manageToolbarSecondaryButtonClass('gap-2 hover:text-neutral-800')}
+                    onClick={handleResetFilters}
+                >
                     <RefreshCcw className="h-4 w-4" />
                     {tAttachments('filters.reset', '重設')}
                 </Button>
