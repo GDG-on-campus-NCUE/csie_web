@@ -36,6 +36,11 @@ import {
     Users,
 } from 'lucide-react';
 import StatusFilterTabs from '@/components/manage/status-filter-tabs';
+import {
+    manageFilterControlClass,
+    manageToolbarPrimaryButtonClass,
+    manageToolbarSecondaryButtonClass,
+} from '@/components/manage/filter-styles';
 
 type ManageAdminPostsPageProps = SharedData & {
     posts: ManagePostListResponse;
@@ -472,14 +477,14 @@ export default function ManageAdminPostsIndex() {
                             value={filterForm.keyword}
                             onChange={handleKeywordChange}
                             placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-64"
+                            className={manageFilterControlClass('w-full sm:w-64')}
                             aria-label={tPosts('filters.keyword_label', '搜尋公告')}
                         />
                         <Button
                             type="submit"
                             size="sm"
                             variant="tonal"
-                            className="h-11 gap-1 px-5"
+                            className={manageToolbarPrimaryButtonClass('gap-1')}
                         >
                             <Filter className="h-4 w-4" />
                             {tPosts('filters.apply', '套用')}
@@ -491,7 +496,7 @@ export default function ManageAdminPostsIndex() {
                             value={filterForm.tag}
                             onChange={handleTagChange}
                             aria-label={tPosts('filters.tag_label', '標籤篩選')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-44"
+                            className={manageFilterControlClass('w-full sm:w-44')}
                         >
                             <option value="">{tPosts('filters.tag_all', '全部標籤')}</option>
                             {tagOptions.map((tag) => {
@@ -508,7 +513,7 @@ export default function ManageAdminPostsIndex() {
                             value={filterForm.per_page}
                             onChange={handlePerPageChange}
                             aria-label={tPosts('filters.per_page_label', '每頁筆數')}
-                            className="h-11 w-full rounded-lg border-neutral-200 sm:w-32"
+                            className={manageFilterControlClass('w-full sm:w-32')}
                         >
                             {perPageOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -520,7 +525,7 @@ export default function ManageAdminPostsIndex() {
                             type="button"
                             size="sm"
                             variant="ghost"
-                            className="h-11 px-4 text-neutral-500 hover:text-neutral-700"
+                            className={manageToolbarSecondaryButtonClass('hover:text-neutral-800')}
                             onClick={handleClearFilters}
                         >
                             {tPosts('filters.reset', '重設')}
@@ -543,7 +548,7 @@ export default function ManageAdminPostsIndex() {
                                     <Button
                                         variant="tonal"
                                         size="sm"
-                                        className="h-11 gap-1 px-5 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400"
+                                        className={manageToolbarPrimaryButtonClass('gap-1 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400')}
                                         disabled={bulkDisabled}
                                     >
                                         <Filter className="h-4 w-4" />
@@ -568,12 +573,7 @@ export default function ManageAdminPostsIndex() {
                             </DropdownMenu>
                         ) : null}
                         {abilities.canCreate ? (
-                            <Button
-                                size="sm"
-                                variant="tonal"
-                                className="h-11 gap-2 border-emerald-200 bg-emerald-50 px-5 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-emerald-200/60"
-                                asChild
-                            >
+                            <Button size="sm" variant="default" className={manageToolbarPrimaryButtonClass()} asChild>
                                 <Link href="/manage/admin/posts/create">
                                     <FilePlus2 className="h-4 w-4" />
                                     {t('sidebar.admin.posts_create', '新增公告')}
