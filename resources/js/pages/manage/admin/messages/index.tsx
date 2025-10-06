@@ -199,9 +199,9 @@ export default function ManageAdminMessagesIndex() {
                 </div>
 
                 {/* Row 2: dates left, actions right */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mt-3">
-                    <div className="flex items-center gap-4">
-                        <div className="grid gap-1.5">
+                <div className="mt-3 grid gap-4 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                        <div className="grid w-full min-w-0 gap-1.5">
                             <label htmlFor="filter-from" className="text-xs font-medium text-neutral-600">
                                 {tMessages('filters.from', '起始日期')}
                             </label>
@@ -213,13 +213,13 @@ export default function ManageAdminMessagesIndex() {
                                 onChange={handleDateChange('from')}
                                 onClick={openDatePicker}
                                 onFocus={openDatePicker}
-                                className="h-9 w-full sm:w-36"
+                                className="h-9 w-full min-w-0 sm:w-36"
                             />
                         </div>
 
                         <div className="text-neutral-400">~</div>
 
-                        <div className="grid gap-1.5">
+                        <div className="grid w-full min-w-0 gap-1.5">
                             <label htmlFor="filter-to" className="text-xs font-medium text-neutral-600">
                                 {tMessages('filters.to', '結束日期')}
                             </label>
@@ -232,12 +232,12 @@ export default function ManageAdminMessagesIndex() {
                                 onChange={handleDateChange('to')}
                                 onClick={openDatePicker}
                                 onFocus={openDatePicker}
-                                className="h-9 w-full sm:w-36"
+                                className="h-9 w-full min-w-0 sm:w-36"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:items-center md:justify-end">
                         <Button size="sm" className="gap-1 bg-[#1E293B] hover:bg-[#0F172A] text-white border-transparent" asChild>
                             <Link href="#">
                                 <Download className="h-4 w-4" />
@@ -250,7 +250,7 @@ export default function ManageAdminMessagesIndex() {
                             {tMessages('actions.new', '建立新訊息')}
                         </Button>
 
-                        <div className="w-px h-6 bg-neutral-200" />
+                        <div className="hidden h-6 w-px bg-neutral-200 md:block" />
 
                         <Button type="submit" size="sm" className="gap-1 bg-[#3B82F6] hover:bg-[#2563EB] text-white border-transparent">
                             <Filter className="h-4 w-4" />
