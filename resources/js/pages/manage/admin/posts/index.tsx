@@ -6,6 +6,7 @@ import {
     manageToolbarPrimaryButtonClass,
     manageToolbarSecondaryButtonClass,
 } from '@/components/manage/filter-styles';
+import ManageToolbar from '@/components/manage/manage-toolbar';
 import ResponsiveDataView from '@/components/manage/responsive-data-view';
 import DataCard, { type DataCardStatusTone } from '@/components/manage/data-card';
 import TableEmpty from '@/components/manage/table-empty';
@@ -536,63 +537,78 @@ export default function ManageAdminPostsIndex() {
         </FilterPanel>
     );
 
-        const toolbar = (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-neutral-200/80 bg-white/95 p-4 shadow-sm">
-            <div className="flex items-center gap-2">
-                {selectedIds.length > 0 && (
-                    <span className="flex items-center gap-1 text-sm font-medium text-blue-600">
-                        <CheckSquare className="h-4 w-4" />
-                        {tPosts('bulk.selected', '已選擇 :count 筆', { count: selectedIds.length })}
-                    </span>
-                )}
-            </div>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                {abilities.canBulkUpdate && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={bulkDisabled}
-                                className={manageToolbarPrimaryButtonClass('gap-2')}
-                            >
-                                <Filter className="h-4 w-4" />
-                                {tPosts('bulk.menu', '批次操作')}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            {bulkActions.map((action) => {
-                                const Icon = action.icon;
-                                return (
-                                    <DropdownMenuItem
-                                        key={action.type}
-                                        onSelect={() => handleBulkAction(action.type)}
-                                        className="gap-2"
-                                    >
-                                        <Icon className={cn('h-4 w-4', action.iconClass)} />
-                                        {action.label}
-                                    </DropdownMenuItem>
-                                );
-                            })}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+    // 整合的工具列：包含狀態篩選和操作按鈕
+    const toolbar = (
+        <ManageToolbar
+            primary={
+                <>
+                    {/* 狀態篩選標籤 */}
+                    <StatusFilterTabs
+                        options={statusFilterOptions}
+                        value={filterForm.status}
+                        onChange={handleStatusFilterChange}
+                    />
+                </>
+            }
+            secondary={
+                <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                    {/* 批次操作 */}
+                    {abilities.canBulkUpdate && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={bulkDisabled}
+                                    className={cn(
+                                        'h-10 gap-2 border-neutral-300 bg-white text-neutral-700 shadow-sm hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700',
+                                        selectedIds.length > 0 && 'border-primary-300 bg-primary-50 text-primary-700'
+                                    )}
+                                >
+                                    <Filter className="h-4 w-4" />
+                                    {tPosts('bulk.menu', '批次操作')}
+                                    {selectedIds.length > 0 && (
+                                        <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                                            {selectedIds.length}
+                                        </Badge>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                {bulkActions.map((action) => {
+                                    const Icon = action.icon;
+                                    return (
+                                        <DropdownMenuItem
+                                            key={action.type}
+                                            onSelect={() => handleBulkAction(action.type)}
+                                            className="gap-2"
+                                        >
+                                            <Icon className={cn('h-4 w-4', action.iconClass)} />
+                                            {action.label}
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
 
-                {abilities.canCreate && (
-                    <Button
-                        size="sm"
-                        variant="default"
-                        className={manageToolbarPrimaryButtonClass('gap-2')}
-                        asChild
-                    >
-                        <Link href="/manage/admin/posts/create">
-                            <FilePlus2 className="h-4 w-4" />
-                            {t('sidebar.admin.posts_create', '新增公告')}
-                        </Link>
-                    </Button>
-                )}
-            </div>
-        </div>
+                    {/* 新增公告按鈕 */}
+                    {abilities.canCreate && (
+                        <Button
+                            size="sm"
+                            variant="default"
+                            className="h-10 gap-2 bg-primary-600 px-4 shadow-sm hover:bg-primary-700"
+                            asChild
+                        >
+                            <Link href="/manage/admin/posts/create">
+                                <FilePlus2 className="h-4 w-4" />
+                                {t('sidebar.admin.posts_create', '新增公告')}
+                            </Link>
+                        </Button>
+                    )}
+                </div>
+            }
+        />
     );
 
     return (
@@ -602,19 +618,12 @@ export default function ManageAdminPostsIndex() {
                 title={pageTitle}
                 description={t('posts.description', '集中管理公告的草稿、審核與發佈狀態。')}
                 breadcrumbs={breadcrumbs}
-                toolbar={toolbar}
             >
-                {/* 篩選器 */}
+                {/* 篩選器面板 */}
                 {filterBar}
 
-                {/* 狀態篩選標籤 */}
-                <section className="mt-4">
-                    <StatusFilterTabs
-                        options={statusFilterOptions}
-                        value={filterForm.status}
-                        onChange={handleStatusFilterChange}
-                    />
-                </section>
+                {/* 整合的工具列：狀態篩選 + 操作按鈕 */}
+                {toolbar}
 
                 <section className="mt-4 rounded-xl border border-neutral-200/80 bg-white/95 shadow-sm">\
                     <ResponsiveDataView
