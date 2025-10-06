@@ -977,7 +977,7 @@ export default function ManageAdminAttachmentsIndex() {
         total: attachments.meta.total ?? 0,
         from: attachments.meta.from ?? 0,
         to: attachments.meta.to ?? 0,
-        links: attachments.links ?? [],
+        links: attachments.meta.links,
     };
 
     const confirmTitle = pendingBulkAction === 'download'
@@ -1132,7 +1132,21 @@ export default function ManageAdminAttachmentsIndex() {
                 </SheetContent>
             </Sheet>
 
-            <AttachmentUploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
+            <AttachmentUploadModal
+                open={uploadModalOpen}
+                onOpenChange={setUploadModalOpen}
+                onUploadComplete={() => {
+                    // 重新載入附件列表
+                    window.location.reload();
+                }}
+                filterOptions={filterOptions}
+                onError={(message) => {
+                    showError(message);
+                }}
+                onSuccess={(message) => {
+                    showSuccess(message);
+                }}
+            />
         </>
     );
 }

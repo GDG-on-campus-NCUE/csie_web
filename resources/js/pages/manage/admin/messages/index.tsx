@@ -382,7 +382,6 @@ export default function ManageAdminMessagesIndex() {
     );
 
     const hasMessages = messages.data.length > 0;
-    const paginationLinks = messages.links ?? { first: null, last: null, prev: null, next: null };
     const paginationMeta = {
         current_page: messages.meta.current_page ?? 1,
         last_page: messages.meta.last_page ?? 1,
@@ -390,7 +389,7 @@ export default function ManageAdminMessagesIndex() {
         total: messages.meta.total ?? 0,
         from: messages.meta.from ?? 0,
         to: messages.meta.to ?? 0,
-        links: paginationLinks,
+        links: messages.meta.links,
     };
 
     const renderTableRows = (items: ManageMessageListItem[]) => {
