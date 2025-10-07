@@ -168,6 +168,10 @@ class AttachmentController extends Controller
                 ->map(fn (string $visibility) => [
                     'value' => $visibility,
                     'label' => __('manage.attachments.visibility.' . $visibility, ['visibility' => $visibility]),
+                    'count' => Attachment::query()
+                        ->when($visibility === 'public', fn ($q) => $q->where('visibility', Attachment::VISIBILITY_PUBLIC))
+                        ->when($visibility === 'private', fn ($q) => $q->where('visibility', Attachment::VISIBILITY_PRIVATE))
+                        ->count(),
                 ])->values()->all(),
             'spaces' => class_exists(Space::class)
                 ? Space::query()

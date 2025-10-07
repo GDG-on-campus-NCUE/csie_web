@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { FilterPanel } from '../filter-panel';
+import { FilterPanel } from './filter-panel';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { useState } from 'react';
 
 const meta: Meta<typeof FilterPanel> = {

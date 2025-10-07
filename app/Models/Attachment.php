@@ -17,14 +17,35 @@ class Attachment extends Model
     use SoftDeletes;
 
     /**
+     * 附件類型常數。
+     */
+    public const TYPE_IMAGE = 1;
+    public const TYPE_DOCUMENT = 2;
+    public const TYPE_LINK = 3;
+    public const TYPE_VIDEO = 4;
+    public const TYPE_AUDIO = 5;
+    public const TYPE_ARCHIVE = 6;
+    public const TYPE_FILE = 7;
+
+    /**
+     * 附件可見性常數。
+     */
+    public const VISIBILITY_PUBLIC = 1;
+    public const VISIBILITY_PRIVATE = 2;
+
+    /**
      * 附件類型與數值的對應表。
      *
      * @var array<string, int>
      */
     public const TYPE_MAP = [
-        'image' => 1,
-        'document' => 2,
-        'link' => 3,
+        'image' => self::TYPE_IMAGE,
+        'document' => self::TYPE_DOCUMENT,
+        'link' => self::TYPE_LINK,
+        'video' => self::TYPE_VIDEO,
+        'audio' => self::TYPE_AUDIO,
+        'archive' => self::TYPE_ARCHIVE,
+        'file' => self::TYPE_FILE,
     ];
 
     /**
@@ -33,8 +54,8 @@ class Attachment extends Model
      * @var array<string, int>
      */
     public const VISIBILITY_MAP = [
-        'public' => 1,
-        'private' => 2,
+        'public' => self::VISIBILITY_PUBLIC,
+        'private' => self::VISIBILITY_PRIVATE,
     ];
 
     /**

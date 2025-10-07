@@ -5,6 +5,7 @@ export interface ManageMessageListItem {
     locale: string | null;
     name: string;
     email: string;
+    phone?: string | null;
     subject: string | null;
     message: string;
     status: string;
