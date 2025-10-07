@@ -318,6 +318,43 @@ export default function ManageAdminPostsIndex() {
         });
     };
 
+    const handleBulkAction = (action: BulkActionType) => {
+        if (selectedIds.length === 0) {
+            return;
+        }
+
+        const confirmMessage = (() => {
+            switch (action) {
+                case 'publish':
+                    return tPosts('bulk.confirm_publish', '確定要批次發佈選取的公告嗎？');
+                case 'unpublish':
+                    return tPosts('bulk.confirm_unpublish', '確定要批次下架選取的公告嗎？');
+                case 'archive':
+                    return tPosts('bulk.confirm_archive', '確定要封存這些公告嗎？封存後僅管理員可見。');
+                case 'delete':
+                    return tPosts('bulk.confirm_delete', '刪除後將無法復原，確定要刪除選取的公告嗎？');
+                default:
+                    return '';
+            }
+        })();
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        router.post(
+            '/manage/admin/posts/bulk',
+            {
+                action,
+                ids: selectedIds,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => setSelectedIds([]),
+            }
+        );
+    };
+
     const headerCheckboxState: boolean | 'indeterminate' = selectedIds.length === 0
         ? false
         : selectedIds.length === posts.data.length

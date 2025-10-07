@@ -1,3 +1,5 @@
+import type { ChangeEventHandler } from 'react';
+
 import FilterPanel from '@/components/manage/filter-panel';
 import { manageFilterControlClass } from '@/components/manage/filter-styles';
 import { Input } from '@/components/ui/input';
@@ -11,9 +13,9 @@ export interface ManagePostsFilterFormProps {
     perPage: string;
     tagOptions: NonNullable<ManagePostFilterOptions['tags']>;
     perPageOptions: readonly string[];
-    onKeywordChange: (value: string) => void;
-    onTagChange: (value: string) => void;
-    onPerPageChange: (value: string) => void;
+    onKeywordChange: ChangeEventHandler<HTMLInputElement>;
+    onTagChange: ChangeEventHandler<HTMLSelectElement>;
+    onPerPageChange: ChangeEventHandler<HTMLSelectElement>;
     onApply: () => void;
     onReset: () => void;
 }
@@ -50,7 +52,7 @@ export default function ManagePostsFilterForm({
                     <Input
                         type="search"
                         value={keyword}
-                        onChange={(event) => onKeywordChange(event.target.value)}
+                        onChange={onKeywordChange}
                         placeholder={tPosts('filters.keyword_placeholder', '搜尋標題或關鍵字')}
                         className={manageFilterControlClass()}
                         aria-label={tPosts('filters.keyword_label', '搜尋公告')}
@@ -63,7 +65,7 @@ export default function ManagePostsFilterForm({
                     </label>
                     <Select
                         value={tag}
-                        onChange={(event) => onTagChange(event.target.value)}
+                        onChange={onTagChange}
                         className={manageFilterControlClass()}
                         aria-label={tPosts('filters.tag_label', '標籤篩選')}
                     >
@@ -85,7 +87,7 @@ export default function ManagePostsFilterForm({
                     </label>
                     <Select
                         value={perPage}
-                        onChange={(event) => onPerPageChange(event.target.value)}
+                        onChange={onPerPageChange}
                         className={manageFilterControlClass()}
                         aria-label={tPosts('filters.per_page_label', '每頁筆數')}
                     >
